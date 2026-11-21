@@ -1,0 +1,3 @@
+Alembic 数据库迁移目录。
+
+使用应用配置中的 PRISM_AGENT_KIT_DATABASE_URL 生成和执行迁移。
