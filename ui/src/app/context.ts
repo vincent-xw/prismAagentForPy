@@ -1,4 +1,4 @@
-import { inject, ref, shallowRef, type InjectionKey } from 'vue'
+import { inject, shallowRef, type InjectionKey } from 'vue'
 import { useTheme } from './theme/useTheme'
 import { parseApiBasePath } from '@/lib/api/config'
 import { createCoreClient } from '@/lib/api/client'
@@ -27,7 +27,6 @@ function sessionStore(): Storage {
 export function createAppContext() {
   const basePath = parseApiBasePath(import.meta.env.VITE_API_BASE_PATH)
   const theme = useTheme()
-  const wizardOpen = ref(false)
   const conversation = shallowRef<ConversationController>()
   const fetcher = window.fetch.bind(window)
   const connection = createConnection({
@@ -61,13 +60,12 @@ export function createAppContext() {
   async function initialize() {
     const stored = connection.getToken()
     if (stored !== null) await connection.verifyAccess(stored)
-    else wizardOpen.value = true
   }
   function dispose() {
     conversation.value?.dispose()
     theme.dispose()
   }
-  return { basePath, theme, connection, conversation, wizardOpen, initialize, dispose }
+  return { basePath, theme, connection, conversation, initialize, dispose }
 }
 export type AppContext = ReturnType<typeof createAppContext>
 export const appContextKey: InjectionKey<AppContext> = Symbol('PrismAppContext')

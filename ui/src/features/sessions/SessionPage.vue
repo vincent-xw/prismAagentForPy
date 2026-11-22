@@ -13,7 +13,7 @@ import {
 import MessageList from './MessageList.vue'
 import MessageComposer from './MessageComposer.vue'
 import RunInspector from '@/features/runs/RunInspector.vue'
-const { conversation, connection, wizardOpen } = useAppContext()
+const { conversation, connection } = useAppContext()
 const inspectorOpen = ref(false)
 const isNarrow = ref(window.matchMedia('(max-width: 767px)').matches)
 const media = window.matchMedia('(max-width: 767px)')
@@ -68,7 +68,11 @@ const labels = {
       >
         <span class="text-muted-foreground">{{
           connection.state.status === 'unauthorized' ? '访问凭据已失效' : '连接服务后开始对话'
-        }}</span><Button variant="link" size="xs" @click="wizardOpen = true">连接服务</Button>
+        }}</span><RouterLink
+          to="/settings"
+          class="font-medium text-primary underline-offset-4 hover:underline"
+          >连接服务</RouterLink
+        >
       </div>
       <div
         v-if="state.error"
@@ -130,7 +134,7 @@ const labels = {
         @refresh="projection && conversation!.selectRun(projection.run.id)"
       />
     </aside>
-    <Sheet :open="inspectorOpen && isNarrow && !wizardOpen" @update:open="inspectorOpen = $event"
+    <Sheet :open="inspectorOpen && isNarrow" @update:open="inspectorOpen = $event"
       ><SheetContent class="w-[min(90vw,360px)] gap-0 p-0"
         ><SheetHeader class="sr-only"
           ><SheetTitle>执行详情</SheetTitle

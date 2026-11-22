@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { shallowRef, ref } from 'vue'
+import { shallowRef } from 'vue'
 import SessionPage from '@/features/sessions/SessionPage.vue'
 import { appContextKey, type AppContext } from '@/app/context'
 import { createConversation } from '@/features/sessions/conversation'
@@ -37,7 +37,6 @@ test('查看历史执行详情仍展示当前活动 Run 的流式输出', () => 
         [appContextKey as symbol]: {
           conversation: shallowRef(controller),
           connection,
-          wizardOpen: ref(false),
         } as AppContext,
       },
     },

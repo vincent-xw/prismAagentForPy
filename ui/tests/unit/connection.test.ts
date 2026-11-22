@@ -64,15 +64,13 @@ test('协议错误不能验证成功，存储失败明确提示本页有效', as
   expect(connection.state.storageError).toContain('当前页面')
 })
 
-test('已完成引导的凭据失效时退回验证步骤', () => {
+test('凭据失效时回到未授权状态', () => {
   const connection = createConnection({
     basePath: '/api/v1',
     fetcher: vi.fn<typeof fetch>(),
     storage: sessionStorage,
     onCredentialsChanged: () => {},
   })
-  connection.state.step = 2
   connection.invalidate()
-  expect(connection.state.step).toBe(1)
   expect(connection.state.status).toBe('unauthorized')
 })

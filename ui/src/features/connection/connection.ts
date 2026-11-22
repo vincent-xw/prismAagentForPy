@@ -28,7 +28,6 @@ export function createConnection({
     error: null as string | null,
     storageError: null as string | null,
     tools: [] as ToolDto[],
-    step: 0,
     basePath,
   })
   try {
@@ -99,7 +98,6 @@ export function createConnection({
     state.status = 'unverified'
     state.tools = []
     state.error = null
-    state.step = 1
     try {
       storage.removeItem(tokenKey)
     } catch {
@@ -109,7 +107,6 @@ export function createConnection({
   }
   function invalidate() {
     verification++
-    state.step = 1
     state.status = 'unauthorized'
     state.error = '访问凭据已失效，请重新验证。'
   }

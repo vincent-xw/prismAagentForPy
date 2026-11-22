@@ -12,9 +12,8 @@ import {
 } from '@/components/ui/sheet'
 import { useAppContext } from './context'
 import SessionSidebar from '@/features/sessions/SessionSidebar.vue'
-import ConnectionWizard from '@/features/connection/ConnectionWizard.vue'
 const context = useAppContext()
-const { conversation, connection, wizardOpen } = context
+const { conversation, connection } = context
 const route = useRoute()
 const router = useRouter()
 const navigationOpen = ref(false)
@@ -51,9 +50,6 @@ watch(
   },
   { immediate: true },
 )
-watch(wizardOpen, (open) => {
-  if (open) navigationOpen.value = false
-})
 onMounted(() => {
   void context.initialize()
 })
@@ -137,7 +133,7 @@ onMounted(() => {
       </header>
       <RouterView />
     </div>
-    <Sheet :open="navigationOpen && !wizardOpen" @update:open="navigationOpen = $event"
+    <Sheet :open="navigationOpen" @update:open="navigationOpen = $event"
       ><SheetContent side="left" class="w-[min(85vw,300px)] gap-0 p-0"
         ><SheetHeader class="border-b p-5"
           ><SheetTitle>Prism · 会话</SheetTitle
@@ -157,10 +153,5 @@ onMounted(() => {
         ></SheetContent
       ></Sheet
     >
-    <ConnectionWizard
-      v-model:open="wizardOpen"
-      :connection="connection"
-      @start="state.selectedSessionId ? router.push(lastSessionPath) : create()"
-    />
   </div>
 </template>
