@@ -1,0 +1,26 @@
+docs/superpowers/references/2026-11-22-core-ui-verification.md
+  s_414d9ac4ab3a4f::t_76cae410ebe2e1 15
+  s_414d9ac4ab3a4f::t_39ba8d3a8bfb79 1-2,4-14,16-43
+  s_414d9ac4ab3a4f::t_112331ec8b36f5 3
+docs/superpowers/specs/2026-11-22-core-ui-design.md
+  s_414d9ac4ab3a4f::t_70ff9de94c0075 4
+docs/superpowers/plans/2026-11-22-core-ui.md
+  s_414d9ac4ab3a4f::t_70ff9de94c0075 311
+  s_414d9ac4ab3a4f::t_112331ec8b36f5 104-108,120-125,140,152-155,169-173,187,200-203,216,230-233,247-252,267-272,284,301-302,321-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d731eeeca8dae47f90becbe2fdb83ecdd2bcbe6a",
+  "prompts": {},
+  "sessions": {
+    "s_414d9ac4ab3a4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20153-b443-74d1-93cd-501e79756cb1",
+        "model": "auto/gpt-6.1-sol"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
