@@ -1,0 +1,39 @@
+src/prism_agent_kit/db/repositories/events.py
+  s_fa558348164fda::t_a030f3e6ba8992 1-32
+src/prism_agent_kit/db/repositories/tool_calls.py
+  s_fa558348164fda::t_4cba9cd92bbe1f 1,28
+  s_fa558348164fda::t_04082960e9e5b1 32,46,79
+  s_fa558348164fda::t_a030f3e6ba8992 2-27,29-31,33-45,47-78,80-235
+src/prism_agent_kit/db/uow.py
+  s_fa558348164fda::t_a030f3e6ba8992 6-7,10,21-23,30-32
+tests/db/test_message_repository.py
+  s_fa558348164fda::t_6c8e3efaafd4d3 1-46
+src/prism_agent_kit/db/repositories/messages.py
+  s_fa558348164fda::t_a030f3e6ba8992 1-24,26-27
+  s_fa558348164fda::t_0cd2b2e5570090 25
+tests/db/test_event_repository.py
+  s_fa558348164fda::t_6c8e3efaafd4d3 1-32
+tests/core/test_digests.py
+  s_fa558348164fda::t_6c8e3efaafd4d3 1-13
+tests/db/test_tool_call_repository.py
+  s_fa558348164fda::t_6c8e3efaafd4d3 3-4,6-112,115-141
+  s_fa558348164fda::t_2f9dc83bb4443f 1-2,5,113-114
+src/prism_agent_kit/core/digests.py
+  s_fa558348164fda::t_a030f3e6ba8992 1-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "1367070297fd9be805e96b33cd8fa61d2aecaa81",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
