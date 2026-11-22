@@ -1,0 +1,35 @@
+src/prism_agent_kit/providers/openai_compatible.py
+  s_fa558348164fda::t_a1de3cb1af7ab9 214,217
+  s_fa558348164fda::t_b7485b5c34cac5 1-14,16-17,19-76,78-107,109-174,178-179,183-213,215-216,218-248,250,252-257,259-321
+  s_fa558348164fda::t_ba7d127f8ee2c0 108,249,251,258
+  s_fa558348164fda::t_0ef28993c360ce 15,77
+  s_fa558348164fda::t_36712b00c133ec 18,175-177,180-182
+tests/providers/test_openai_compatible.py
+  s_fa558348164fda::t_ba7d127f8ee2c0 80
+  s_fa558348164fda::t_36712b00c133ec 78
+  s_fa558348164fda::t_453b5dadcf083c 1-76,90-155,157-185,187-216,218-257
+  s_fa558348164fda::t_0ef28993c360ce 77,79,81-89,156,186,217
+src/prism_agent_kit/core/ports.py
+  s_fa558348164fda::t_b7485b5c34cac5 1-25,27-58
+  s_fa558348164fda::t_36712b00c133ec 26
+src/prism_agent_kit/providers/__init__.py
+  s_fa558348164fda::t_b7485b5c34cac5 1
+src/prism_agent_kit/core/errors.py
+  s_fa558348164fda::t_b7485b5c34cac5 31-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "0ea294278cfc9d0e8a2fda8760de374ef87c0fd5",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
