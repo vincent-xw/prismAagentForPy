@@ -1,30 +1,15 @@
 from collections.abc import AsyncIterator
 
+from fastapi import Request
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
 )
 
-from prism_agent_kit.core.config import get_settings
-
-_engine = create_async_engine(
-    get_settings().database_url,
-    pool_pre_ping=True,
-)
-
-async_session_factory = async_sessionmaker(
-    bind=_engine,
-    expire_on_commit=False,
-)
+from prism_agent_kit.db.database import Database
 
 
-async def get_db_session() -> AsyncIterator[AsyncSession]:
+async def get_db_session(request: Request) -> AsyncIterator[AsyncSession]:
     """为单次请求提供独立数据库会话。"""
-    async with async_session_factory() as session:
+    database: Database = request.app.state.database
+    async with database.session_factory() as session:
         yield session
-
-
-async def dispose_database() -> None:
-    """在应用退出时释放数据库连接池。"""
-    await _engine.dispose()
