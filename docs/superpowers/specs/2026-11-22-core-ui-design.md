@@ -14,7 +14,7 @@
 - 重新考虑抽屉的职责，避免各种功能都依赖侧边抽屉。
 - 旧版引导弹窗中有价值的体验可以保留，步骤必须符合当前 Backend 能力。
 - 首期对接 Core 已有能力，不一次性迁移旧 Runtime 的全部功能。
-- 保持前后端工作边界：只修改 UI 与其设计文档；根目录的空 `backend/` 和现有 Python 文件由用户后续迁移。
+- 保持前后端工作边界：UI 位于 `ui/`，Python 后端位于 `backend/`；跨层协议变更必须同时说明两端影响。
 
 以下技术组合、信息架构和交互方向已随整体设计确认；具体色值继续通过原型和视觉验收调整。
 
@@ -274,14 +274,14 @@ Backend 工作分支中的文件：
 
 - `docs/superpowers/specs/2026-11-22-python-agent-core-design.md`
 - `docs/superpowers/plans/2026-11-22-python-agent-core.md`
-- `src/prism_agent_kit/api/schemas.py`
-- `src/prism_agent_kit/api/routes/sessions.py`
-- `src/prism_agent_kit/api/routes/runs.py`
-- `src/prism_agent_kit/api/routes/tools.py`
-- `src/prism_agent_kit/api/auth.py`
-- `src/prism_agent_kit/application/container.py`
-- `src/prism_agent_kit/core/engine.py`
-- `src/prism_agent_kit/db/repositories/tool_calls.py`
+- `backend/src/prism_agent_kit/api/schemas.py`
+- `backend/src/prism_agent_kit/api/routes/sessions.py`
+- `backend/src/prism_agent_kit/api/routes/runs.py`
+- `backend/src/prism_agent_kit/api/routes/tools.py`
+- `backend/src/prism_agent_kit/api/auth.py`
+- `backend/src/prism_agent_kit/application/container.py`
+- `backend/src/prism_agent_kit/core/engine.py`
+- `backend/src/prism_agent_kit/db/repositories/tool_calls.py`
 
 旧 Node.js Runtime 中的文件：
 

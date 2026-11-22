@@ -1,6 +1,7 @@
 # PrismAgentKit Python Agent Core Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **目录说明：** 后续 Monorepo 调整已将本文所述 Python 工程迁入 `backend/`；文中 `src/`、`tests/`、`migrations/` 和配置路径均以 `backend/` 为根理解。
 
 **Goal:** 构建一个本地运行、SQLite 持久化、FastAPI/SSE 对外、自研 Agent 循环的 PrismAgentKit Python Core。
 

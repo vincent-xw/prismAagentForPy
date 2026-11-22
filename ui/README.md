@@ -21,7 +21,7 @@ VITE_API_BASE_PATH=/api/v1
 
 开发服务为 `http://127.0.0.1:3000`；端口冲突直接退出。`PRISM_UI_API_TARGET` 只由 Node 侧代理读取，不写入浏览器。`VITE_API_BASE_PATH` 是同源 API 路径，缺失或非法时明确提示配置错误；生产构建也必须提供。开发代理保留 `/api/` 路径，不重写前缀。
 
-当前 UI 分支的根目录 Python 仍是初始化脚手架。请连接包含 Core 的 Backend 工作树服务，健康检查成功不代表 Core 业务或模型可用。根目录 `backend/` 有意保持空目录，由维护者后续迁移。
+Python Backend 位于仓库根 `backend/`。启动后端后，将 `PRISM_UI_API_TARGET` 指向实际服务地址；健康检查成功不代表模型凭据、Core 业务或 SSE 已完整可用。
 
 ## 使用范围
 
