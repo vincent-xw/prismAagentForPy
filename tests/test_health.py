@@ -11,5 +11,5 @@ def test_health_endpoint(client: TestClient) -> None:
         "status": "ok",
         "service": "PrismAgentKit API",
         "version": __version__,
-        "environment": "development",
+        "environment": "test",
     }

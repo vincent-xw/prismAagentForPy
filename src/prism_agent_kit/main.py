@@ -6,6 +6,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from prism_agent_kit import __version__
+from prism_agent_kit.api.auth import ApiTokenMiddleware, validate_api_token_configuration
+from prism_agent_kit.api.errors import install_exception_handlers
+from prism_agent_kit.api.request_context import RequestIdMiddleware
 from prism_agent_kit.api.router import api_router
 from prism_agent_kit.core.config import Settings, get_settings
 from prism_agent_kit.core.logging import configure_logging
@@ -22,6 +25,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         """管理应用启动与关闭阶段的基础资源。"""
+        validate_api_token_configuration(resolved_settings)
         database = Database(resolved_settings.resolved_database_path)
         application.state.database = database
         logger.info(
@@ -44,6 +48,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     application.state.settings = resolved_settings
 
+    application.add_middleware(ApiTokenMiddleware, settings=resolved_settings)
     if resolved_settings.cors_origins:
         application.add_middleware(
             CORSMiddleware,
@@ -52,6 +57,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+    application.add_middleware(RequestIdMiddleware)
+    install_exception_handlers(application)
 
     application.include_router(api_router, prefix=resolved_settings.api_prefix)
     return application
