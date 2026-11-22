@@ -75,6 +75,8 @@ class AgentEngine(Protocol):
 
     async def resume(self, context: EngineContext) -> EngineOutcome: ...
 
+    async def cancel(self, run_id: str) -> EngineOutcome: ...
+
 
 class SimpleAgentEngine:
     """首版自研模型与工具循环。"""
@@ -109,6 +111,10 @@ class SimpleAgentEngine:
     async def resume(self, context: EngineContext) -> EngineOutcome:
         """从已持久化历史继续执行 Run。不重新执行旧工具调用。"""
         return await self._run(context)
+
+    async def cancel(self, run_id: str) -> EngineOutcome:
+        """取消 Run 并闭合全部未完成工具调用。"""
+        return await self._cancel_run(run_id)
 
     async def _run(self, context: EngineContext) -> EngineOutcome:
         run = await self._load_run(context.run_id)

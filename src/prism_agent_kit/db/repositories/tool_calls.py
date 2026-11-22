@@ -98,7 +98,7 @@ class ToolCallRepository:
         self,
         run_id: str,
         call_id: str,
-        error_code: ErrorCode,
+        error_code: ErrorCode | str,
         message: str,
     ) -> Message:
         """记录单次工具失败结果。不闭合同轮其他调用。"""
@@ -116,18 +116,29 @@ class ToolCallRepository:
                 details={"call_id": call_id},
             )
         run = await self._require_run(run_id)
-        tool_status, event_type = self._closure_status(error_code)
+        code_value = error_code.value if isinstance(error_code, ErrorCode) else error_code
+        tool_status = (
+            ToolCallStatus.CANCELLED
+            if code_value == ErrorCode.RUN_CANCELLED.value
+            else ToolCallStatus.FAILED
+        )
+        event_type = EventType.TOOL_FAILED
         tool_message = await self._messages.append(
             Message(
                 session_id=run.session_id,
                 run_id=run_id,
                 role=MessageRole.TOOL,
-                content=_error_content(error_code, message),
+                content={
+                    "error": {
+                        "code": code_value,
+                        "message": message,
+                    }
+                },
                 tool_call_id=call_id,
             )
         )
         row.status = tool_status.value
-        row.error_code = error_code.value
+        row.error_code = code_value
         row.error_message = message
         row.finished_at = _storage_now()
         await self._events.append(
@@ -137,7 +148,7 @@ class ToolCallRepository:
                 payload={
                     "call_id": call_id,
                     "tool_name": row.tool_name,
-                    "error_code": error_code.value,
+                    "error_code": code_value,
                     "error_message": message,
                     "message_id": tool_message.id,
                 },
