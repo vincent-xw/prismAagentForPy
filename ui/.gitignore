@@ -1,0 +1,13 @@
+# 前端依赖、构建产物与工具缓存。
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+*.local
+test-results/
+playwright-report/
+
+# 本地环境文件只保留不含敏感信息的示例。
+.env
+.env.*
+!.env.example
