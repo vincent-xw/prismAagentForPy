@@ -1,0 +1,44 @@
+ui/tests/unit/connection.test.ts
+  s_fa558348164fda::t_a515f16e4c4c3a 67
+ui/tests/unit/session-page.test.ts
+  s_fa558348164fda::t_a515f16e4c4c3a 3
+README.md
+  s_fa558348164fda::t_b77e6d02e310e6 34,97
+ui/src/app/AppShell.vue
+  s_fa558348164fda::t_b77e6d02e310e6 16,136
+ui/src/app/context.ts
+  s_fa558348164fda::t_b77e6d02e310e6 1,68
+ui/README.md
+  s_fa558348164fda::t_b77e6d02e310e6 3,28
+ui/tests/e2e/connection.spec.ts
+  s_fa558348164fda::t_a515f16e4c4c3a 4,7-11,13,16,18-19,22,31-33,36,43,45
+  s_fa558348164fda::t_09504d827eca9d 17,46
+  s_fa558348164fda::t_ab10f66e6ff61d 47-49
+ui/src/features/sessions/SessionPage.vue
+  s_fa558348164fda::t_ab10f66e6ff61d 71
+  s_fa558348164fda::t_b77e6d02e310e6 16,72-75,137
+docs/superpowers/specs/2026-11-22-core-ui-design.md
+  s_fa558348164fda::t_b77e6d02e310e6 158,164,166,168,170-173,180-181
+  s_fa558348164fda::t_ce602c2996d2b4 251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "23aaeafcccc5b22ec7628bbaadacb620dcc991d0",
+  "prompts": {},
+  "humans": {
+    "h_959ffaaf5065b8": {
+      "author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  },
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
