@@ -1,6 +1,8 @@
 import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
 import { defineConfig, loadEnv } from 'vite'
+import { parseApiBasePath } from './src/lib/api/config.ts'
 
 // 联调地址只由 Node 侧读取；生产构建和静态预览不依赖后端配置。
 export default defineConfig(({ command, mode, isPreview }) => {
@@ -9,6 +11,11 @@ export default defineConfig(({ command, mode, isPreview }) => {
   // 环境文件始终相对 ui/ 读取，避免从仓库根目录启动时读错后端配置。
   const env = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'PRISM_UI_')
   const apiTarget = env.PRISM_UI_API_TARGET
+  // 开发与构建都要求显式路径；静态预览消费已构建产物。
+  if (!isPreview) {
+    const browserEnv = loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'VITE_')
+    parseApiBasePath(browserEnv.VITE_API_BASE_PATH)
+  }
 
   if (isDevelopmentServer) {
     if (!apiTarget) {
@@ -25,7 +32,7 @@ export default defineConfig(({ command, mode, isPreview }) => {
   }
 
   return {
-    plugins: [vue()],
+    plugins: [vue(), tailwindcss()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
