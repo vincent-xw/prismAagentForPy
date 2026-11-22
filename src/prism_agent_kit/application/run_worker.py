@@ -107,8 +107,11 @@ class RunWorker:
         try:
             context = EngineContext(run_id=run.id, cancel=cancel)
             if run.step_count == 0:
-                return await self._engine.execute(context)
-            return await self._engine.resume(context)
+                outcome = await self._engine.execute(context)
+            else:
+                outcome = await self._engine.resume(context)
+            cancel_outcome = await self._cancel_if_requested(run.id, cancel)
+            return cancel_outcome or outcome
         except asyncio.CancelledError:
             raise
         except AgentKitError as error:
@@ -132,6 +135,20 @@ class RunWorker:
             )
         finally:
             self._cancellation_registry.unregister(run.id)
+
+    async def _cancel_if_requested(
+        self,
+        run_id: str,
+        cancel: asyncio.Event,
+    ) -> EngineOutcome | None:
+        """引擎返回后再次确认取消请求, 关闭暂停与完成之间的竞态。"""
+        async with self._uow_factory() as uow:
+            run = await uow.runs.get(run_id)
+        if run.status in _TERMINAL_RUN_STATUSES:
+            return None
+        if not cancel.is_set() and run.cancel_requested_at is None:
+            return None
+        return await self._engine.cancel(run_id)
 
     async def recover_interrupted_runs(self) -> int:
         """把启动时遗留的 running Run 标记为进程中断并闭合工具调用。"""

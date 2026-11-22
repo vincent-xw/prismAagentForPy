@@ -2,7 +2,7 @@ from collections.abc import Awaitable, Callable
 
 from pydantic import JsonValue
 
-from prism_agent_kit.core.models import Message
+from prism_agent_kit.core.models import Message, ToolCall
 from prism_agent_kit.core.ports import (
     EventEnvelope,
     ModelChunk,
@@ -40,6 +40,9 @@ class FixedEstimator:
         return 1
 
     def count_message(self, message: Message) -> int:
+        return 1
+
+    def count_tool_call(self, tool_call: ToolCall) -> int:
         return 1
 
     def count_messages(self, messages: list[Message]) -> int:

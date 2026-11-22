@@ -21,3 +21,15 @@ def test_missing_session_returns_not_found(api_client: TestClient) -> None:
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "SESSION_NOT_FOUND"
+
+
+def test_empty_prompt_ref_is_not_replaced_with_default(api_client: TestClient) -> None:
+    session = api_client.post("/api/v1/sessions", json={}).json()
+
+    response = api_client.post(
+        f"/api/v1/sessions/{session['id']}/runs",
+        json={"input": "hello", "prompt_ref": ""},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "INVALID_PROMPT_REF"

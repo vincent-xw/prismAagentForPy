@@ -3,7 +3,7 @@ import logging
 from datetime import timedelta
 from typing import Literal, Protocol, cast
 
-from pydantic import BaseModel, ConfigDict, JsonValue
+from pydantic import BaseModel, ConfigDict, JsonValue, ValidationError
 from sqlalchemy.exc import IntegrityError
 
 from prism_agent_kit.core.context import ContextAssembler, ContextAssembly
@@ -49,6 +49,10 @@ _TERMINAL_RUN_STATUSES = frozenset(
         RunStatus.CANCELLED,
     }
 )
+
+
+class _CancelRequested(Exception):
+    """在持久化模型结果前发现取消请求, 用于回滚本轮写入。"""
 
 
 class EngineContext(BaseModel):
@@ -125,14 +129,14 @@ class SimpleAgentEngine:
                 http_status=409,
                 details={"run_id": run.id, "status": run.status.value},
             )
-        if context.cancel.is_set():
+        if context.cancel.is_set() or run.cancel_requested_at is not None:
             return await self._cancel_run(run.id)
 
         await self._emit_started(run.id)
         tool_schemas = self._tool_registry.model_schemas()
 
         while True:
-            if context.cancel.is_set():
+            if await self._is_cancel_requested(run.id, context.cancel):
                 return await self._cancel_run(run.id)
 
             async with self._uow_factory() as uow:
@@ -174,20 +178,47 @@ class SimpleAgentEngine:
             except AgentKitError as error:
                 return await self._fail_run(run.id, error.code, error.message)
 
+            if await self._is_cancel_requested(run.id, context.cancel):
+                return await self._cancel_run(run.id)
+
             try:
                 definitions = self._resolve_tool_definitions(response)
             except AgentKitError as error:
                 return await self._fail_run(run.id, error.code, error.message)
 
-            outcome, calls, ordered_definitions = await self._persist_model_turn(
-                run.id,
-                current.session_id,
-                response,
-                definitions,
-                assembly,
-            )
+            try:
+                outcome, calls, ordered_definitions = await self._persist_model_turn(
+                    run.id,
+                    current.session_id,
+                    response,
+                    definitions,
+                    assembly,
+                    context.cancel,
+                )
+            except _CancelRequested:
+                return await self._cancel_run(run.id)
             if outcome is not None:
                 return outcome
+
+            if await self._is_cancel_requested(run.id, context.cancel):
+                return await self._cancel_run(run.id)
+
+            for call, definition in zip(
+                calls,
+                ordered_definitions,
+                strict=True,
+            ):
+                try:
+                    definition.input_model.model_validate(call.input)
+                except ValidationError:
+                    return await self._fail_after_contract(
+                        run.id,
+                        call.id,
+                        ToolExecutionResult.failure(
+                            ErrorCode.TOOL_INPUT_INVALID,
+                            "工具输入不符合 Schema",
+                        ),
+                    )
 
             for call, definition in zip(
                 calls,
@@ -226,7 +257,9 @@ class SimpleAgentEngine:
                 definition.execution_mode is ExecutionMode.REMOTE
                 for definition in ordered_definitions
             ):
-                return await self._wait_for_remote_tools(
+                if await self._is_cancel_requested(run.id, context.cancel):
+                    return await self._cancel_run(run.id)
+                outcome = await self._wait_for_remote_tools(
                     run.id,
                     [
                         call.id
@@ -238,6 +271,9 @@ class SimpleAgentEngine:
                         if definition.execution_mode is ExecutionMode.REMOTE
                     ],
                 )
+                if await self._is_cancel_requested(run.id, context.cancel):
+                    return await self._cancel_run(run.id)
+                return outcome
 
     async def _persist_model_turn(
         self,
@@ -246,12 +282,15 @@ class SimpleAgentEngine:
         response: ModelResponse,
         definitions: dict[str, ToolDefinition],
         assembly: ContextAssembly,
+        cancel: asyncio.Event,
     ) -> tuple[EngineOutcome | None, list[ToolCall], list[ToolDefinition]]:
         """持久化 assistant 与全部 ToolCall。无工具时直接完成 Run。"""
         persisted_events: list[RunEvent] = []
         try:
             async with self._uow_factory() as uow:
                 run = await uow.runs.get(run_id)
+                if cancel.is_set() or run.cancel_requested_at is not None:
+                    raise _CancelRequested
                 assistant = await uow.messages.append(
                     Message(
                         session_id=session_id,
@@ -600,6 +639,18 @@ class SimpleAgentEngine:
                 envelope.event_id,
                 exc_info=True,
             )
+
+    async def _is_cancel_requested(
+        self,
+        run_id: str,
+        cancel: asyncio.Event,
+    ) -> bool:
+        """同时检查进程内信号与持久取消标记, 覆盖注册信号前的竞态。"""
+        if cancel.is_set():
+            return True
+        async with self._uow_factory() as uow:
+            run = await uow.runs.get(run_id)
+        return run.cancel_requested_at is not None
 
     async def _load_run(self, run_id: str) -> Run:
         async with self._uow_factory() as uow:

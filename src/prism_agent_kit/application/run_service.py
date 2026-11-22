@@ -119,7 +119,7 @@ class RunService:
                 cancel_signal.set()
 
             requested = await uow.runs.mark_cancel_requested(run_id)
-            if run.status is RunStatus.RUNNING and cancel_signal is not None:
+            if run.status is RunStatus.RUNNING:
                 await uow.commit()
                 return requested
 
@@ -165,7 +165,7 @@ class RunService:
 
     def _resolve_prompt(self, prompt_ref: str | None) -> Prompt:
         """解析显式 Prompt 引用。查找失败按请求参数错误映射为 422。"""
-        resolved_ref = prompt_ref or self._default_prompt_ref
+        resolved_ref = self._default_prompt_ref if prompt_ref is None else prompt_ref
         try:
             return self._prompt_registry.get_by_ref(resolved_ref)
         except AgentKitError as error:

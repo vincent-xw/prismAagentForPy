@@ -67,14 +67,16 @@ class ContextAssembler:
             )
 
         unit_tokens = [
-            sum(self._estimator.count_message(message) for message in unit) for unit in units
+            sum(self._estimator.count_message(message) for message in unit_messages)
+            + sum(self._estimator.count_tool_call(tool_call) for tool_call in unit_tool_calls)
+            for unit_messages, unit_tool_calls in units
         ]
         total_tokens = fixed_tokens + sum(unit_tokens)
         trimmed_count = 0
         trimmed_tokens = 0
 
         while len(units) > 1 and total_tokens > self._input_budget:
-            removed_unit = units.pop(0)
+            removed_unit, _ = units.pop(0)
             removed_tokens = unit_tokens.pop(0)
             total_tokens -= removed_tokens
             trimmed_count += len(removed_unit)
@@ -92,7 +94,7 @@ class ContextAssembler:
             )
 
         return ContextAssembly(
-            messages=[message for unit in units for message in unit],
+            messages=[message for unit, _ in units for message in unit],
             estimated_tokens=total_tokens,
             trimmed_count=trimmed_count,
             trimmed_tokens=trimmed_tokens,
@@ -102,27 +104,30 @@ class ContextAssembler:
         self,
         messages: list[Message],
         tool_calls: Sequence[ToolCall],
-    ) -> list[list[Message]]:
+    ) -> list[tuple[list[Message], list[ToolCall]]]:
         """把 assistant 与其全部 tool 结果组成不可拆分单元。"""
-        calls_by_assistant: dict[int, list[str]] = {}
+        calls_by_assistant: dict[int, list[ToolCall]] = {}
         for tool_call in tool_calls:
             calls_by_assistant.setdefault(
                 tool_call.assistant_message_id,
                 [],
-            ).append(tool_call.id)
+            ).append(tool_call)
 
-        units: list[list[Message]] = []
+        units: list[tuple[list[Message], list[ToolCall]]] = []
         index = 0
         while index < len(messages):
             message = messages[index]
             if message.role is MessageRole.USER:
-                units.append([message])
+                units.append(([message], []))
                 index += 1
                 continue
             if message.role is MessageRole.TOOL:
                 self._raise_invalid_history("tool 消息缺少对应的 assistant 消息")
 
-            expected_ids = calls_by_assistant.get(message.id, []) if message.id is not None else []
+            expected_calls = (
+                calls_by_assistant.get(message.id, []) if message.id is not None else []
+            )
+            expected_ids = [tool_call.id for tool_call in expected_calls]
             unit = [message]
             index += 1
             while index < len(messages) and messages[index].role is MessageRole.TOOL:
@@ -132,7 +137,7 @@ class ContextAssembler:
             tool_messages = unit[1:]
             if expected_ids or tool_messages:
                 self._validate_tool_group(expected_ids, tool_messages)
-            units.append(unit)
+            units.append((unit, expected_calls))
         return units
 
     def _validate_tool_group(

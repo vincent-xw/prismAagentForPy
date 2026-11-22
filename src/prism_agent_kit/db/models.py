@@ -58,7 +58,16 @@ class MessageRow(Base):
     """Message 的 SQLite 持久化行。"""
 
     __tablename__ = "messages"
-    __table_args__ = (Index("ix_messages_session_id", "session_id", "id"),)
+    __table_args__ = (
+        Index("ix_messages_session_id", "session_id", "id"),
+        Index(
+            "ux_messages_run_tool_call",
+            "run_id",
+            "tool_call_id",
+            unique=True,
+            sqlite_where=text("tool_call_id IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     session_id: Mapped[str] = mapped_column(

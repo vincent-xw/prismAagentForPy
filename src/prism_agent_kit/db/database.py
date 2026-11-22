@@ -1,3 +1,5 @@
+import os
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +16,32 @@ def build_sqlite_url(path: Path) -> str:
     return f"sqlite+aiosqlite:///{path.expanduser().resolve()}"
 
 
+def ensure_private_sqlite_path(path: Path) -> Path:
+    """创建数据目录与数据库文件, 并在 POSIX 上限制为当前用户访问。"""
+    resolved = path.expanduser().resolve()
+    resolved.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if os.name == "posix":
+        resolved.parent.chmod(0o700)
+        resolved.touch(exist_ok=True, mode=0o600)
+        resolved.chmod(0o600)
+    return resolved
+
+
+def _secure_sqlite_files(path: Path) -> None:
+    """收紧 SQLite 主文件与 WAL/SHM 附属文件权限。"""
+    if os.name != "posix":
+        return
+    for candidate in (
+        path,
+        path.with_name(f"{path.name}-wal"),
+        path.with_name(f"{path.name}-shm"),
+    ):
+        if candidate.exists():
+            candidate.chmod(0o600)
+
+
 def _configure_sqlite_connection(
+    path: Path,
     dbapi_connection: Any,
     _connection_record: Any,
 ) -> None:
@@ -28,19 +55,23 @@ def _configure_sqlite_connection(
         cursor.execute("PRAGMA synchronous=NORMAL")
     finally:
         cursor.close()
+    _secure_sqlite_files(path)
 
 
 class Database:
     """持有单个 SQLite 文件的异步引擎与会话工厂。"""
 
     def __init__(self, path: Path) -> None:
-        self.path = path.expanduser().resolve()
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path = ensure_private_sqlite_path(path)
         self.engine: AsyncEngine = create_async_engine(
             build_sqlite_url(self.path),
             connect_args={"timeout": 30},
         )
-        event.listen(self.engine.sync_engine, "connect", _configure_sqlite_connection)
+        event.listen(
+            self.engine.sync_engine,
+            "connect",
+            partial(_configure_sqlite_connection, self.path),
+        )
         self.session_factory = async_sessionmaker(
             bind=self.engine,
             expire_on_commit=False,

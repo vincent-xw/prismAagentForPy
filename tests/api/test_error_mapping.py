@@ -84,3 +84,17 @@ def test_validation_error_uses_unified_error_shape(
     body = response.json()
     assert body["error"]["code"] == "VALIDATION_ERROR"
     assert body["error"]["request_id"] == response.headers["X-Request-ID"]
+
+
+def test_unknown_route_uses_unified_error_shape(
+    migrated_database_path: Path,
+) -> None:
+    application = make_app(migrated_database_path)
+
+    with TestClient(application) as client:
+        response = client.get("/api/v1/does-not-exist")
+
+    assert response.status_code == 404
+    body = response.json()
+    assert body["error"]["code"] == "NOT_FOUND"
+    assert body["error"]["request_id"] == response.headers["X-Request-ID"]

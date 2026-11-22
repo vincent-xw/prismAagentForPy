@@ -71,3 +71,29 @@ async def test_cancel_running_run_signals_worker(
     async with api_context.uow_factory() as uow:
         stored: Run = await uow.runs.get(created["id"])
     assert stored.cancel_requested_at is not None
+
+
+async def test_cancel_running_run_without_signal_does_not_force_terminal_state(
+    api_context: ApiTestContext,
+) -> None:
+    session = (await api_context.client.post("/api/v1/sessions", json={})).json()
+    created = (
+        await api_context.client.post(
+            f"/api/v1/sessions/{session['id']}/runs",
+            json={"input": "hello"},
+        )
+    ).json()
+    async with api_context.uow_factory() as uow:
+        claimed = await uow.runs.claim_next()
+        await uow.commit()
+    assert claimed is not None
+
+    response = await api_context.client.post(f"/api/v1/runs/{created['id']}/cancel")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "running"
+    assert payload["cancel_requested_at"] is not None
+    async with api_context.uow_factory() as uow:
+        stored: Run = await uow.runs.get(created["id"])
+    assert stored.status.value == "running"

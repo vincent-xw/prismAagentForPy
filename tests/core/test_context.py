@@ -22,6 +22,9 @@ class FixedEstimator:
     def count_message(self, message: Message) -> int:
         return 1
 
+    def count_tool_call(self, tool_call: ToolCall) -> int:
+        return 1
+
 
 def make_message(
     message_id: int,
@@ -76,7 +79,7 @@ def test_context_trimming_keeps_assistant_and_tool_results_together() -> None:
 
     assert [message.id for message in assembly.messages] == [4]
     assert assembly.trimmed_count == 3
-    assert assembly.trimmed_tokens == 3
+    assert assembly.trimmed_tokens == 4
     assert assembly.estimated_tokens == 2
 
 
@@ -115,5 +118,30 @@ def test_current_input_over_budget_fails_without_trimming_it() -> None:
 
     with pytest.raises(AgentKitError) as error:
         assembler.assemble(system_prompt="system", messages=messages)
+
+    assert error.value.code is ErrorCode.CONTEXT_BUDGET_EXCEEDED
+
+
+def test_tool_call_payload_counts_toward_budget() -> None:
+    class ToolHeavyEstimator(FixedEstimator):
+        def count_tool_call(self, tool_call: ToolCall) -> int:
+            return 10
+
+    assembler = ContextAssembler(
+        estimator=ToolHeavyEstimator(),
+        context_window=6,
+        max_output_tokens=2,
+        safety_margin_tokens=1,
+    )
+
+    with pytest.raises(AgentKitError) as error:
+        assembler.assemble(
+            system_prompt="system",
+            messages=[
+                make_message(2, MessageRole.ASSISTANT, None),
+                make_message(3, MessageRole.TOOL, {"ok": True}, "call-1"),
+            ],
+            tool_calls=[make_tool_call("call-1")],
+        )
 
     assert error.value.code is ErrorCode.CONTEXT_BUDGET_EXCEEDED

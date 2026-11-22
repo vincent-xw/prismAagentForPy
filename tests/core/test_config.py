@@ -19,3 +19,12 @@ def test_settings_parse_runtime_values(tmp_path: Path) -> None:
     assert settings.model_name == "deepseek-chat"
     assert settings.api_token is not None
     assert settings.api_token.get_secret_value() == "test-token"
+
+
+def test_empty_model_base_url_is_normalized_to_none(tmp_path: Path) -> None:
+    settings = Settings(
+        database_path=tmp_path / "agent.db",
+        model_base_url="",
+    )
+
+    assert settings.model_base_url is None

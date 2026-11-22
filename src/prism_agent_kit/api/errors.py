@@ -5,6 +5,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from prism_agent_kit.api.request_context import create_request_id, get_request_id
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
@@ -109,6 +110,28 @@ def install_exception_handlers(app: FastAPI) -> None:
             details=_validation_details(exc),
         )
 
+    async def handle_http_error(request: Request, exc: Exception) -> JSONResponse:
+        """把框架产生的路由错误转换为统一错误结构。"""
+        if not isinstance(exc, StarletteHTTPException):
+            raise exc
+
+        if exc.status_code == 404:
+            code = ErrorCode.NOT_FOUND
+            message = "请求的路由不存在"
+        elif exc.status_code == 405:
+            code = ErrorCode.METHOD_NOT_ALLOWED
+            message = "请求方法不允许"
+        else:
+            code = ErrorCode.INVALID_REQUEST
+            message = "请求无法处理"
+        return make_error_response(
+            status_code=exc.status_code,
+            code=code,
+            message=message,
+            request_id=_resolve_request_id(request),
+            headers=exc.headers,
+        )
+
     async def handle_unclassified_error(
         request: Request,
         exc: Exception,
@@ -130,4 +153,5 @@ def install_exception_handlers(app: FastAPI) -> None:
 
     app.add_exception_handler(AgentKitError, handle_agent_error)
     app.add_exception_handler(RequestValidationError, handle_validation_error)
+    app.add_exception_handler(StarletteHTTPException, handle_http_error)
     app.add_exception_handler(Exception, handle_unclassified_error)

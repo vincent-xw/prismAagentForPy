@@ -58,6 +58,14 @@ class Settings(BaseSettings):
             raise ValueError("api_prefix 不能为空")
         return normalized
 
+    @field_validator("model_base_url", mode="before")
+    @classmethod
+    def normalize_optional_base_url(cls, value: object) -> object:
+        """把 .env 中的空字符串视为未配置, 避免传给 OpenAI SDK。"""
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
     @field_validator("log_level")
     @classmethod
     def normalize_log_level(cls, value: str) -> str:

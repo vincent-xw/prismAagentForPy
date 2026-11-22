@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 
 import pytest
 from pydantic import BaseModel
@@ -37,6 +38,24 @@ class SchemaOutput(BaseModel):
 
 class EmptyInput(BaseModel):
     pass
+
+
+class BlockingFirstPublisher:
+    """阻塞第一次事件发布, 用于制造并发发布的顺序竞态。"""
+
+    def __init__(self) -> None:
+        self.first_started = asyncio.Event()
+        self.second_published = asyncio.Event()
+        self.release = asyncio.Event()
+        self.events: list[object] = []
+
+    async def publish(self, event: object) -> None:
+        if not self.first_started.is_set():
+            self.first_started.set()
+            await self.release.wait()
+        self.events.append(event)
+        if len(self.events) >= 2:
+            self.second_published.set()
 
 
 def schema_remote_tool() -> ToolDefinition:
@@ -365,3 +384,187 @@ async def test_cancel_closes_every_unfinished_remote_tool_call(
     assert all(call.status is ToolCallStatus.CANCELLED for call in calls)
     assert [message.role for message in messages].count(MessageRole.TOOL) == 2
     assert stored_run.status is RunStatus.CANCELLED
+
+
+async def test_concurrent_identical_results_write_one_tool_message(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run, registry, publisher = await start_remote_run(uow_factory, ["call-1"])
+    service = ToolResultService(
+        uow_factory=uow_factory,
+        tool_registry=registry,
+        event_publisher=publisher,
+    )
+    async with uow_factory() as uow:
+        call = await uow.tool_calls.get(run.id, "call-1")
+
+    results = await asyncio.gather(
+        service.submit(
+            run.id,
+            "call-1",
+            call.input_digest,
+            RemoteToolResult(ok=True, output={"value": "same"}),
+        ),
+        service.submit(
+            run.id,
+            "call-1",
+            call.input_digest,
+            RemoteToolResult(ok=True, output={"value": "same"}),
+        ),
+        return_exceptions=True,
+    )
+
+    assert not [result for result in results if isinstance(result, BaseException)]
+    async with uow_factory() as uow:
+        calls = await uow.tool_calls.list_for_run(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+        events = await uow.events.list_after(run.id)
+    assert calls[0].status is ToolCallStatus.SUCCEEDED
+    assert [message.role for message in messages].count(MessageRole.TOOL) == 1
+    assert sum(event.event_type.value == "tool.completed" for event in events) == 1
+
+
+async def test_concurrent_conflicting_results_keep_first_result(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run, registry, publisher = await start_remote_run(uow_factory, ["call-1"])
+    service = ToolResultService(
+        uow_factory=uow_factory,
+        tool_registry=registry,
+        event_publisher=publisher,
+    )
+    async with uow_factory() as uow:
+        call = await uow.tool_calls.get(run.id, "call-1")
+
+    results = await asyncio.gather(
+        service.submit(
+            run.id,
+            "call-1",
+            call.input_digest,
+            RemoteToolResult(ok=True, output={"value": "first"}),
+        ),
+        service.submit(
+            run.id,
+            "call-1",
+            call.input_digest,
+            RemoteToolResult(ok=True, output={"value": "second"}),
+        ),
+        return_exceptions=True,
+    )
+
+    errors = [result for result in results if isinstance(result, AgentKitError)]
+    successes = [result for result in results if not isinstance(result, BaseException)]
+    assert len(successes) == 1
+    assert len(errors) == 1
+    assert errors[0].code is ErrorCode.TOOL_RESULT_CONFLICT
+    async with uow_factory() as uow:
+        calls = await uow.tool_calls.list_for_run(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+        events = await uow.events.list_after(run.id)
+    assert calls[0].status is ToolCallStatus.SUCCEEDED
+    assert calls[0].output in ({"value": "first"}, {"value": "second"})
+    assert [message.role for message in messages].count(MessageRole.TOOL) == 1
+    assert sum(event.event_type.value == "tool.completed" for event in events) == 1
+
+
+async def test_duplicate_failed_result_is_idempotent(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run, registry, publisher = await start_remote_run(uow_factory, ["call-1"])
+    service = ToolResultService(
+        uow_factory=uow_factory,
+        tool_registry=registry,
+        event_publisher=publisher,
+    )
+    async with uow_factory() as uow:
+        call = await uow.tool_calls.get(run.id, "call-1")
+    failure = RemoteToolResult(
+        ok=False,
+        error=RemoteToolError(code="BROWSER_ACTION_FAILED", message="元素不存在"),
+    )
+
+    first = await service.submit(run.id, "call-1", call.input_digest, failure)
+    second = await service.submit(run.id, "call-1", call.input_digest, failure)
+
+    assert first.status is ToolCallStatus.FAILED
+    assert second.status is ToolCallStatus.FAILED
+    async with uow_factory() as uow:
+        messages = await uow.messages.list_for_session(run.session_id)
+        events = await uow.events.list_after(run.id)
+    assert [message.role for message in messages].count(MessageRole.TOOL) == 1
+    assert sum(event.event_type.value == "tool.failed" for event in events) == 1
+
+
+async def test_concurrent_event_publish_keeps_database_order(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run, registry, _ = await start_remote_run(uow_factory, ["call-1", "call-2"])
+    publisher = BlockingFirstPublisher()
+    service = ToolResultService(
+        uow_factory=uow_factory,
+        tool_registry=registry,
+        event_publisher=publisher,  # type: ignore[arg-type]
+    )
+    async with uow_factory() as uow:
+        calls = await uow.tool_calls.list_for_run(run.id)
+    digests = {call.id: call.input_digest for call in calls}
+
+    first = asyncio.create_task(
+        service.submit(
+            run.id,
+            "call-1",
+            digests["call-1"],
+            RemoteToolResult(ok=True, output={"value": "one"}),
+        )
+    )
+    await asyncio.wait_for(publisher.first_started.wait(), timeout=1)
+    second = asyncio.create_task(
+        service.submit(
+            run.id,
+            "call-2",
+            digests["call-2"],
+            RemoteToolResult(ok=True, output={"value": "two"}),
+        )
+    )
+    with contextlib.suppress(TimeoutError):
+        await asyncio.wait_for(publisher.second_published.wait(), timeout=0.05)
+    publisher.release.set()
+    await asyncio.gather(first, second)
+
+    event_ids = [event.event_id for event in publisher.events]  # type: ignore[attr-defined]
+    assert event_ids == sorted(event_ids)
+
+
+async def test_invalid_remote_tool_input_fails_before_waiting(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    registry = ToolRegistry()
+    registry.register(wait_for_host_tool())
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                tool_calls=[
+                    ToolCallDraft(
+                        call_id="call-1",
+                        tool_name="wait_for_host",
+                        input={},
+                    )
+                ]
+            )
+        ]
+    )
+    publisher = RecordingEventPublisher()
+    engine = make_engine(uow_factory, provider, publisher, registry)
+    run = await seed_run(uow_factory)
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+
+    assert outcome.kind == "failed"
+    assert outcome.error_code is ErrorCode.TOOL_INPUT_INVALID
+    async with uow_factory() as uow:
+        stored_run = await uow.runs.get(run.id)
+        calls = await uow.tool_calls.list_for_run(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+    assert stored_run.status is RunStatus.FAILED
+    assert [call.status for call in calls] == [ToolCallStatus.FAILED]
+    assert [message.role for message in messages].count(MessageRole.TOOL) == 1

@@ -58,13 +58,15 @@ def make_engine(
     publisher: RecordingEventPublisher,
     *,
     max_steps: int = 10,
+    registry: ToolRegistry | None = None,
 ) -> SimpleAgentEngine:
-    registry = ToolRegistry()
-    registry.register(echo_tool())
+    resolved_registry = registry or ToolRegistry()
+    if registry is None:
+        resolved_registry.register(echo_tool())
     return SimpleAgentEngine(
         uow_factory=uow_factory,
         model_provider=provider,
-        tool_registry=registry,
+        tool_registry=resolved_registry,
         tool_executor=LocalToolExecutor(),
         context_assembler=ContextAssembler(
             FixedEstimator(),
@@ -77,6 +79,24 @@ def make_engine(
         max_output_tokens=100,
         remote_tool_timeout_seconds=300,
     )
+
+
+class ControlledModelProvider:
+    """阻塞到测试释放后再返回固定响应。"""
+
+    def __init__(self, response: ModelResponse) -> None:
+        self.response = response
+        self.started = asyncio.Event()
+        self.release = asyncio.Event()
+
+    async def stream(
+        self,
+        request: object,
+        on_delta: object = None,
+    ) -> ModelResponse:
+        self.started.set()
+        await self.release.wait()
+        return self.response
 
 
 async def test_engine_processes_every_tool_call_in_one_assistant_turn(
@@ -226,3 +246,78 @@ async def test_preexisting_cancel_marks_run_cancelled(
         stored_run = await uow.runs.get(run.id)
 
     assert stored_run.status is RunStatus.CANCELLED
+
+
+async def test_cancel_during_text_stream_prevents_success(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run = await seed_running_run(uow_factory)
+    provider = ControlledModelProvider(ModelResponse(text="late response"))
+    publisher = RecordingEventPublisher()
+    engine = make_engine(uow_factory, provider, publisher)  # type: ignore[arg-type]
+    cancel = asyncio.Event()
+    task = asyncio.create_task(engine.execute(EngineContext(run_id=run.id, cancel=cancel)))
+
+    await asyncio.wait_for(provider.started.wait(), timeout=1)
+    async with uow_factory() as uow:
+        await uow.runs.mark_cancel_requested(run.id)
+        await uow.commit()
+    cancel.set()
+    provider.release.set()
+
+    outcome = await asyncio.wait_for(task, timeout=1)
+
+    assert outcome.kind == "cancelled"
+    async with uow_factory() as uow:
+        stored_run = await uow.runs.get(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+    assert stored_run.status is RunStatus.CANCELLED
+    assert [message.role for message in messages] == [MessageRole.USER]
+
+
+async def test_cancel_during_remote_tool_stream_prevents_waiting(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    from prism_agent_kit.tools.testing import wait_for_host_tool
+
+    run = await seed_running_run(uow_factory)
+    registry = ToolRegistry()
+    registry.register(wait_for_host_tool())
+    provider = ControlledModelProvider(
+        ModelResponse(
+            tool_calls=[
+                ToolCallDraft(
+                    call_id="call-1",
+                    tool_name="wait_for_host",
+                    input={"value": "one"},
+                )
+            ]
+        )
+    )
+    publisher = RecordingEventPublisher()
+    engine = make_engine(
+        uow_factory,
+        provider,  # type: ignore[arg-type]
+        publisher,
+        registry=registry,
+    )
+    cancel = asyncio.Event()
+    task = asyncio.create_task(engine.execute(EngineContext(run_id=run.id, cancel=cancel)))
+
+    await asyncio.wait_for(provider.started.wait(), timeout=1)
+    async with uow_factory() as uow:
+        await uow.runs.mark_cancel_requested(run.id)
+        await uow.commit()
+    cancel.set()
+    provider.release.set()
+
+    outcome = await asyncio.wait_for(task, timeout=1)
+
+    assert outcome.kind == "cancelled"
+    async with uow_factory() as uow:
+        stored_run = await uow.runs.get(run.id)
+        calls = await uow.tool_calls.list_for_run(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+    assert stored_run.status is RunStatus.CANCELLED
+    assert calls == []
+    assert [message.role for message in messages] == [MessageRole.USER]

@@ -1,3 +1,7 @@
+import os
+import stat
+from pathlib import Path
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -9,6 +13,12 @@ INSERT INTO runs (
     system_prompt, model, step_count, created_at
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """
+
+
+def test_migrated_database_file_is_private(migrated_database_path: Path) -> None:
+    if os.name != "posix":
+        return
+    assert stat.S_IMODE(migrated_database_path.stat().st_mode) == 0o600
 
 
 async def test_migration_creates_agent_tables(migrated_database: Database) -> None:

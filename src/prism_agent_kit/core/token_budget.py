@@ -5,7 +5,7 @@ from typing import Protocol
 import tiktoken
 from pydantic import JsonValue
 
-from prism_agent_kit.core.models import Message
+from prism_agent_kit.core.models import Message, ToolCall
 
 _MESSAGE_FRAMING_OVERHEAD_TOKENS = 4
 
@@ -18,6 +18,8 @@ class TokenEstimator(Protocol):
     def count_json(self, value: JsonValue) -> int: ...
 
     def count_message(self, message: Message) -> int: ...
+
+    def count_tool_call(self, tool_call: ToolCall) -> int: ...
 
     def count_messages(self, messages: Sequence[Message]) -> int: ...
 
@@ -69,3 +71,12 @@ class TiktokenEstimator:
     def count_messages(self, messages: Sequence[Message]) -> int:
         """统计一组消息的总 token 数。"""
         return sum(self.count_message(message) for message in messages)
+
+    def count_tool_call(self, tool_call: ToolCall) -> int:
+        """统计模型侧工具调用的名称、ID、参数与框架开销。"""
+        return (
+            _MESSAGE_FRAMING_OVERHEAD_TOKENS
+            + self.count_text(tool_call.id)
+            + self.count_text(tool_call.tool_name)
+            + self.count_json(tool_call.input)
+        )

@@ -1,3 +1,4 @@
+import asyncio
 import json
 from typing import cast
 
@@ -52,6 +53,8 @@ class ToolResultService:
         self._uow_factory = uow_factory
         self._tool_registry = tool_registry
         self._event_publisher = event_publisher
+        # 单进程本地运行时, 串行化同一服务的提交与发布, 避免并发回填破坏历史。
+        self._submit_lock = asyncio.Lock()
 
     async def submit(
         self,
@@ -61,6 +64,17 @@ class ToolResultService:
         result: RemoteToolResult,
     ) -> ToolCall:
         """校验 Run、摘要、过期时间与输出 Schema 后提交结果。"""
+        async with self._submit_lock:
+            return await self._submit_locked(run_id, call_id, input_digest, result)
+
+    async def _submit_locked(
+        self,
+        run_id: str,
+        call_id: str,
+        input_digest: str,
+        result: RemoteToolResult,
+    ) -> ToolCall:
+        """在服务级串行锁内完成事务与事件发布。"""
         events: list[RunEvent] = []
         async with self._uow_factory() as uow:
             previous_event_id = await uow.events.last_id(run_id)
@@ -96,13 +110,6 @@ class ToolResultService:
                 output = self._validate_output(call.tool_name, result.output)
                 await uow.tool_calls.complete(run_id, call_id, output)
             else:
-                if terminal:
-                    raise AgentKitError(
-                        ErrorCode.TOOL_RESULT_CONFLICT,
-                        "ToolCall 已由其他结果闭合",
-                        http_status=409,
-                        details={"call_id": call_id},
-                    )
                 if result.error is None:
                     raise AgentKitError(
                         ErrorCode.INVALID_REQUEST,
@@ -115,6 +122,26 @@ class ToolResultService:
                         ErrorCode.INVALID_REQUEST,
                         "工具错误码与消息不能为空",
                         http_status=422,
+                        details={"call_id": call_id},
+                    )
+                if terminal:
+                    if (
+                        call.status is ToolCallStatus.FAILED
+                        and call.error_code == result.error.code
+                        and call.error_message == result.error.message
+                    ):
+                        return call
+                    if call.status is ToolCallStatus.EXPIRED:
+                        raise AgentKitError(
+                            ErrorCode.TOOL_CALL_EXPIRED,
+                            "ToolCall 已过期",
+                            http_status=409,
+                            details={"call_id": call_id},
+                        )
+                    raise AgentKitError(
+                        ErrorCode.TOOL_RESULT_CONFLICT,
+                        "ToolCall 已由其他结果闭合",
+                        http_status=409,
                         details={"call_id": call_id},
                     )
                 await uow.tool_calls.fail(
