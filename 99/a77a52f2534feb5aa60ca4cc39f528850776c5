@@ -1,0 +1,28 @@
+README.md
+  s_fa558348164fda::t_88f77bdf16347c 50
+scripts/dev.bash
+  s_fa558348164fda::t_922e6c43091ce2 1-268
+scripts/dev.sh
+  s_fa558348164fda::t_922e6c43091ce2 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "99a77a52f2534feb5aa60ca4cc39f528850776c5",
+  "prompts": {},
+  "humans": {
+    "h_959ffaaf5065b8": {
+      "author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  },
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
