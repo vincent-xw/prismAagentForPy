@@ -1,10 +1,109 @@
-from fastapi import APIRouter
+import json
+from collections.abc import AsyncIterator, Iterable
+from typing import Annotated, cast
+
+from fastapi import APIRouter, Header
+from sse_starlette.event import ServerSentEvent
+from sse_starlette.sse import EventSourceResponse
 
 from prism_agent_kit.api.schemas import RunCreate, RunView
+from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.run_service import RunService
+from prism_agent_kit.core.enums import EventType, RunStatus
+from prism_agent_kit.core.errors import AgentKitError, ErrorCode
+from prism_agent_kit.core.models import RunEvent
+from prism_agent_kit.core.ports import EventEnvelope
+
+_TERMINAL_EVENT_TYPES = frozenset(
+    {
+        EventType.RUN_SUCCEEDED,
+        EventType.RUN_FAILED,
+        EventType.RUN_CANCELLED,
+    }
+)
+_TERMINAL_RUN_STATUSES = frozenset(
+    {
+        RunStatus.SUCCEEDED,
+        RunStatus.FAILED,
+        RunStatus.CANCELLED,
+    }
+)
 
 
-def create_runs_router(service: RunService) -> APIRouter:
+def _serialize_event(event: EventEnvelope) -> ServerSentEvent:
+    """把统一事件信封编码为 SSE 事件。"""
+    data: dict[str, object] = {
+        "type": event.event_type.value,
+        "run_id": event.run_id,
+    }
+    if isinstance(event.payload, dict):
+        data.update(cast(dict[str, object], event.payload))
+    else:
+        data["payload"] = event.payload
+
+    return ServerSentEvent(
+        event=event.event_type.value,
+        id=str(event.event_id) if event.event_id is not None else None,
+        data=json.dumps(data, ensure_ascii=False, separators=(",", ":")),
+    )
+
+
+async def iter_run_events(
+    event_bus: RunEventBus,
+    run_id: str,
+    after_event_id: int | None,
+) -> AsyncIterator[ServerSentEvent]:
+    """订阅实时事件并在持久终态事件后关闭。"""
+    async for event in event_bus.subscribe(run_id, after_event_id):
+        yield _serialize_event(event)
+        if event.event_type in _TERMINAL_EVENT_TYPES:
+            return
+
+
+async def _iter_replayed_events(events: Iterable[RunEvent]) -> AsyncIterator[ServerSentEvent]:
+    """有界重放持久事件。测试模式使用。"""
+    for event in events:
+        yield _serialize_event(
+            EventEnvelope(
+                event_id=event.id,
+                run_id=event.run_id,
+                event_type=event.event_type,
+                payload=event.payload,
+                created_at=event.created_at,
+            )
+        )
+        if event.event_type in _TERMINAL_EVENT_TYPES:
+            return
+
+
+def _parse_after_event_id(value: str | None) -> int | None:
+    """解析 Last-Event-ID。非法游标作为请求错误拒绝。"""
+    if value is None:
+        return None
+    try:
+        after_event_id = int(value)
+    except ValueError as error:
+        raise AgentKitError(
+            ErrorCode.INVALID_REQUEST,
+            "Last-Event-ID 必须是整数",
+            http_status=400,
+        ) from error
+    if after_event_id < 0:
+        raise AgentKitError(
+            ErrorCode.INVALID_REQUEST,
+            "Last-Event-ID 不能为负数",
+            http_status=400,
+        )
+    return after_event_id
+
+
+def create_runs_router(
+    service: RunService,
+    *,
+    event_bus: RunEventBus,
+    test_mode: bool,
+    heartbeat_seconds: float,
+) -> APIRouter:
     """创建 Run 相关路由。"""
     router = APIRouter(tags=["runs"])
 
@@ -27,5 +126,46 @@ def create_runs_router(service: RunService) -> APIRouter:
     async def get_run(run_id: str) -> RunView:
         run = await service.get(run_id)
         return RunView.from_domain(run)
+
+    @router.get("/runs/{run_id}/events", summary="订阅 Run 事件流")
+    async def stream_run_events(
+        run_id: str,
+        last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
+        once: bool = False,
+    ) -> EventSourceResponse:
+        run = await service.get(run_id)
+        after_event_id = _parse_after_event_id(last_event_id)
+
+        # 终态 Run 不会再有新事件。有限重放避免客户端重连后永久挂起。
+        if run.status in _TERMINAL_RUN_STATUSES:
+            events = await service.list_events(
+                run_id,
+                after_event_id=after_event_id,
+            )
+            return EventSourceResponse(
+                _iter_replayed_events(events),
+                ping=heartbeat_seconds,
+            )
+
+        if once:
+            if not test_mode:
+                raise AgentKitError(
+                    ErrorCode.INVALID_REQUEST,
+                    "once 参数仅在测试环境可用",
+                    http_status=400,
+                )
+            events = await service.list_events(
+                run_id,
+                after_event_id=after_event_id,
+            )
+            return EventSourceResponse(
+                _iter_replayed_events(events),
+                ping=heartbeat_seconds,
+            )
+
+        return EventSourceResponse(
+            iter_run_events(event_bus, run_id, after_event_id),
+            ping=heartbeat_seconds,
+        )
 
     return router

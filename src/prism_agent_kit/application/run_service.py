@@ -84,6 +84,17 @@ class RunService:
         async with self._uow_factory() as uow:
             return await uow.runs.get(run_id)
 
+    async def list_events(
+        self,
+        run_id: str,
+        *,
+        after_event_id: int | None = None,
+    ) -> list[RunEvent]:
+        """读取指定 Run 游标之后的持久事件。"""
+        async with self._uow_factory() as uow:
+            await uow.runs.get(run_id)
+            return await uow.events.list_after(run_id, after_event_id)
+
     def _resolve_prompt(self, prompt_ref: str | None) -> Prompt:
         """解析显式 Prompt 引用。查找失败按请求参数错误映射为 422。"""
         resolved_ref = prompt_ref or self._default_prompt_ref
