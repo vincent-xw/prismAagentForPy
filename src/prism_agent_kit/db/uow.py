@@ -3,8 +3,11 @@ from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from prism_agent_kit.db.repositories.events import EventRepository
+from prism_agent_kit.db.repositories.messages import MessageRepository
 from prism_agent_kit.db.repositories.runs import RunRepository
 from prism_agent_kit.db.repositories.sessions import SessionRepository
+from prism_agent_kit.db.repositories.tool_calls import ToolCallRepository
 
 
 class UnitOfWork:
@@ -15,12 +18,18 @@ class UnitOfWork:
         self._session: AsyncSession | None = None
         self.sessions: SessionRepository
         self.runs: RunRepository
+        self.messages: MessageRepository
+        self.tool_calls: ToolCallRepository
+        self.events: EventRepository
 
     async def __aenter__(self) -> Self:
         session = self._session_factory()
         self._session = session
         self.sessions = SessionRepository(session)
         self.runs = RunRepository(session)
+        self.messages = MessageRepository(session)
+        self.tool_calls = ToolCallRepository(session)
+        self.events = EventRepository(session)
         return self
 
     async def __aexit__(
