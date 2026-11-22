@@ -1,0 +1,46 @@
+src/prism_agent_kit/application/tool_result_service.py
+  s_fa558348164fda::t_df04366c54ec57 29-38,166-167
+src/prism_agent_kit/db/database.py
+  s_fa558348164fda::t_5521fddf445b33 19-28,32
+src/prism_agent_kit/application/container.py
+  s_fa558348164fda::t_5521fddf445b33 24,110-111
+tests/db/test_run_repository.py
+  s_fa558348164fda::t_678acc4945d884 138-168
+tests/core/test_engine_local.py
+  s_fa558348164fda::t_0201947d824707 3,22,25,281-311
+  s_414d9ac4ab3a4f::t_853453706a1317 312-313
+tests/application/test_remote_tools.py
+  s_fa558348164fda::t_db40dcadf1a5ae 68
+  s_fa558348164fda::t_a84755a4d58640 3,7,18,64-67,69-77
+  s_fa558348164fda::t_caea22ab6d991d 78-79
+src/prism_agent_kit/core/engine.py
+  s_fa558348164fda::t_7c43281198bb80 385,404-407
+src/prism_agent_kit/db/repositories/runs.py
+  s_fa558348164fda::t_2f7b1867b92b13 21-27,35-48,146,164-165,181-186,190,213-218
+tests/test_agent_e2e.py
+  s_fa558348164fda::t_95a4d89c077c3c 2-3,12,210-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5b934aae3691b182a9d224761b2ff0bb8c18a4c1",
+  "prompts": {},
+  "sessions": {
+    "s_414d9ac4ab3a4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20153-b443-74d1-93cd-501e79756cb1",
+        "model": "auto/gpt-6.1-sol"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    },
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
