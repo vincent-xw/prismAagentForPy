@@ -6,6 +6,12 @@ from fastapi import APIRouter, Header
 from sse_starlette.event import ServerSentEvent
 from sse_starlette.sse import EventSourceResponse
 
+from prism_agent_kit.api.dependencies import (
+    EventBusDependency,
+    RunServiceDependency,
+    SettingsDependency,
+    ToolResultServiceDependency,
+)
 from prism_agent_kit.api.schemas import (
     RunCreate,
     RunView,
@@ -13,11 +19,9 @@ from prism_agent_kit.api.schemas import (
     ToolResultRequest,
 )
 from prism_agent_kit.application.event_bus import RunEventBus
-from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.tool_result_service import (
     RemoteToolError,
     RemoteToolResult,
-    ToolResultService,
 )
 from prism_agent_kit.core.enums import EventType, RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
@@ -107,14 +111,7 @@ def _parse_after_event_id(value: str | None) -> int | None:
     return after_event_id
 
 
-def create_runs_router(
-    service: RunService,
-    *,
-    event_bus: RunEventBus,
-    tool_result_service: ToolResultService,
-    test_mode: bool,
-    heartbeat_seconds: float,
-) -> APIRouter:
+def create_runs_router() -> APIRouter:
     """创建 Run 相关路由。"""
     router = APIRouter(tags=["runs"])
 
@@ -124,7 +121,11 @@ def create_runs_router(
         status_code=202,
         summary="创建 Run",
     )
-    async def create_run(session_id: str, payload: RunCreate) -> RunView:
+    async def create_run(
+        session_id: str,
+        payload: RunCreate,
+        service: RunServiceDependency,
+    ) -> RunView:
         run = await service.create(
             session_id,
             input_text=payload.input,
@@ -134,12 +135,12 @@ def create_runs_router(
         return RunView.from_domain(run)
 
     @router.get("/runs/{run_id}", response_model=RunView, summary="获取 Run")
-    async def get_run(run_id: str) -> RunView:
+    async def get_run(run_id: str, service: RunServiceDependency) -> RunView:
         run = await service.get(run_id)
         return RunView.from_domain(run)
 
     @router.post("/runs/{run_id}/cancel", response_model=RunView, summary="取消 Run")
-    async def cancel_run(run_id: str) -> RunView:
+    async def cancel_run(run_id: str, service: RunServiceDependency) -> RunView:
         run = await service.cancel(run_id)
         return RunView.from_domain(run)
 
@@ -152,6 +153,7 @@ def create_runs_router(
         run_id: str,
         call_id: str,
         payload: ToolResultRequest,
+        tool_result_service: ToolResultServiceDependency,
     ) -> ToolCallView:
         error = (
             RemoteToolError(
@@ -178,6 +180,10 @@ def create_runs_router(
         run_id: str,
         last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
         once: bool = False,
+        *,
+        service: RunServiceDependency,
+        event_bus: EventBusDependency,
+        settings: SettingsDependency,
     ) -> EventSourceResponse:
         run = await service.get(run_id)
         after_event_id = _parse_after_event_id(last_event_id)
@@ -190,11 +196,11 @@ def create_runs_router(
             )
             return EventSourceResponse(
                 _iter_replayed_events(events),
-                ping=heartbeat_seconds,
+                ping=settings.sse_heartbeat_seconds,
             )
 
         if once:
-            if not test_mode:
+            if settings.environment != "test":
                 raise AgentKitError(
                     ErrorCode.INVALID_REQUEST,
                     "once 参数仅在测试环境可用",
@@ -206,12 +212,12 @@ def create_runs_router(
             )
             return EventSourceResponse(
                 _iter_replayed_events(events),
-                ping=heartbeat_seconds,
+                ping=settings.sse_heartbeat_seconds,
             )
 
         return EventSourceResponse(
             iter_run_events(event_bus, run_id, after_event_id),
-            ping=heartbeat_seconds,
+            ping=settings.sse_heartbeat_seconds,
         )
 
     return router

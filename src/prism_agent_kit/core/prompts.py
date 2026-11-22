@@ -2,6 +2,13 @@ from pydantic import BaseModel
 
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 
+DEFAULT_PROMPT_NAME = "default"
+DEFAULT_PROMPT_VERSION = "1"
+DEFAULT_SYSTEM_PROMPT = (
+    "You are PrismAgentKit, a local-first agent runtime. "
+    "Use only the tools explicitly provided in the current request."
+)
+
 
 class Prompt(BaseModel):
     """带显式版本号的系统提示词。"""

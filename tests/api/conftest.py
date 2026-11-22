@@ -36,6 +36,18 @@ class ApiTestContext:
     tool_registry: ToolRegistry
 
 
+@dataclass(frozen=True)
+class ApiTestContainer:
+    """提供 API dependency 所需的最小容器表面。"""
+
+    settings: Settings
+    event_bus: RunEventBus
+    tool_registry: ToolRegistry
+    session_service: SessionService
+    run_service: RunService
+    tool_result_service: ToolResultService
+
+
 def build_api_application(
     database_path: Path,
 ) -> tuple[
@@ -103,20 +115,17 @@ def build_api_application(
 
     application = FastAPI(lifespan=lifespan)
     application.state.settings = settings
+    application.state.container = ApiTestContainer(
+        settings=settings,
+        event_bus=event_bus,
+        tool_registry=tool_registry,
+        session_service=session_service,
+        run_service=run_service,
+        tool_result_service=tool_result_service,
+    )
     application.add_middleware(RequestIdMiddleware)
     install_exception_handlers(application)
-    application.include_router(
-        create_api_router(
-            session_service=session_service,
-            run_service=run_service,
-            event_bus=event_bus,
-            tool_result_service=tool_result_service,
-            tool_registry=tool_registry,
-            test_mode=True,
-            heartbeat_seconds=15.0,
-        ),
-        prefix=settings.api_prefix,
-    )
+    application.include_router(create_api_router(), prefix=settings.api_prefix)
 
     return application, uow_factory, event_bus, cancellation_registry, tool_registry
 

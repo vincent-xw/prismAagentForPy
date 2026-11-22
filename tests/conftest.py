@@ -5,6 +5,7 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from prism_agent_kit.core.config import Settings, get_settings
 from prism_agent_kit.db.database import Database
@@ -13,12 +14,17 @@ from prism_agent_kit.main import create_app
 
 
 @pytest.fixture
-def client(tmp_path: Path) -> Iterator[TestClient]:
+def client(migrated_database_path: Path) -> Iterator[TestClient]:
     """提供会正确触发应用生命周期的测试客户端。"""
     application = create_app(
         Settings(
-            database_path=tmp_path / "agent.db",
+            database_path=migrated_database_path,
             environment="test",
+            model_name="test-model",
+            model_api_key=SecretStr("test-key"),
+            model_context_window=4096,
+            model_max_output_tokens=256,
+            model_token_encoding="cl100k_base",
         )
     )
     with TestClient(application) as test_client:

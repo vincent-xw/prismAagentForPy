@@ -2,17 +2,23 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.main import create_app
 
 
-def make_app(tmp_path: Path) -> FastAPI:
+def make_app(database_path: Path) -> FastAPI:
     application = create_app(
         Settings(
-            database_path=tmp_path / "agent.db",
+            database_path=database_path,
             environment="test",
+            model_name="test-model",
+            model_api_key=SecretStr("test-key"),
+            model_context_window=4096,
+            model_max_output_tokens=256,
+            model_token_encoding="cl100k_base",
         )
     )
 
@@ -36,8 +42,10 @@ def make_app(tmp_path: Path) -> FastAPI:
     return application
 
 
-def test_agent_error_is_mapped_without_internal_details(tmp_path: Path) -> None:
-    application = make_app(tmp_path)
+def test_agent_error_is_mapped_without_internal_details(
+    migrated_database_path: Path,
+) -> None:
+    application = make_app(migrated_database_path)
 
     with TestClient(application) as client:
         response = client.get("/api/v1/conflict")
@@ -50,8 +58,10 @@ def test_agent_error_is_mapped_without_internal_details(tmp_path: Path) -> None:
     assert "Traceback" not in response.text
 
 
-def test_unclassified_error_returns_internal_without_message(tmp_path: Path) -> None:
-    application = make_app(tmp_path)
+def test_unclassified_error_returns_internal_without_message(
+    migrated_database_path: Path,
+) -> None:
+    application = make_app(migrated_database_path)
 
     with TestClient(application, raise_server_exceptions=False) as client:
         response = client.get("/api/v1/crash")
@@ -62,8 +72,10 @@ def test_unclassified_error_returns_internal_without_message(tmp_path: Path) -> 
     assert "Traceback" not in response.text
 
 
-def test_validation_error_uses_unified_error_shape(tmp_path: Path) -> None:
-    application = make_app(tmp_path)
+def test_validation_error_uses_unified_error_shape(
+    migrated_database_path: Path,
+) -> None:
+    application = make_app(migrated_database_path)
 
     with TestClient(application) as client:
         response = client.get("/api/v1/validate", params={"value": "bad"})

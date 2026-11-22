@@ -10,14 +10,24 @@
 
 ## 迁移边界
 
-- 除非用户明确指定某个 Node.js 功能并要求开始迁移，否则只维护脚手架、基础设施和文档，不主动实现任何上游业务功能。
-- 完成用户当前指定的范围后立即停止，不自行扩展到一个或多个功能迁移阶段。
-- 当前初始化阶段的目标仅是标准 Python 后端框架；健康检查和空迁移基座属于基础设施，不代表业务迁移已经开始。
+- 当前已确认并实现的首个迁移范围是本地 **Python Agent Core**：FastAPI BFF、SQLite 持久化、自研 Agent 循环、工具回填、SSE、取消与恢复。
+- 除非用户明确指定某个新的 Node.js 功能并要求开始迁移，否则只维护当前 Core、基础设施和文档，不主动扩展上游业务功能。
+- 完成用户当前指定的范围后立即停止，不自行进入 MCP、Workspace、UI、多 Agent 或其他迁移阶段。
+- 当前不引入 LangChain、LangGraph、LangSmith、PydanticAI 或 MCP SDK 运行时依赖；未来能力需通过既有接口或单独设计接入。
+
+## 当前架构约束
+
+- FastAPI 只承担本地 BFF；Agent 循环、事务边界和状态转换位于 Application Service / Core。
+- SQLite 是当前唯一数据库；不得在未确认的情况下引入 PostgreSQL、Redis、消息队列或独立 Worker。
+- 对外状态事实以 SQLite 中的 Session、Run、Message、ToolCall 和 RunEvent 为准，日志、SSE 和 Trace 不是业务事实源。
+- 所有终止 Run 必须闭合 ToolCall；模型可见历史必须能由持久化数据重建。
+- 后续 Agent 编排实现通过 `AgentEngine` 接口接入，不改变现有领域模型和 HTTP 协议。
 
 ## 常用命令
 
 ```bash
 uv sync
+uv run alembic upgrade head
 uv run uvicorn prism_agent_kit.main:app --reload
 uv run ruff check .
 uv run ruff format --check .
