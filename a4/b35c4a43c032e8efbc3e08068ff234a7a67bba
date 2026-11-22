@@ -1,0 +1,43 @@
+src/prism_agent_kit/api/routes/health.py
+  s_fa558348164fda::t_1539e9ef961bb8 3,7,20-21
+src/prism_agent_kit/main.py
+  s_fa558348164fda::t_1539e9ef961bb8 10,12,17,19-37,40,42,45,47,50,56
+tests/db/test_database.py
+  s_fa558348164fda::t_9f4be9c749c86e 1-15
+.env.example
+  s_fa558348164fda::t_1539e9ef961bb8 7-27
+src/prism_agent_kit/core/config.py
+  s_fa558348164fda::t_9d9127569730f1 7
+  s_fa558348164fda::t_1539e9ef961bb8 3,6,28-46,48-50
+  s_fa558348164fda::t_01510fb89185b4 47
+  s_fa558348164fda::t_24a5e84bc3e4eb 51
+src/prism_agent_kit/db/database.py
+  s_fa558348164fda::t_1539e9ef961bb8 1-23,25-51
+  s_fa558348164fda::t_01510fb89185b4 24
+pyproject.toml
+  s_fa558348164fda::t_1539e9ef961bb8 20,23,25-26,29-30
+tests/conftest.py
+  s_fa558348164fda::t_1539e9ef961bb8 2,7-8,12,14-15
+src/prism_agent_kit/db/session.py
+  s_fa558348164fda::t_1539e9ef961bb8 3,8,11,13-14
+tests/core/test_config.py
+  s_fa558348164fda::t_9f4be9c749c86e 1-21
+uv.lock
+  s_fa558348164fda::t_402d5c37ef93d9 9-17,64-65,67,69,73-74,76,78-200,332-340,359-367,615-712,994-1012,1043-1051,1066,1069,1071-1072,1075-1076,1092,1095,1097-1098,1101-1102,1380-1498,1524-1532,1610-1622,1636-1701,1732-1740
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a4b35c4a43c032e8efbc3e08068ff234a7a67bba",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
