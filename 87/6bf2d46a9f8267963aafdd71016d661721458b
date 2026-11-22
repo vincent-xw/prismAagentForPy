@@ -1,0 +1,33 @@
+src/prism_agent_kit/core/engine.py
+  s_fa558348164fda::t_58aa7119fd2ba6 78-79,115-117
+  s_fa558348164fda::t_e2288629440ce0 118
+tests/application/test_remote_tools.py
+  s_fa558348164fda::t_052749ab3820d2 38-41,47
+  s_fa558348164fda::t_bf5233825c19fa 135
+  s_fa558348164fda::t_be311aec8d5c45 1-4,10-37,42-46,48-134,136-367
+  s_fa558348164fda::t_54ef3cd3516c49 5-9
+src/prism_agent_kit/application/__init__.py
+  s_fa558348164fda::t_58aa7119fd2ba6 1
+src/prism_agent_kit/db/repositories/tool_calls.py
+  s_fa558348164fda::t_bf5233825c19fa 119
+  s_fa558348164fda::t_58aa7119fd2ba6 101,120-125,131-136,141,151
+src/prism_agent_kit/application/tool_result_service.py
+  s_fa558348164fda::t_58aa7119fd2ba6 1-128,131-186
+  s_fa558348164fda::t_bf5233825c19fa 129-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "876bf2d46a9f8267963aafdd71016d661721458b",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
