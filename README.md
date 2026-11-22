@@ -10,6 +10,7 @@
 
 ```text
 .
+├── scripts/dev.sh         # 本地前后端 DEV 启动器
 ├── backend/               # Python Agent Core、Runtime、API、SQLite
 ├── ui/                    # Vue 3 会话工作台与 API/SSE 客户端
 ├── docs/superpowers/      # 技术设计、实施计划与验证记录
@@ -37,6 +38,18 @@
 当前**不包含**：MCP Client、Workspace、RAG、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
 ## 快速开始
+
+### 一键启动 DEV
+
+先安装 [uv](https://docs.astral.sh/uv/)、Node.js `^22.13.0 || >=24.0.0` 与 pnpm `11.9.0`，然后在仓库根目录执行：
+
+```bash
+./scripts/dev.sh
+```
+
+首次运行会自动从示例创建 `backend/.env` 与 `ui/.env`。请先在 `backend/.env` 中填写 API Token 和模型配置，记住该 Token 供 UI 首次连接时使用，再次运行脚本；脚本会同步依赖、执行 SQLite 迁移、等待 Backend 健康后启动 UI。UI 默认连接 `http://127.0.0.1:8000`，开发页面为 `http://127.0.0.1:3000`，按 `Ctrl+C` 会同时停止两端。
+
+可使用 `BACKEND_PORT`、`UI_PORT` 覆盖默认端口；依赖已准备好时可用 `SKIP_DEPENDENCY_INSTALL=1` 跳过安装检查。完整参数见 `./scripts/dev.sh --help`。
 
 ### Backend
 
