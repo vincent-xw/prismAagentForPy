@@ -1,0 +1,62 @@
+ui/src/styles/main.css
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-62
+ui/.gitignore
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-11
+ui/package.json
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-39
+ui/tsconfig.node.json
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-18
+ui/src/main.ts
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-6
+ui/.env.example
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-2
+ui/tsconfig.json
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-4
+docs/superpowers/plans/2026-11-22-core-ui.md
+  s_414d9ac4ab3a4f::t_e1cb1f9851007c 1-31,39-120,122-123,125-141,151-165,167-171,173-188,199-217,229-236,238-240,242-246,249-250,253-255,257-260,262-266,268-320
+  s_414d9ac4ab3a4f::t_167b6971a47abc 32-38,142-150,189-198,218-228
+  s_414d9ac4ab3a4f::t_242d8311738b62 121,124,166,172,237,241,247-248,251-252,256,261,267
+ui/vite.config.ts
+  s_414d9ac4ab3a4f::t_18d5743352124d 7,9,14-19,21
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-6,8,10-13,20,22-54
+ui/index.html
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-13
+ui/eslint.config.js
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-36
+ui/tsconfig.app.json
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-24
+ui/src/App.vue
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-15
+ui/.prettierrc.json
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-6
+docs/superpowers/specs/2026-11-22-core-ui-design.md
+  s_414d9ac4ab3a4f::t_fc63a0c78fd8f5 198,200-201,211-219,223,227,284
+  s_414d9ac4ab3a4f::t_358aa8188ada51 2-3,5-18,20-26,38-94,107-153,161-197,199,220-222,224-226,228-283,285-295
+  s_414d9ac4ab3a4f::t_fab1087421b1f1 27-37,95-106,154-160,202-210
+  s_414d9ac4ab3a4f::t_e1cb1f9851007c 1,4,19
+ui/.npmrc
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-2
+ui/.prettierignore
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-6
+ui/README.md
+  s_414d9ac4ab3a4f::t_432449f7e9e94e 43-50
+  s_414d9ac4ab3a4f::t_c11c6dfc6d0301 1-42,51-71
+ui/pnpm-lock.yaml
+  s_414d9ac4ab3a4f::t_e4a46041470ec7 1-1768
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "51d1859c7aedba19d9ce2fd5ae233e9f95092ace",
+  "prompts": {},
+  "sessions": {
+    "s_414d9ac4ab3a4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20153-b443-74d1-93cd-501e79756cb1",
+        "model": "auto/gpt-6.1-sol"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
