@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from pydantic import JsonValue
@@ -80,6 +80,22 @@ class ToolCallRepository:
         )
         return [tool_call_to_domain(row) for row in result]
 
+    async def list_expired(self, now: datetime) -> list[ToolCall]:
+        """返回已超过回填截止时间且仍未完成的工具调用。"""
+        storage_now = now.astimezone(UTC).replace(tzinfo=None)
+        result = await self._session.scalars(
+            select(ToolCallRow)
+            .where(
+                ToolCallRow.status.in_(
+                    (ToolCallStatus.PENDING.value, ToolCallStatus.RUNNING.value)
+                ),
+                ToolCallRow.expires_at.is_not(None),
+                ToolCallRow.expires_at <= storage_now,
+            )
+            .order_by(ToolCallRow.expires_at, ToolCallRow.id)
+        )
+        return [tool_call_to_domain(row) for row in result]
+
     async def start(self, run_id: str, call_id: str) -> ToolCall:
         """把待执行工具调用原子标记为 running。"""
         row = await self._require_call(run_id, call_id)
@@ -117,12 +133,15 @@ class ToolCallRepository:
             )
         run = await self._require_run(run_id)
         code_value = error_code.value if isinstance(error_code, ErrorCode) else error_code
-        tool_status = (
-            ToolCallStatus.CANCELLED
-            if code_value == ErrorCode.RUN_CANCELLED.value
-            else ToolCallStatus.FAILED
-        )
-        event_type = EventType.TOOL_FAILED
+        if code_value == ErrorCode.REMOTE_TOOL_TIMEOUT.value:
+            tool_status = ToolCallStatus.EXPIRED
+            event_type = EventType.TOOL_EXPIRED
+        elif code_value == ErrorCode.RUN_CANCELLED.value:
+            tool_status = ToolCallStatus.CANCELLED
+            event_type = EventType.TOOL_FAILED
+        else:
+            tool_status = ToolCallStatus.FAILED
+            event_type = EventType.TOOL_FAILED
         tool_message = await self._messages.append(
             Message(
                 session_id=run.session_id,

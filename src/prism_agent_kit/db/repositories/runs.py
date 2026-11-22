@@ -76,6 +76,15 @@ class RunRepository:
         active = row.first()
         return run_to_domain(active) if active is not None else None
 
+    async def list_by_status(self, status: RunStatus) -> list[Run]:
+        """按状态返回 Run。供启动恢复与扫描任务使用。"""
+        result = await self._session.scalars(
+            select(RunRow)
+            .where(RunRow.status == status.value)
+            .order_by(RunRow.created_at, RunRow.id)
+        )
+        return [run_to_domain(row) for row in result]
+
     async def claim_next(self) -> Run | None:
         """以条件更新原子 claim 最早的 queued Run。"""
         candidate = (
