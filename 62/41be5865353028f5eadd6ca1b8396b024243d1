@@ -1,0 +1,32 @@
+src/prism_agent_kit/core/prompts.py
+  s_fa558348164fda::t_586aa32e0a6847 1-19,21-67
+  s_fa558348164fda::t_46751f18a08cbd 20
+src/prism_agent_kit/core/token_budget.py
+  s_fa558348164fda::t_e108df7524ea5d 59
+  s_fa558348164fda::t_586aa32e0a6847 1-58,60-71
+tests/core/test_prompts.py
+  s_fa558348164fda::t_e05b1bf24e298a 1-45
+tests/core/test_token_budget.py
+  s_fa558348164fda::t_e05b1bf24e298a 1-15
+tests/core/test_context.py
+  s_fa558348164fda::t_e05b1bf24e298a 1-119
+src/prism_agent_kit/core/context.py
+  s_fa558348164fda::t_586aa32e0a6847 1-32,34-69,71-124,126-158
+  s_fa558348164fda::t_e108df7524ea5d 33,70,125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6241be5865353028f5eadd6ca1b8396b024243d1",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
