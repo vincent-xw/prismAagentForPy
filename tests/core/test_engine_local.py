@@ -1,0 +1,228 @@
+import asyncio
+
+from tests.fakes import (
+    FixedEstimator,
+    RecordingEventPublisher,
+    ScriptedModelProvider,
+)
+
+from prism_agent_kit.core.context import ContextAssembler
+from prism_agent_kit.core.engine import (
+    EngineContext,
+    SimpleAgentEngine,
+)
+from prism_agent_kit.core.enums import MessageRole, RunStatus, ToolCallStatus
+from prism_agent_kit.core.errors import ErrorCode
+from prism_agent_kit.core.models import Message, Run
+from prism_agent_kit.core.ports import ModelResponse, ToolCallDraft
+from prism_agent_kit.db.uow import UnitOfWorkFactory
+from prism_agent_kit.tools.executor import LocalToolExecutor
+from prism_agent_kit.tools.registry import ToolRegistry
+from prism_agent_kit.tools.testing import echo_tool
+
+
+async def seed_running_run(uow_factory: UnitOfWorkFactory) -> Run:
+    """创建 Session、Run 和 user Message。以原子 claim 进入 running。"""
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(
+            Run(
+                session_id=session.id,
+                input_text="hello",
+                prompt_name="default",
+                prompt_version="1",
+                system_prompt="system",
+                model="test-model",
+            )
+        )
+        await uow.messages.append(
+            Message(
+                session_id=session.id,
+                run_id=run.id,
+                role=MessageRole.USER,
+                content="hello",
+            )
+        )
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        claimed = await uow.runs.claim_next()
+        await uow.commit()
+    assert claimed is not None
+    return claimed
+
+
+def make_engine(
+    uow_factory: UnitOfWorkFactory,
+    provider: ScriptedModelProvider,
+    publisher: RecordingEventPublisher,
+    *,
+    max_steps: int = 10,
+) -> SimpleAgentEngine:
+    registry = ToolRegistry()
+    registry.register(echo_tool())
+    return SimpleAgentEngine(
+        uow_factory=uow_factory,
+        model_provider=provider,
+        tool_registry=registry,
+        tool_executor=LocalToolExecutor(),
+        context_assembler=ContextAssembler(
+            FixedEstimator(),
+            context_window=100,
+            max_output_tokens=10,
+            safety_margin_tokens=1,
+        ),
+        event_publisher=publisher,
+        max_steps=max_steps,
+        max_output_tokens=100,
+        remote_tool_timeout_seconds=300,
+    )
+
+
+async def test_engine_processes_every_tool_call_in_one_assistant_turn(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run = await seed_running_run(uow_factory)
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                tool_calls=[
+                    ToolCallDraft(
+                        call_id="call-1",
+                        tool_name="echo",
+                        input={"text": "first"},
+                    ),
+                    ToolCallDraft(
+                        call_id="call-2",
+                        tool_name="echo",
+                        input={"text": "second"},
+                    ),
+                ]
+            ),
+            ModelResponse(text="done"),
+        ]
+    )
+    publisher = RecordingEventPublisher()
+    engine = make_engine(uow_factory, provider, publisher)
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+
+    assert outcome.kind == "completed"
+    assert len(provider.requests) == 2
+
+    async with uow_factory() as uow:
+        calls = await uow.tool_calls.list_for_run(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+        stored_run = await uow.runs.get(run.id)
+
+    assert [call.status for call in calls] == [
+        ToolCallStatus.SUCCEEDED,
+        ToolCallStatus.SUCCEEDED,
+    ]
+    assert [message.role for message in messages].count(MessageRole.TOOL) == 2
+    assert stored_run.status is RunStatus.SUCCEEDED
+    assert stored_run.output_text == "done"
+
+
+async def test_engine_stops_at_max_steps(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run = await seed_running_run(uow_factory)
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                tool_calls=[
+                    ToolCallDraft(
+                        call_id=f"call-{index}",
+                        tool_name="echo",
+                        input={"text": "again"},
+                    )
+                ]
+            )
+            for index in range(3)
+        ]
+    )
+    publisher = RecordingEventPublisher()
+    engine = make_engine(
+        uow_factory,
+        provider,
+        publisher,
+        max_steps=2,
+    )
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+
+    assert outcome.kind == "failed"
+    assert outcome.error_code is ErrorCode.HARNESS_STEP_LIMIT
+    assert len(provider.requests) == 2
+
+    async with uow_factory() as uow:
+        stored_run = await uow.runs.get(run.id)
+
+    assert stored_run.status is RunStatus.FAILED
+    assert stored_run.error_code == ErrorCode.HARNESS_STEP_LIMIT.value
+
+
+async def test_contract_failure_closes_remaining_tool_calls(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run = await seed_running_run(uow_factory)
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                tool_calls=[
+                    ToolCallDraft(
+                        call_id="call-1",
+                        tool_name="echo",
+                        input={},
+                    ),
+                    ToolCallDraft(
+                        call_id="call-2",
+                        tool_name="echo",
+                        input={"text": "valid"},
+                    ),
+                ]
+            )
+        ]
+    )
+    publisher = RecordingEventPublisher()
+    engine = make_engine(uow_factory, provider, publisher)
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+
+    assert outcome.kind == "failed"
+    assert outcome.error_code is ErrorCode.TOOL_INPUT_INVALID
+
+    async with uow_factory() as uow:
+        calls = await uow.tool_calls.list_for_run(run.id)
+        messages = await uow.messages.list_for_session(run.session_id)
+        stored_run = await uow.runs.get(run.id)
+
+    assert [call.status for call in calls] == [
+        ToolCallStatus.FAILED,
+        ToolCallStatus.FAILED,
+    ]
+    assert [message.role for message in messages].count(MessageRole.TOOL) == 2
+    assert stored_run.status is RunStatus.FAILED
+    assert stored_run.error_code == ErrorCode.TOOL_INPUT_INVALID.value
+
+
+async def test_preexisting_cancel_marks_run_cancelled(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run = await seed_running_run(uow_factory)
+    provider = ScriptedModelProvider([ModelResponse(text="never")])
+    publisher = RecordingEventPublisher()
+    engine = make_engine(uow_factory, provider, publisher)
+    cancel = asyncio.Event()
+    cancel.set()
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=cancel))
+
+    assert outcome.kind == "cancelled"
+    assert provider.requests == []
+
+    async with uow_factory() as uow:
+        stored_run = await uow.runs.get(run.id)
+
+    assert stored_run.status is RunStatus.CANCELLED

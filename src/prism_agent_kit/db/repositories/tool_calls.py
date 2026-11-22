@@ -70,6 +70,82 @@ class ToolCallRepository:
         )
         return [tool_call_to_domain(row) for row in result]
 
+    async def list_for_session(self, session_id: str) -> list[ToolCall]:
+        """返回 Session 全部 Run 下的工具调用。供历史重建。"""
+        result = await self._session.scalars(
+            select(ToolCallRow)
+            .join(RunRow, ToolCallRow.run_id == RunRow.id)
+            .where(RunRow.session_id == session_id)
+            .order_by(ToolCallRow.created_at, ToolCallRow.id)
+        )
+        return [tool_call_to_domain(row) for row in result]
+
+    async def start(self, run_id: str, call_id: str) -> ToolCall:
+        """把待执行工具调用原子标记为 running。"""
+        row = await self._require_call(run_id, call_id)
+        if ToolCallStatus(row.status) is not ToolCallStatus.PENDING:
+            raise AgentKitError(
+                ErrorCode.TOOL_RESULT_CONFLICT,
+                "ToolCall 状态不允许开始执行",
+                http_status=409,
+                details={"call_id": call_id},
+            )
+        row.status = ToolCallStatus.RUNNING.value
+        await self._session.flush()
+        return tool_call_to_domain(row)
+
+    async def fail(
+        self,
+        run_id: str,
+        call_id: str,
+        error_code: ErrorCode,
+        message: str,
+    ) -> Message:
+        """记录单次工具失败结果。不闭合同轮其他调用。"""
+        row = await self._require_call(run_id, call_id)
+        if ToolCallStatus(row.status) in {
+            ToolCallStatus.SUCCEEDED,
+            ToolCallStatus.FAILED,
+            ToolCallStatus.EXPIRED,
+            ToolCallStatus.CANCELLED,
+        }:
+            raise AgentKitError(
+                ErrorCode.TOOL_RESULT_CONFLICT,
+                "ToolCall 已进入终态",
+                http_status=409,
+                details={"call_id": call_id},
+            )
+        run = await self._require_run(run_id)
+        tool_status, event_type = self._closure_status(error_code)
+        tool_message = await self._messages.append(
+            Message(
+                session_id=run.session_id,
+                run_id=run_id,
+                role=MessageRole.TOOL,
+                content=_error_content(error_code, message),
+                tool_call_id=call_id,
+            )
+        )
+        row.status = tool_status.value
+        row.error_code = error_code.value
+        row.error_message = message
+        row.finished_at = _storage_now()
+        await self._events.append(
+            RunEvent(
+                run_id=run_id,
+                event_type=event_type,
+                payload={
+                    "call_id": call_id,
+                    "tool_name": row.tool_name,
+                    "error_code": error_code.value,
+                    "error_message": message,
+                    "message_id": tool_message.id,
+                },
+            )
+        )
+        await self._session.flush()
+        return tool_message
+
     async def complete(
         self,
         run_id: str,
@@ -224,6 +300,17 @@ class ToolCallRepository:
                 details={"run_id": run_id},
             )
         return run
+
+    async def _require_call(self, run_id: str, call_id: str) -> ToolCallRow:
+        row = await self._session.get(ToolCallRow, call_id)
+        if row is None or row.run_id != run_id:
+            raise AgentKitError(
+                ErrorCode.TOOL_CALL_NOT_FOUND,
+                "ToolCall 不存在",
+                http_status=404,
+                details={"run_id": run_id, "call_id": call_id},
+            )
+        return row
 
     @staticmethod
     def _closure_status(error_code: ErrorCode) -> tuple[ToolCallStatus, EventType]:

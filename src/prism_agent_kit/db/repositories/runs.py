@@ -102,7 +102,16 @@ class RunRepository:
         row = result.scalars().one_or_none()
         return run_to_domain(row) if row is not None else None
 
-    async def transition(self, run_id: str, target: RunStatus) -> Run:
+    async def transition(
+        self,
+        run_id: str,
+        target: RunStatus,
+        *,
+        output_text: str | None = None,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        step_count: int | None = None,
+    ) -> Run:
         """先校验状态机再写入目标状态与对应时间戳。"""
         row = await self._session.get(RunRow, run_id)
         if row is None:
@@ -120,5 +129,27 @@ class RunRepository:
             row.started_at = _storage_now()
         if target in {RunStatus.SUCCEEDED, RunStatus.FAILED, RunStatus.CANCELLED}:
             row.finished_at = _storage_now()
+        if output_text is not None:
+            row.output_text = output_text
+        if error_code is not None:
+            row.error_code = error_code
+        if error_message is not None:
+            row.error_message = error_message
+        if step_count is not None:
+            row.step_count = step_count
+        await self._session.flush()
+        return run_to_domain(row)
+
+    async def update_step_count(self, run_id: str, step_count: int) -> Run:
+        """更新已执行的模型请求次数。"""
+        row = await self._session.get(RunRow, run_id)
+        if row is None:
+            raise AgentKitError(
+                ErrorCode.RUN_NOT_FOUND,
+                "Run 不存在",
+                http_status=404,
+                details={"run_id": run_id},
+            )
+        row.step_count = step_count
         await self._session.flush()
         return run_to_domain(row)

@@ -1,9 +1,11 @@
 from collections.abc import Awaitable, Callable
+from datetime import datetime
 from typing import Protocol
 
 from pydantic import BaseModel, Field, JsonValue
 
-from prism_agent_kit.core.models import Message, ToolCall
+from prism_agent_kit.core.enums import EventType
+from prism_agent_kit.core.models import Message, ToolCall, utc_now
 
 
 class ToolCallDraft(BaseModel):
@@ -56,3 +58,19 @@ class ModelProvider(Protocol):
         request: ModelRequest,
         on_delta: Callable[[ModelChunk], Awaitable[None]] | None = None,
     ) -> ModelResponse: ...
+
+
+class EventEnvelope(BaseModel):
+    """交给事件总线或 SSE 的统一事件信封。"""
+
+    event_id: int | None = None
+    run_id: str
+    event_type: EventType
+    payload: JsonValue
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+class EventPublisher(Protocol):
+    """事务提交后发布事件的端口。"""
+
+    async def publish(self, event: EventEnvelope) -> None: ...

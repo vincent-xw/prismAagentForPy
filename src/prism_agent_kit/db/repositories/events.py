@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from prism_agent_kit.core.models import RunEvent
@@ -30,3 +30,9 @@ class EventRepository:
             statement = statement.where(RunEventRow.id > after_id)
         result = await self._session.scalars(statement.order_by(RunEventRow.id))
         return [run_event_to_domain(row) for row in result]
+
+    async def last_id(self, run_id: str) -> int | None:
+        """返回 Run 当前最大事件游标。"""
+        return await self._session.scalar(
+            select(func.max(RunEventRow.id)).where(RunEventRow.run_id == run_id)
+        )
