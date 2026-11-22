@@ -1,0 +1,387 @@
+ui/tests/e2e/core.live.spec.ts
+  s_414d9ac4ab3a4f::t_0b991bd85698bc 4,11,16-17,20,22
+  s_414d9ac4ab3a4f::t_f3a0c468f4a2b6 1-3,5-10,12-15,18-19,21,23
+ui/src/components/ui/select/SelectScrollDownButton.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7,9,11
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,8,10,12-18,20-26
+  s_414d9ac4ab3a4f::t_60bcbd87e7a6a9 19
+ui/src/features/connection/ConnectionWizard.vue
+  s_414d9ac4ab3a4f::t_286b52c6db62c1 1-6,14-22,31-37,45,53-54,58,65-68,100,111-112,127-130
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 7-13,23-30,38-44,46-52,55-57,59-64,69-99,101-110,113-126
+ui/src/components/ui/dialog/DialogOverlay.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-15,23-26
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 16
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10,17-22
+ui/tests/e2e/connection.spec.ts
+  s_414d9ac4ab3a4f::t_ffca199a2c2793 21-40,44-52,56-57
+  s_414d9ac4ab3a4f::t_4be8d2ccea77d3 1-16,18-20
+  s_414d9ac4ab3a4f::t_f1ef3a8a3b5763 17
+  s_414d9ac4ab3a4f::t_712886b5c5c30f 41-43,53-55
+ui/src/components/ui/button/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-2,4,11,13,15-18,21-28,32-33
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 3,5-10,12,14,19-20,29-31,34-37
+ui/index.html
+  s_414d9ac4ab3a4f::t_e5ce9e29f9c7c9 8
+ui/src/components/ui/separator/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1
+ui/src/components/ui/collapsible/CollapsibleContent.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+ui/src/components/ui/label/Label.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-15,17-26
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 16
+ui/src/components/ui/select/SelectValue.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+ui/src/components/ui/badge/Badge.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,9,16,18-23,25-28
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 24
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-8,10-15,17
+ui/src/components/ui/sheet/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-8
+ui/src/styles/main.css
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 30-32,37-38,42-61
+  s_414d9ac4ab3a4f::t_f29f1bbd7c3d58 1
+  s_414d9ac4ab3a4f::t_58c815e6200287 2-29,33-36,39-41,62
+ui/src/app/theme/useTheme.ts
+  s_414d9ac4ab3a4f::t_e5ce9e29f9c7c9 1-21,33-43,52-53
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 22-32,44-51
+ui/src/App.vue
+  s_414d9ac4ab3a4f::t_f7d50b4c714767 1-4
+ui/vitest.config.ts
+  s_414d9ac4ab3a4f::t_fe1d6f196e4452 1-10
+ui/src/components/ui/select/Select.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,13
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-12,14-16
+ui/src/components/ui/select/SelectItemText.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+ui/tests/e2e/core-fixture.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 8-11,65-73,76-80,86-87,89-104,108-110,120-121,127-128,130-131,135-145,148-155,159-171
+  s_414d9ac4ab3a4f::t_64a5568415828d 61
+  s_414d9ac4ab3a4f::t_4be8d2ccea77d3 1-4,6-7,12-14,60,62-64,74-75,81-85,88,105-107,111-119,129,132-134,146-147,156-158,172-175,178-186
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 21-25,28-32,41-46,48-51,56-59
+  s_414d9ac4ab3a4f::t_f96595821ab028 5,15-20,26-27,33-40,47,52-55,122-126,176-177
+ui/src/components/ui/select/SelectItem.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,8,10,12-18,20-39
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7,9,11
+  s_414d9ac4ab3a4f::t_60bcbd87e7a6a9 19
+ui/vite.config.ts
+  s_414d9ac4ab3a4f::t_7f90dfcfb3d3a1 5
+  s_414d9ac4ab3a4f::t_e5ce9e29f9c7c9 3,35
+  s_414d9ac4ab3a4f::t_ffca199a2c2793 14-18
+ui/src/components/ui/button/Button.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7,10-12,16
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,8-9,13-15,17-31
+ui/src/features/sessions/SessionPage.vue
+  s_414d9ac4ab3a4f::t_7af0eddd17b3b4 88
+  s_414d9ac4ab3a4f::t_737c0c8d962372 93
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 6-12,21-23,27-56,65-70,72-77,79-87,89-92,94-97,103-104,110-124,127-142
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 71,78,98-102,105-109
+  s_414d9ac4ab3a4f::t_e7081efbbb3282 1-5,13-20,24-26,57-59,125,143-144
+  s_414d9ac4ab3a4f::t_a3c1d5a56f4876 60-64,126
+ui/src/app/NotFoundPage.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-7
+ui/src/components/ui/input/Input.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,9,13,16,26-34
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 18
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-8,10-12,14-15,17,19-25,35
+ui/src/components/ui/separator/Separator.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8-9,13
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 19
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,10-12,14-18,20-27
+ui/src/features/runs/ToolCallCard.vue
+  s_414d9ac4ab3a4f::t_e7081efbbb3282 1-4,13-14,50-51
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 5-12,15-49
+ui/src/components/ui/sheet/SheetTrigger.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+ui/src/components/ui/dialog/DialogDescription.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-17,19-23
+  s_414d9ac4ab3a4f::t_60bcbd87e7a6a9 18
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10
+ui/tests/unit/contracts.test.ts
+  s_414d9ac4ab3a4f::t_9e3dd8f158f57e 1-18,28-29
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 19-27
+ui/src/lib/utils.ts
+  s_414d9ac4ab3a4f::t_f29f1bbd7c3d58 1-7
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 11-16
+  s_414d9ac4ab3a4f::t_a30bd5cef151c5 8-10,17
+ui/src/components/ui/select/SelectTrigger.vue
+  s_414d9ac4ab3a4f::t_60bcbd87e7a6a9 22
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7,10-11,14,23-28
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,8-9,12-13,15-21,29-35
+ui/src/lib/api/run-stream.ts
+  s_414d9ac4ab3a4f::t_b0c9b771d25db4 1-6,11-25,31-47,53-60,67-70,75-78,86-87
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 7-10,26-30,48-52,61-66,71-74,79-85
+ui/src/components/ui/label/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1
+ui/src/features/runs/RunInspector.vue
+  s_414d9ac4ab3a4f::t_e7081efbbb3282 1-9,21-22,96-98
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 10-20,23-95
+ui/src/components/ui/dialog/Dialog.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-12,14-16
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,13
+ui/src/lib/api/sse.ts
+  s_414d9ac4ab3a4f::t_b0c9b771d25db4 1-3,9-10,15-20,24-36,40-57,65,69-76,86,92-97,103-113
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 4-8,11-14,21-23,37-39,58-64,66-68,77-85,87-91,98-102
+ui/src/components/ui/dialog/DialogHeader.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-3,6
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,4-5,7-17
+ui/src/components/ui/sheet/SheetDescription.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 17
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-16,18-21
+ui/src/components/ui/sheet/Sheet.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-12,14-16
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,13
+ui/src/components/ui/skeleton/Skeleton.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,4-5,7-12,14
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-3,6,13
+ui/src/app/AppShell.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 6-12,24-32,38,40-59,64-89,91-137,140-164
+  s_414d9ac4ab3a4f::t_f7d50b4c714767 1-5,13-23,33-37,39,60-63,90,138-139,165-166
+ui/src/components/ui/textarea/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1
+ui/src/lib/api/client.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-10,17-29,36-44,46-51,53-55,59-66,73-78,81-84,87-95,98-119
+  s_414d9ac4ab3a4f::t_c311b8435f6437 1,11-16,30-35,45,52,56-58,67-72,79-80,85-86,96-97,120-123
+ui/src/components/ui/dialog/DialogContent.vue
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 34,50
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,9-13,22-23,25-33,35-38,41-49,51-54
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-8,14-21,24,39-40
+ui/src/components/ui/collapsible/Collapsible.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-12,14-16
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,13
+ui/src/features/sessions/SessionSidebar.vue
+  s_414d9ac4ab3a4f::t_432f607d11f4c9 1-9,17-18,34,38-39
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 10-16,19-33,35-37
+ui/playwright.live.config.ts
+  s_414d9ac4ab3a4f::t_f3a0c468f4a2b6 1-7,11-12,21-22
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 8-10,13-20
+ui/tsconfig.node.json
+  s_414d9ac4ab3a4f::t_712886b5c5c30f 15-16
+ui/src/features/sessions/conversation.ts
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 280-284
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 5-10,13-14,23-30,33-43,52-56,60,62-63,70-71,84-85,105-108,119-120,123-129,132-134,137-142,147-149,151-154,180-184,194-197,203-210,217-220,228-230,238-239,241-246,261-276,286-294,297
+  s_414d9ac4ab3a4f::t_7af0eddd17b3b4 49,61,94-97,145,162-169,221,240,279,295-296
+  s_414d9ac4ab3a4f::t_e449f52ca40afb 1-4,11-12,15-22,31-32,44-48,50-51,57-59,64-69,72-83,86-93,109-118,121-122,130-131,135-136,143-144,146,150,155-161,170-179,185-193,198-202,211-216,222-227,231-237,247-260,277-278,285,298-301
+  s_414d9ac4ab3a4f::t_8b4d330a4535c2 98-104
+ui/src/components/ui/sheet/SheetClose.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+ui/src/components/ui/sheet/SheetHeader.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,4,6-8,10-12
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-3,5,9
+ui/src/components/ui/sheet/SheetFooter.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-3,5,9
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,4,6-8,10-12
+ui/src/components/ui/select/SelectSeparator.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-15,17-19
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 16
+ui/README.md
+  s_414d9ac4ab3a4f::t_a3c1d5a56f4876 11
+  s_414d9ac4ab3a4f::t_dd32cd0cd384db 1,3,5,7,15,17-20,22,24,26,28-34,36,38-44,46,48,50,52,54-56,58
+ui/.gitignore
+  s_414d9ac4ab3a4f::t_e5ce9e29f9c7c9 7-8
+ui/src/components/ui/textarea/Textarea.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,7,13,16,26-31
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 18
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-6,8-12,14-15,17,19-25,32-33
+ui/tests/unit/run-stream.test.ts
+  s_414d9ac4ab3a4f::t_c9b32aa47485f1 1-7,19-20,24-25,34-65,70-71
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 8-18,21-23,26-33,66-69
+ui/eslint.config.js
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 10-16
+  s_414d9ac4ab3a4f::t_a84b15a05ec32d 21,26-29
+  s_414d9ac4ab3a4f::t_cab0266d66f8b3 30
+ui/src/components/ui/select/SelectLabel.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-5,7
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,6,8-17
+ui/src/components/ui/select/SelectContent.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7,14,16,21,31-37,41-49
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 30
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,8-13,15,17-20,22-29,38-40,50-55
+ui/package.json
+  s_414d9ac4ab3a4f::t_d75f03e6530f21 15,20-22
+  s_414d9ac4ab3a4f::t_4614ef238c86c1 28,30-31,33-39
+  s_414d9ac4ab3a4f::t_2eaeaddcf5d0f5 23-24
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 27,29,32
+  s_414d9ac4ab3a4f::t_90b7020c00424c 43,46,51,56
+ui/src/app/modules.ts
+  s_414d9ac4ab3a4f::t_cd1eb989603884 1-5
+ui/tests/unit/theme.test.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 25-27
+  s_414d9ac4ab3a4f::t_fe1d6f196e4452 1-24,28-33
+ui/src/main.ts
+  s_414d9ac4ab3a4f::t_f7d50b4c714767 4-5,7-19
+ui/src/components/ui/dialog/DialogScrollContent.vue
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 39,59
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,13,19,22,30,40-49,51
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7-12,14-18,20-21,23-29,31-38,50,52-58,60-64
+ui/src/components/ui/sheet/SheetContent.vue
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 48,56
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,9-10,13-19,21-23,25-33,49-55,57-60
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-8,11-12,20,24,34-47
+ui/src/features/runs/projection.ts
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 1-7
+  s_414d9ac4ab3a4f::t_737c0c8d962372 47-48
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 9-10,12-21,24-27,29-30,33-41,49-54,56-61,63-67,69-70,73-86,94-101,103-106,116-121,125-130
+  s_414d9ac4ab3a4f::t_6a0309816a37e6 8,11,22-23,28,31-32,42-46,55,62,68,71-72,87-93,102,107-115,122-124,131-135
+ui/src/lib/api/contracts.ts
+  s_414d9ac4ab3a4f::t_c311b8435f6437 1-6,13,28-29,38-39,45-48,58-68,75,91-95,102-114,117-121
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 7-12,14-27,30-37,40-44,49-57,69-74,76-90,96-101,115-116
+ui/src/app/context.ts
+  s_414d9ac4ab3a4f::t_cd1eb989603884 1-10,25-32,39-40,48-65,70-78
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 11-24,33-38,41-47,66-69
+ui/tests/support/streams.ts
+  s_414d9ac4ab3a4f::t_c9b32aa47485f1 1-3,13-16
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 4-12
+ui/tests/unit/sse.test.ts
+  s_414d9ac4ab3a4f::t_c9b32aa47485f1 1-5,15-20,33-44,56-57
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 6-14,21-32,45-55
+ui/tests/e2e/workbench.spec.ts
+  s_414d9ac4ab3a4f::t_5fb5b70dfcbe89 64
+  s_414d9ac4ab3a4f::t_f1ef3a8a3b5763 9-10
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 5-6,28-29
+  s_414d9ac4ab3a4f::t_3b7595c6251124 38-39,42-58,61-63,65-67
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 40-41,59-60
+  s_414d9ac4ab3a4f::t_4be8d2ccea77d3 1-4,7-8,11-27,30-37
+ui/tests/unit/session-page.test.ts
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 14-22,28-44,46-47
+  s_414d9ac4ab3a4f::t_1672f154b35b86 1-13,23-27,45,48
+ui/tests/unit/settings.test.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 10-15,22-23
+  s_414d9ac4ab3a4f::t_bcaf59e21ae4dc 1-9,16-21,24
+ui/src/components/ui/collapsible/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-3
+ui/tests/support/fixtures.ts
+  s_414d9ac4ab3a4f::t_9e3dd8f158f57e 1-8,26-27,39
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 9-25,28-38
+ui/src/features/connection/connection.ts
+  s_414d9ac4ab3a4f::t_286b52c6db62c1 1-5,8-9,20-22,39-40,46-47,60-62,70,76,88-90,93-96,108,115-118
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 6-7,10-19,23-38,41-45,48-59,63-69,71-75,77-85,91-92,97-107,109-111,113-114
+  s_414d9ac4ab3a4f::t_7af0eddd17b3b4 86-87,112
+ui/src/components/ui/badge/index.ts
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 3,5-6,8-10,12,14,17-19,21-24
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-2,4,7,11,13,15-16,20
+ui/src/components/ui/sheet/SheetTitle.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-16,18-21
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 17
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10
+ui/src/components/ui/select/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-11
+ui/tests/unit/client.test.ts
+  s_414d9ac4ab3a4f::t_9e3dd8f158f57e 1-16,29-38,42-44
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 17-28,39-41
+ui/src/app/router.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 6-14
+  s_414d9ac4ab3a4f::t_cd1eb989603884 1-5
+ui/src/components/ui/dialog/DialogTrigger.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+ui/src/features/settings/SettingsPage.vue
+  s_414d9ac4ab3a4f::t_3f7253f9e87626 1-9,14-15,19,23-25,29,32,50,54-55,107,136-138
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 10-13,16-18,20-22,26-28,30-31,33-49,51-53,56-106,108-135
+ui/src/components/ui/collapsible/CollapsibleTrigger.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+ui/public/theme-init.js
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 10-15
+  s_414d9ac4ab3a4f::t_e5ce9e29f9c7c9 1-9,16-18
+ui/src/features/sessions/MessageComposer.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 5-11,23-55,57-59
+  s_414d9ac4ab3a4f::t_432f607d11f4c9 1-4,12-22,56,60-61
+ui/src/features/settings/SettingsRoute.vue
+  s_414d9ac4ab3a4f::t_cd1eb989603884 1-6
+ui/src/components/ui/select/SelectScrollUpButton.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,8,10,12-18,20-26
+  s_414d9ac4ab3a4f::t_60bcbd87e7a6a9 19
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7,9,11
+ui/tests/unit/connection.test.ts
+  s_414d9ac4ab3a4f::t_1672f154b35b86 66-67,74-78
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 8-9,13-16,18-23,42-51,53-58
+  s_414d9ac4ab3a4f::t_43a96a16520d35 1-7,10-12,17,24-41,52,59-65
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 68-73
+ui/tsconfig.test.json
+  s_414d9ac4ab3a4f::t_fe1d6f196e4452 1-2,11
+  s_414d9ac4ab3a4f::t_7f90dfcfb3d3a1 3
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 4-10
+ui/tsconfig.json
+  s_414d9ac4ab3a4f::t_0d4f958ebeaebe 2
+ui/tests/e2e/theme.spec.ts
+  s_414d9ac4ab3a4f::t_96c6eeb2c5fde1 1-9,12-19
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 10-11
+ui/src/features/sessions/MessageList.vue
+  s_414d9ac4ab3a4f::t_432f607d11f4c9 1-6,12-14,32-33,42,57,85-86,126-129
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 7-11,15-31,34-41,43-56,58-84,87-125
+ui/src/lib/api/config.ts
+  s_414d9ac4ab3a4f::t_c311b8435f6437 1-2,9-12
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 3-8
+ui/src/components/ui/dialog/DialogFooter.vue
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-6,16-24,26-28
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,7-15,25
+ui/components.json
+  s_414d9ac4ab3a4f::t_f29f1bbd7c3d58 1-19
+ui/src/components/ui/dialog/DialogTitle.vue
+  s_414d9ac4ab3a4f::t_60bcbd87e7a6a9 18
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-17,19-23
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10
+ui/src/components/ui/select/SelectGroup.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+ui/src/components/ui/sheet/SheetOverlay.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,8,10,16-21
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,7,9,11-15,23-26
+  s_414d9ac4ab3a4f::t_c9876f2748cba8 22
+ui/src/styles/tokens.css
+  s_414d9ac4ab3a4f::t_e5ce9e29f9c7c9 1-47
+ui/src/components/ui/input/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1
+ui/tests/unit/connection-wizard.test.ts
+  s_414d9ac4ab3a4f::t_43a96a16520d35 1-7,18-22,25-28
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 8-17,23-24
+ui/src/vite-env.d.ts
+  s_414d9ac4ab3a4f::t_c311b8435f6437 1
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-7
+ui/src/components/ui/dialog/DialogClose.vue
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-4,10
+  s_414d9ac4ab3a4f::t_a0d63899e800c8 1,5-9,11-13
+ui/tests/unit/conversation.test.ts
+  s_414d9ac4ab3a4f::t_075b38b489ad0c 1-10,15-21,26-55,58-72,84-113,118-144,148-150
+  s_414d9ac4ab3a4f::t_6c1d474d57c411 157-160,178-186,201-213,239-254,258-263,267-268,275-280,285-287
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 11-14,22-25,56-57,73-83,114-117,145-147
+  s_414d9ac4ab3a4f::t_1672f154b35b86 151-156,161-177,187-200,214-238,255-257,264-266,269-274,281-284,288-293
+ui/src/components/ui/skeleton/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1
+ui/tests/unit/run-projection.test.ts
+  s_414d9ac4ab3a4f::t_49c55fce24a355 1,7-9,26-27,30-44,49,53-62,76-78,90-92
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 2-6,10-19,28-29,45-48,50-52,63-75,79-89
+  s_414d9ac4ab3a4f::t_c98338623d0da5 20-25
+ui/.env.example
+  s_414d9ac4ab3a4f::t_c311b8435f6437 3
+ui/playwright.config.ts
+  s_414d9ac4ab3a4f::t_fe1d6f196e4452 1-16
+ui/src/components/ui/dialog/index.ts
+  s_414d9ac4ab3a4f::t_ca8f07413f3dfe 1-10
+ui/pnpm-lock.yaml
+  s_414d9ac4ab3a4f::t_3f829fd644d15f 11-40,44-49,53-56,62-65,68,71,74,78-80,89,92-95,173-195,216-221,225-239,243-245,255-259,267-269,273-277,382-485,489-494,507-509,580-593,628-630,649-691,708-715,720-725,736-758,766-769,779-781,785-787,792-800,805-811,877-879,884-887,928-931,936-938,949-952,965-977,986-988,992-1012,1104-1107,1111-1117,1122-1125,1140-1144,1148-1154,1171-1176,1188-1191,1199-1208,1226-1228,1237-1241,1247-1250,1268-1288,1293-1307,1317-1319,1339-1342,1392-1432,1449-1451,1458-1462,1477-1492,1498-1502,1511-1516,1560,1562,1583,1585,1594-1612,1629-1636,1639-1653,1656-1660,1669-1672,1680-1681,1684-1687,1742-1818,1824-1830,1841-1843,1846,1848-1849,1851,1860,1867,1891,1895,1897,1921,1923,1927,1938,1941,1944-1954,2009-2010,2045-2081,2097-2102,2105-2112,2127-2143,2152-2158,2163-2164,2167-2168,2171-2182,2185-2188,2191,2193,2195,2197-2198,2203,2206,2219,2221,2251-2252,2274-2277,2280-2281,2316-2321,2324-2325,2334-2339,2346-2356,2363-2364,2367-2401,2468-2469,2474-2481,2487-2488,2497-2500,2505-2508,2528-2535,2542-2546,2551-2556,2571-2572,2579-2591,2614-2617,2628-2639,2645-2658,2663-2665,2671,2673-2674,2676-2677,2687-2688,2695,2705-2727,2742-2744,2747,2756-2760,2777-2792,2797-2798,2802-2805
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "01d1141d9e01573f9b20556e3ade41cdb60838ca",
+  "prompts": {},
+  "sessions": {
+    "s_414d9ac4ab3a4f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20153-b443-74d1-93cd-501e79756cb1",
+        "model": "auto/gpt-6.1-sol"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
