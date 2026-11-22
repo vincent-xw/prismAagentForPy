@@ -1,0 +1,37 @@
+tests/api/test_auth.py
+  s_fa558348164fda::t_120d2d83ca7683 96-97
+  s_fa558348164fda::t_42728a7ea8ec7a 1-74,76-87,93
+  s_fa558348164fda::t_6aa09070c75f0d 75,88-92,94-95
+tests/api/test_error_mapping.py
+  s_fa558348164fda::t_42728a7ea8ec7a 1-74
+src/prism_agent_kit/api/request_context.py
+  s_fa558348164fda::t_f680d36a0680dd 1-45
+src/prism_agent_kit/api/errors.py
+  s_fa558348164fda::t_f680d36a0680dd 1-133
+src/prism_agent_kit/api/auth.py
+  s_fa558348164fda::t_f680d36a0680dd 1-87
+tests/conftest.py
+  s_fa558348164fda::t_42728a7ea8ec7a 18-23
+src/prism_agent_kit/core/errors.py
+  s_fa558348164fda::t_f680d36a0680dd 10,38
+tests/test_health.py
+  s_fa558348164fda::t_42728a7ea8ec7a 14
+src/prism_agent_kit/main.py
+  s_fa558348164fda::t_f680d36a0680dd 9-11,28,51,60-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "379dcb0e892053107a497874d3cd3ef6f1530f1d",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
