@@ -1,0 +1,34 @@
+ui/README.md
+  s_fa558348164fda::t_145c8ba6a464f7 24
+backend/README.md
+  s_fa558348164fda::t_f0ab3ec5e09f71 171-177
+  s_fa558348164fda::t_145c8ba6a464f7 1-170,178-200
+docs/superpowers/plans/2026-11-22-core-ui.md
+  s_fa558348164fda::t_f0ab3ec5e09f71 15,285
+docs/superpowers/plans/2026-11-22-python-agent-core.md
+  s_fa558348164fda::t_f0ab3ec5e09f71 4
+backend/migrations/README
+  s_fa558348164fda::t_145c8ba6a464f7 1-3
+docs/superpowers/specs/2026-11-22-core-ui-design.md
+  s_fa558348164fda::t_f0ab3ec5e09f71 17,277-284
+AGENTS.md
+  s_fa558348164fda::t_4a4afb09ea3a51 1,6,11-18,22-24,34,38-39,41,51-60,65-68,70-72,74,78-80
+README.md
+  s_fa558348164fda::t_145c8ba6a464f7 1,3,5,9,11-18,20,22,24-28,30,32-35,37,41,44,52,54,57-60,63,65,67-71,75-76,83-86,88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d761e912ecb37bb7f1d3aef26209626eaa24f38f",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
