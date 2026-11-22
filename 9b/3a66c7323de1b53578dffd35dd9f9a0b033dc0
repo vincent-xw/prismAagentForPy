@@ -1,0 +1,25 @@
+tests/application/test_event_bus.py
+  s_fa558348164fda::t_bd9ee64e3cc661 1,60-61,70,107-108,116
+  s_fa558348164fda::t_800bdd5af9b0d3 2-3,6-59,62-69,71-106,117-119
+  s_fa558348164fda::t_75164e0b228b2b 4-5,109-115,120-121
+src/prism_agent_kit/application/event_bus.py
+  s_fa558348164fda::t_ae6f26e94cc873 71
+  s_fa558348164fda::t_3f4aae12e527a7 28,36-41,43,46-47,49-53,55
+  s_fa558348164fda::t_74f4759ee4058a 1-27,29-35,42,44-45,48,54,56-70,72-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9b3a66c7323de1b53578dffd35dd9f9a0b033dc0",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
