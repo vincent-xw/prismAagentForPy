@@ -3,6 +3,7 @@ import json
 from typing import cast
 
 from pydantic import BaseModel, JsonValue, ValidationError
+from sqlalchemy.exc import IntegrityError
 
 from prism_agent_kit.core.enums import (
     EventType,
@@ -106,50 +107,58 @@ class ToolResultService:
                         details={"call_id": call_id},
                     )
 
-            if result.ok:
-                output = self._validate_output(call.tool_name, result.output)
-                await uow.tool_calls.complete(run_id, call_id, output)
-            else:
-                if result.error is None:
-                    raise AgentKitError(
-                        ErrorCode.INVALID_REQUEST,
-                        "失败结果必须提供 error",
-                        http_status=422,
-                        details={"call_id": call_id},
-                    )
-                if not result.error.code or not result.error.message:
-                    raise AgentKitError(
-                        ErrorCode.INVALID_REQUEST,
-                        "工具错误码与消息不能为空",
-                        http_status=422,
-                        details={"call_id": call_id},
-                    )
-                if terminal:
-                    if (
-                        call.status is ToolCallStatus.FAILED
-                        and call.error_code == result.error.code
-                        and call.error_message == result.error.message
-                    ):
-                        return call
-                    if call.status is ToolCallStatus.EXPIRED:
+            try:
+                if result.ok:
+                    output = self._validate_output(call.tool_name, result.output)
+                    await uow.tool_calls.complete(run_id, call_id, output)
+                else:
+                    if result.error is None:
                         raise AgentKitError(
-                            ErrorCode.TOOL_CALL_EXPIRED,
-                            "ToolCall 已过期",
+                            ErrorCode.INVALID_REQUEST,
+                            "失败结果必须提供 error",
+                            http_status=422,
+                            details={"call_id": call_id},
+                        )
+                    if not result.error.code or not result.error.message:
+                        raise AgentKitError(
+                            ErrorCode.INVALID_REQUEST,
+                            "工具错误码与消息不能为空",
+                            http_status=422,
+                            details={"call_id": call_id},
+                        )
+                    if terminal:
+                        if (
+                            call.status is ToolCallStatus.FAILED
+                            and call.error_code == result.error.code
+                            and call.error_message == result.error.message
+                        ):
+                            return call
+                        if call.status is ToolCallStatus.EXPIRED:
+                            raise AgentKitError(
+                                ErrorCode.TOOL_CALL_EXPIRED,
+                                "ToolCall 已过期",
+                                http_status=409,
+                                details={"call_id": call_id},
+                            )
+                        raise AgentKitError(
+                            ErrorCode.TOOL_RESULT_CONFLICT,
+                            "ToolCall 已由其他结果闭合",
                             http_status=409,
                             details={"call_id": call_id},
                         )
-                    raise AgentKitError(
-                        ErrorCode.TOOL_RESULT_CONFLICT,
-                        "ToolCall 已由其他结果闭合",
-                        http_status=409,
-                        details={"call_id": call_id},
+                    await uow.tool_calls.fail(
+                        run_id,
+                        call_id,
+                        result.error.code,
+                        result.error.message,
                     )
-                await uow.tool_calls.fail(
-                    run_id,
-                    call_id,
-                    result.error.code,
-                    result.error.message,
-                )
+            except IntegrityError as error:
+                raise AgentKitError(
+                    ErrorCode.TOOL_RESULT_CONFLICT,
+                    "工具结果与已有历史冲突",
+                    http_status=409,
+                    details={"run_id": run_id, "call_id": call_id},
+                ) from error
 
             refreshed_run = await uow.runs.get(run_id)
             calls = await uow.tool_calls.list_for_run(run_id)

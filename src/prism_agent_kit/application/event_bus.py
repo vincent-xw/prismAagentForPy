@@ -25,34 +25,54 @@ class RunEventBus:
         run_id: str,
         after_event_id: int | None,
     ) -> AsyncIterator[EventEnvelope]:
-        """先注册实时订阅。再重放持久事件并按 ID 去重。"""
+        """先注册实时订阅, 再按数据库游标补齐可能乱序到达的持久事件。"""
         queue: asyncio.Queue[EventEnvelope | None] = asyncio.Queue()
         subscribers = self._subscribers.setdefault(run_id, set())
         subscribers.add(queue)
-        seen_event_ids: set[int] = set()
+        last_event_id = after_event_id
         try:
             if self._replay_loader is not None:
                 replay = await self._replay_loader(run_id, after_event_id)
                 for replayed in replay:
-                    if self._should_skip(
-                        replayed,
-                        after_event_id,
-                        seen_event_ids,
-                    ):
+                    event_id = replayed.event_id
+                    if event_id is None:
+                        yield replayed
                         continue
+                    if last_event_id is not None and event_id <= last_event_id:
+                        continue
+                    last_event_id = event_id
                     yield replayed
 
             while True:
                 live_event = await queue.get()
                 if live_event is None:
                     return
-                if self._should_skip(
-                    live_event,
-                    after_event_id,
-                    seen_event_ids,
-                ):
+                if live_event.event_id is None:
+                    yield live_event
                     continue
-                yield live_event
+                if last_event_id is not None and live_event.event_id <= last_event_id:
+                    continue
+
+                # 实时发布由多个服务并发触发, 到达顺序不一定等于 SQLite 提交顺序。
+                # 在输出终态前补读数据库游标, 避免客户端收到终态后永久丢失中间事件。
+                caught_up = await self._load_until(
+                    run_id,
+                    after_event_id=last_event_id,
+                    through_event_id=live_event.event_id,
+                )
+                for stored_event in caught_up:
+                    event_id = stored_event.event_id
+                    if event_id is None:
+                        continue
+                    if last_event_id is not None and event_id <= last_event_id:
+                        continue
+                    last_event_id = event_id
+                    yield stored_event
+
+                # SQLite 已提交但读取快照暂时不可见时仍发送实时事件。
+                if last_event_id is None or live_event.event_id > last_event_id:
+                    last_event_id = live_event.event_id
+                    yield live_event
         finally:
             subscribers.discard(queue)
             if not subscribers:
@@ -73,18 +93,19 @@ class RunEventBus:
         for queue in subscribers:
             queue.put_nowait(None)
 
-    @staticmethod
-    def _should_skip(
-        event: EventEnvelope,
+    async def _load_until(
+        self,
+        run_id: str,
+        *,
         after_event_id: int | None,
-        seen_event_ids: set[int],
-    ) -> bool:
-        """持久事件按游标过滤。临时事件永远保留。"""
-        if event.event_id is None:
-            return False
-        if after_event_id is not None and event.event_id <= after_event_id:
-            return True
-        if event.event_id in seen_event_ids:
-            return True
-        seen_event_ids.add(event.event_id)
-        return False
+        through_event_id: int,
+    ) -> list[EventEnvelope]:
+        """读取游标之后且不超过触发事件的持久记录。"""
+        if self._replay_loader is None:
+            return []
+        events = await self._replay_loader(run_id, after_event_id)
+        return [
+            event
+            for event in events
+            if event.event_id is not None and event.event_id <= through_event_id
+        ]

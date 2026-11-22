@@ -568,3 +568,37 @@ async def test_invalid_remote_tool_input_fails_before_waiting(
     assert stored_run.status is RunStatus.FAILED
     assert [call.status for call in calls] == [ToolCallStatus.FAILED]
     assert [message.role for message in messages].count(MessageRole.TOOL) == 1
+
+
+async def test_existing_tool_message_conflict_maps_to_409(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    run, registry, publisher = await start_remote_run(uow_factory, ["call-1"])
+    async with uow_factory() as uow:
+        stored_run = await uow.runs.get(run.id)
+        call = await uow.tool_calls.get(run.id, "call-1")
+        await uow.messages.append(
+            Message(
+                session_id=stored_run.session_id,
+                run_id=run.id,
+                role=MessageRole.TOOL,
+                content={"value": "preexisting"},
+                tool_call_id=call.id,
+            )
+        )
+        await uow.commit()
+    service = ToolResultService(
+        uow_factory=uow_factory,
+        tool_registry=registry,
+        event_publisher=publisher,
+    )
+
+    with pytest.raises(AgentKitError) as error:
+        await service.submit(
+            run.id,
+            "call-1",
+            call.input_digest,
+            RemoteToolResult(ok=True, output={"value": "new"}),
+        )
+
+    assert error.value.code is ErrorCode.TOOL_RESULT_CONFLICT

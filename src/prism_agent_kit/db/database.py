@@ -17,11 +17,13 @@ def build_sqlite_url(path: Path) -> str:
 
 
 def ensure_private_sqlite_path(path: Path) -> Path:
-    """创建数据目录与数据库文件, 并在 POSIX 上限制为当前用户访问。"""
+    """创建数据库文件, 仅收紧本函数新建目录与数据库文件的权限。"""
     resolved = path.expanduser().resolve()
+    parent_existed = resolved.parent.exists()
     resolved.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     if os.name == "posix":
-        resolved.parent.chmod(0o700)
+        if not parent_existed:
+            resolved.parent.chmod(0o700)
         resolved.touch(exist_ok=True, mode=0o600)
         resolved.chmod(0o600)
     return resolved

@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
@@ -36,3 +38,18 @@ async def test_missing_session_raises_not_found(
 
     assert error.value.code is ErrorCode.SESSION_NOT_FOUND
     assert error.value.http_status == 404
+
+
+async def test_touch_session_updates_activity_time(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    async with uow_factory() as uow:
+        created = await uow.sessions.create(title="demo")
+        await uow.commit()
+
+    touched_at = datetime(2099, 1, 1, tzinfo=UTC)
+    async with uow_factory() as uow:
+        touched = await uow.sessions.touch(created.id, at=touched_at)
+        await uow.commit()
+
+    assert touched.updated_at == touched_at

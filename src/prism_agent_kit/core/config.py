@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     model_timeout_seconds: float = 30.0
     context_safety_margin_tokens: int = 2048
     max_steps: int = 10
-    tool_timeout_seconds: float = 30.0
+    tool_timeout_seconds: float = Field(default=30.0, gt=0)
     remote_tool_timeout_seconds: float = 300.0
     worker_concurrency: int = 2
     sse_heartbeat_seconds: float = 15.0
@@ -62,6 +62,16 @@ class Settings(BaseSettings):
     @classmethod
     def normalize_optional_base_url(cls, value: object) -> object:
         """把 .env 中的空字符串视为未配置, 避免传给 OpenAI SDK。"""
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @field_validator("api_token", mode="before")
+    @classmethod
+    def normalize_optional_api_token(cls, value: object) -> object:
+        """把空字符串或纯空白 Token 视为未配置。"""
+        if isinstance(value, SecretStr):
+            value = value.get_secret_value()
         if isinstance(value, str) and not value.strip():
             return None
         return value

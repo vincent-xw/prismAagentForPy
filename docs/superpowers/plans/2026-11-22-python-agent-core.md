@@ -1063,12 +1063,12 @@ git commit -m "feat: expose session and run APIs"
 def test_sse_replays_events_after_last_event_id(client: TestClient) -> None:
     response = client.get(
         f"/api/v1/runs/{run_id}/events",
-        headers={"Last-Event-ID": "evt_1"},
+        headers={"Last-Event-ID": "1"},
         params={"once": "true"},
     )
     assert response.status_code == 200
-    assert "id: evt_2" in response.text
-    assert "id: evt_1" not in response.text
+    assert "id: 2" in response.text
+    assert "id: 1" not in response.text
 
 
 def test_sse_emits_terminal_event_and_closes(client: TestClient) -> None: ...

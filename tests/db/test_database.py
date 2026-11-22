@@ -27,3 +27,18 @@ async def test_database_secures_posix_permissions(tmp_path: Path) -> None:
         assert stat.S_IMODE(database_path.stat().st_mode) == 0o600
     finally:
         await database.dispose()
+
+
+async def test_database_preserves_existing_parent_directory_permissions(
+    tmp_path: Path,
+) -> None:
+    if os.name != "posix":
+        return
+    parent = tmp_path / "shared"
+    parent.mkdir(mode=0o755)
+    database = Database(parent / "agent.db")
+    try:
+        assert stat.S_IMODE(parent.stat().st_mode) == 0o755
+        assert stat.S_IMODE((parent / "agent.db").stat().st_mode) == 0o600
+    finally:
+        await database.dispose()

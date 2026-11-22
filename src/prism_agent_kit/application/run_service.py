@@ -50,7 +50,7 @@ class RunService:
         """在单个事务中创建 user Message、Run 和排队事件。"""
         prompt = self._resolve_prompt(prompt_ref)
         async with self._uow_factory() as uow:
-            await uow.sessions.get(session_id)
+            await uow.sessions.touch(session_id)
             run = await uow.runs.create(
                 Run(
                     session_id=session_id,
@@ -106,20 +106,19 @@ class RunService:
         events: list[RunEvent] = []
         async with self._uow_factory() as uow:
             previous_event_id = await uow.events.last_id(run_id)
-            run = await uow.runs.get(run_id)
-            if run.status in {
+            requested = await uow.runs.mark_cancel_requested(run_id)
+            if requested.status in {
                 RunStatus.SUCCEEDED,
                 RunStatus.FAILED,
                 RunStatus.CANCELLED,
             }:
-                return run
+                return requested
 
             cancel_signal = self._cancellation_registry.get(run_id)
             if cancel_signal is not None:
                 cancel_signal.set()
 
-            requested = await uow.runs.mark_cancel_requested(run_id)
-            if run.status is RunStatus.RUNNING:
+            if requested.status is RunStatus.RUNNING:
                 await uow.commit()
                 return requested
 

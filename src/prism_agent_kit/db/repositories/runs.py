@@ -1,6 +1,8 @@
 from datetime import datetime
+from typing import Any, cast
 
 from sqlalchemy import select, update
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -121,33 +123,79 @@ class RunRepository:
         error_message: str | None = None,
         step_count: int | None = None,
     ) -> Run:
-        """先校验状态机再写入目标状态与对应时间戳。"""
-        row = await self._session.get(RunRow, run_id)
-        if row is None:
-            raise AgentKitError(
-                ErrorCode.RUN_NOT_FOUND,
-                "Run 不存在",
-                http_status=404,
-                details={"run_id": run_id},
+        """用状态条件更新实现 CAS, 避免并发写入覆盖已提交状态。"""
+        for _ in range(3):
+            row = await self._session.get(
+                RunRow,
+                run_id,
+                populate_existing=True,
             )
+            if row is None:
+                raise AgentKitError(
+                    ErrorCode.RUN_NOT_FOUND,
+                    "Run 不存在",
+                    http_status=404,
+                    details={"run_id": run_id},
+                )
 
-        current = RunStatus(row.status)
-        ensure_run_transition(current, target)
-        row.status = target.value
-        if target is RunStatus.RUNNING and row.started_at is None:
-            row.started_at = _storage_now()
-        if target in {RunStatus.SUCCEEDED, RunStatus.FAILED, RunStatus.CANCELLED}:
-            row.finished_at = _storage_now()
-        if output_text is not None:
-            row.output_text = output_text
-        if error_code is not None:
-            row.error_code = error_code
-        if error_message is not None:
-            row.error_message = error_message
-        if step_count is not None:
-            row.step_count = step_count
-        await self._session.flush()
-        return run_to_domain(row)
+            current = RunStatus(row.status)
+            ensure_run_transition(current, target)
+            values: dict[str, object] = {"status": target.value}
+            if target is RunStatus.RUNNING and row.started_at is None:
+                values["started_at"] = _storage_now()
+            if target in {RunStatus.SUCCEEDED, RunStatus.FAILED, RunStatus.CANCELLED}:
+                values["finished_at"] = _storage_now()
+            if output_text is not None:
+                values["output_text"] = output_text
+            if error_code is not None:
+                values["error_code"] = error_code
+            if error_message is not None:
+                values["error_message"] = error_message
+            if step_count is not None:
+                values["step_count"] = step_count
+
+            result = cast(
+                CursorResult[Any],
+                await self._session.execute(
+                    update(RunRow)
+                    .where(
+                        RunRow.id == run_id,
+                        RunRow.status == current.value,
+                    )
+                    .values(values)
+                    .execution_options(synchronize_session=False)
+                ),
+            )
+            if result.rowcount == 1:
+                updated = await self._session.get(
+                    RunRow,
+                    run_id,
+                    populate_existing=True,
+                )
+                if updated is None:
+                    raise AgentKitError(
+                        ErrorCode.RUN_NOT_FOUND,
+                        "Run 不存在",
+                        http_status=404,
+                        details={"run_id": run_id},
+                    )
+                return run_to_domain(updated)
+
+            latest = await self._session.get(
+                RunRow,
+                run_id,
+                populate_existing=True,
+            )
+            if latest is not None and latest.status == target.value:
+                # 同一目标已由并发路径提交, 按幂等成功返回。
+                return run_to_domain(latest)
+
+        raise AgentKitError(
+            ErrorCode.INVALID_RUN_TRANSITION,
+            "Run 状态被并发修改, 无法完成迁移",
+            http_status=409,
+            details={"run_id": run_id, "target": target.value},
+        )
 
     async def update_step_count(self, run_id: str, step_count: int) -> Run:
         """更新已执行的模型请求次数。"""
@@ -164,8 +212,22 @@ class RunRepository:
         return run_to_domain(row)
 
     async def mark_cancel_requested(self, run_id: str) -> Run:
-        """记录取消请求时间。终态由 Worker 或显式取消逻辑负责。"""
-        row = await self._session.get(RunRow, run_id)
+        """仅给非终止 Run 记录取消请求时间。重复调用保持幂等。"""
+        await self._session.execute(
+            update(RunRow)
+            .where(
+                RunRow.id == run_id,
+                RunRow.status.in_(_ACTIVE_STATUSES),
+                RunRow.cancel_requested_at.is_(None),
+            )
+            .values(cancel_requested_at=_storage_now())
+            .execution_options(synchronize_session=False)
+        )
+        row = await self._session.get(
+            RunRow,
+            run_id,
+            populate_existing=True,
+        )
         if row is None:
             raise AgentKitError(
                 ErrorCode.RUN_NOT_FOUND,
@@ -173,6 +235,4 @@ class RunRepository:
                 http_status=404,
                 details={"run_id": run_id},
             )
-        row.cancel_requested_at = _storage_now()
-        await self._session.flush()
         return run_to_domain(row)

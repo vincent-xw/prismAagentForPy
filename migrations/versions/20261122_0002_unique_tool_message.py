@@ -17,6 +17,28 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    duplicate = (
+        op.get_bind()
+        .execute(
+            sa.text(
+                """
+                SELECT run_id, tool_call_id, COUNT(*) AS message_count
+                FROM messages
+                WHERE tool_call_id IS NOT NULL
+                GROUP BY run_id, tool_call_id
+                HAVING COUNT(*) > 1
+                LIMIT 1
+                """
+            )
+        )
+        .first()
+    )
+    if duplicate is not None:
+        raise RuntimeError(
+            "历史数据中存在重复的 tool Message, "
+            f"run_id={duplicate.run_id}, tool_call_id={duplicate.tool_call_id}"
+        )
+
     op.create_index(
         "ux_messages_run_tool_call",
         "messages",

@@ -28,3 +28,12 @@ def test_empty_model_base_url_is_normalized_to_none(tmp_path: Path) -> None:
     )
 
     assert settings.model_base_url is None
+
+
+def test_empty_api_token_is_normalized_to_none(tmp_path: Path) -> None:
+    settings = Settings(
+        database_path=tmp_path / "agent.db",
+        api_token="",
+    )
+
+    assert settings.api_token is None

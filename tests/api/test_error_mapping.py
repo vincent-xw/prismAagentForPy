@@ -98,3 +98,16 @@ def test_unknown_route_uses_unified_error_shape(
     body = response.json()
     assert body["error"]["code"] == "NOT_FOUND"
     assert body["error"]["request_id"] == response.headers["X-Request-ID"]
+
+
+def test_method_not_allowed_uses_unified_error_shape(
+    migrated_database_path: Path,
+) -> None:
+    application = make_app(migrated_database_path)
+
+    with TestClient(application) as client:
+        response = client.post("/api/v1/validate")
+
+    assert response.status_code == 405
+    body = response.json()
+    assert body["error"]["code"] == "METHOD_NOT_ALLOWED"

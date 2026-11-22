@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from tests.fakes import RecordingEventPublisher
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
@@ -47,3 +49,33 @@ async def test_create_run_writes_user_message_prompt_snapshot_and_event(
         "prompt_ref": "default@1",
         "metadata": {"client": "test"},
     }
+
+
+async def test_create_run_touches_session_activity(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    prompts = PromptRegistry()
+    prompts.register(name="default", version="1", prompt="default system")
+    sessions = SessionService(uow_factory)
+    runs = RunService(
+        uow_factory=uow_factory,
+        prompt_registry=prompts,
+        model_name="test-model",
+        default_prompt_ref="default@1",
+        event_publisher=RecordingEventPublisher(),
+        cancellation_registry=RunCancellationRegistry(),
+    )
+    session = await sessions.create(title="demo")
+    old_activity = datetime(2000, 1, 1, tzinfo=UTC)
+    async with uow_factory() as uow:
+        await uow.sessions.touch(session.id, at=old_activity)
+        await uow.commit()
+
+    await runs.create(
+        session.id,
+        input_text="hello",
+        prompt_ref=None,
+    )
+
+    updated = await sessions.get(session.id)
+    assert updated.updated_at > old_activity

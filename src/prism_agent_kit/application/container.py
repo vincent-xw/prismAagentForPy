@@ -164,6 +164,7 @@ class ApplicationContainer:
                 max_steps=self.settings.max_steps,
                 max_output_tokens=max_output_tokens,
                 remote_tool_timeout_seconds=self.settings.remote_tool_timeout_seconds,
+                tool_timeout_seconds=self.settings.tool_timeout_seconds,
             )
             session_service = SessionService(uow_factory)
             run_service = RunService(

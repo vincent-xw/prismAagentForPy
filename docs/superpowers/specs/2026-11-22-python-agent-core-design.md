@@ -368,6 +368,7 @@ queued
 - 本地工具与远端工具可以出现在同一 assistant 轮次。
 - 所有工具输入先通过 Pydantic Schema 校验。
 - 工具运行失败或本地工具超时作为 tool 错误结果返回给模型，Agent 继续下一步。
+- 本地工具实际超时取工具声明值与全局 `tool_timeout_seconds` 上限中的较小值。
 - 工具输入或输出违反 Schema 属于契约失败，Run 直接失败，并闭合本轮其余未完成工具调用。
 - Run 取消时，当前及尚未开始的本地工具转为 `cancelled`，不继续模型循环。
 - 本地工具按顺序执行，保证事件和持久化顺序确定。后续可以在不改变协议的前提下增加并发上限。
@@ -479,7 +480,7 @@ data: {"type":"message.delta","run_id":"...","text":"你"}
 持久事件额外带 SSE `id`，例如：
 
 ```text
-id: evt_42
+id: 42
 event: tool.requested
 data: {"type":"tool.requested","run_id":"...","call_id":"...","tool_name":"browser_click","input":{}}
 ```

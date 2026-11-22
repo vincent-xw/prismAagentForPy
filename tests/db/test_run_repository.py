@@ -88,3 +88,50 @@ async def test_second_active_run_is_rejected(uow_factory: UnitOfWorkFactory) -> 
 
     assert error.value.code is ErrorCode.RUN_CONFLICT
     assert error.value.http_status == 409
+
+
+async def test_cancel_request_does_not_modify_terminal_run(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(make_run(session.id))
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        await uow.runs.transition(run.id, RunStatus.SUCCEEDED)
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        unchanged = await uow.runs.mark_cancel_requested(run.id)
+        await uow.commit()
+
+    assert unchanged.status is RunStatus.SUCCEEDED
+    assert unchanged.cancel_requested_at is None
+
+
+async def test_stale_transition_cannot_overwrite_concurrent_terminal_state(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(make_run(session.id))
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        await uow.commit()
+
+    async with uow_factory() as stale_uow, uow_factory() as concurrent_uow:
+        await stale_uow.runs.get(run.id)
+        await concurrent_uow.runs.transition(run.id, RunStatus.CANCELLED)
+        await concurrent_uow.commit()
+
+        with pytest.raises(AgentKitError) as error:
+            await stale_uow.runs.transition(run.id, RunStatus.SUCCEEDED)
+
+    assert error.value.code is ErrorCode.INVALID_RUN_TRANSITION
+    async with uow_factory() as uow:
+        stored = await uow.runs.get(run.id)
+    assert stored.status is RunStatus.CANCELLED

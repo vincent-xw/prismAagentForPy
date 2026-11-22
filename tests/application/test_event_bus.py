@@ -119,3 +119,50 @@ async def test_close_releases_all_subscribers() -> None:
 
     with pytest.raises(StopAsyncIteration):
         await anext(stream)
+
+
+async def test_live_event_catches_up_database_order_before_terminal() -> None:
+    stored: list[EventEnvelope] = []
+
+    async def load(run_id: str, after_event_id: int | None) -> list[EventEnvelope]:
+        return [
+            event
+            for event in stored
+            if event.run_id == run_id
+            and (after_event_id is None or (event.event_id or 0) > after_event_id)
+        ]
+
+    bus = RunEventBus(load)
+    stream = bus.subscribe("run-1", after_event_id=4)
+    first = asyncio.create_task(anext(stream))
+    await asyncio.sleep(0)
+
+    stored.extend(
+        [
+            EventEnvelope(
+                event_id=5,
+                run_id="run-1",
+                event_type=EventType.TOOL_COMPLETED,
+                payload={"call_id": "call-1"},
+            ),
+            EventEnvelope(
+                event_id=6,
+                run_id="run-1",
+                event_type=EventType.RUN_REQUEUED,
+                payload={},
+            ),
+            EventEnvelope(
+                event_id=7,
+                run_id="run-1",
+                event_type=EventType.RUN_CANCELLED,
+                payload={},
+            ),
+        ]
+    )
+    await bus.publish(stored[-1])
+
+    assert (await first).event_id == 5
+    assert (await anext(stream)).event_id == 6
+    terminal = await anext(stream)
+    assert terminal.event_id == 7
+    await stream.aclose()

@@ -97,6 +97,7 @@ class SimpleAgentEngine:
         max_steps: int,
         max_output_tokens: int | None,
         remote_tool_timeout_seconds: float,
+        tool_timeout_seconds: float | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._model_provider = model_provider
@@ -107,6 +108,7 @@ class SimpleAgentEngine:
         self._max_steps = max_steps
         self._max_output_tokens = max_output_tokens
         self._remote_tool_timeout_seconds = remote_tool_timeout_seconds
+        self._tool_timeout_seconds = tool_timeout_seconds
 
     async def execute(self, context: EngineContext) -> EngineOutcome:
         """执行一次已 claim 的 Run。"""
@@ -176,6 +178,8 @@ class SimpleAgentEngine:
             except asyncio.CancelledError:
                 raise
             except AgentKitError as error:
+                if await self._is_cancel_requested(run.id, context.cancel):
+                    return await self._cancel_run(run.id)
                 return await self._fail_run(run.id, error.code, error.message)
 
             if await self._is_cancel_requested(run.id, context.cancel):
@@ -233,6 +237,11 @@ class SimpleAgentEngine:
                     await uow.tool_calls.start(run.id, call.id)
                     await uow.commit()
 
+                effective_timeout = (
+                    min(definition.timeout_seconds, self._tool_timeout_seconds)
+                    if self._tool_timeout_seconds is not None
+                    else None
+                )
                 result = await self._tool_executor.execute(
                     definition,
                     call.input,
@@ -242,6 +251,7 @@ class SimpleAgentEngine:
                         call_id=call.id,
                         cancel=context.cancel,
                     ),
+                    timeout_seconds=effective_timeout,
                 )
                 if result.error_code is ErrorCode.RUN_CANCELLED:
                     return await self._cancel_run(run.id)
