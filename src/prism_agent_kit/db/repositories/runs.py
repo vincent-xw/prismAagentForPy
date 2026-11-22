@@ -162,3 +162,17 @@ class RunRepository:
         row.step_count = step_count
         await self._session.flush()
         return run_to_domain(row)
+
+    async def mark_cancel_requested(self, run_id: str) -> Run:
+        """记录取消请求时间。终态由 Worker 或显式取消逻辑负责。"""
+        row = await self._session.get(RunRow, run_id)
+        if row is None:
+            raise AgentKitError(
+                ErrorCode.RUN_NOT_FOUND,
+                "Run 不存在",
+                http_status=404,
+                details={"run_id": run_id},
+            )
+        row.cancel_requested_at = _storage_now()
+        await self._session.flush()
+        return run_to_domain(row)

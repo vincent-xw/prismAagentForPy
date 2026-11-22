@@ -69,7 +69,7 @@ class ToolResultService:
 
             if call.input_digest != input_digest:
                 raise AgentKitError(
-                    ErrorCode.TOOL_RESULT_CONFLICT,
+                    ErrorCode.TOOL_INPUT_DIGEST_MISMATCH,
                     "工具输入摘要不匹配",
                     http_status=409,
                     details={"call_id": call_id},

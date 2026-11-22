@@ -207,7 +207,7 @@ async def test_conflicting_digest_does_not_modify_history(
             RemoteToolResult(ok=True, output={"value": "one"}),
         )
 
-    assert error.value.code is ErrorCode.TOOL_RESULT_CONFLICT
+    assert error.value.code is ErrorCode.TOOL_INPUT_DIGEST_MISMATCH
 
     async with uow_factory() as uow:
         call = await uow.tool_calls.get(run.id, "call-1")

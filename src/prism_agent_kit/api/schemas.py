@@ -2,8 +2,9 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, JsonValue, field_validator
 
-from prism_agent_kit.core.enums import MessageRole, RunStatus
-from prism_agent_kit.core.models import Message, Run, Session
+from prism_agent_kit.core.enums import ExecutionMode, MessageRole, RunStatus, ToolCallStatus
+from prism_agent_kit.core.models import Message, Run, Session, ToolCall
+from prism_agent_kit.tools.contracts import ToolDefinition
 
 
 class SessionCreate(BaseModel):
@@ -65,6 +66,7 @@ class RunView(BaseModel):
     output: str | None
     error_code: str | None
     error_message: str | None
+    cancel_requested_at: datetime | None
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
@@ -82,6 +84,7 @@ class RunView(BaseModel):
             output=run.output_text,
             error_code=run.error_code,
             error_message=run.error_message,
+            cancel_requested_at=run.cancel_requested_at,
             created_at=run.created_at,
             started_at=run.started_at,
             finished_at=run.finished_at,
@@ -120,3 +123,76 @@ class MessageListResponse(BaseModel):
     """消息列表响应。"""
 
     items: list[MessageView]
+
+
+class ToolResultErrorPayload(BaseModel):
+    """远端工具失败结果。"""
+
+    code: str
+    message: str
+
+
+class ToolResultRequest(BaseModel):
+    """远端宿主回填工具结果的请求。"""
+
+    ok: bool
+    input_digest: str
+    output: JsonValue = None
+    error: ToolResultErrorPayload | None = None
+
+
+class ToolCallView(BaseModel):
+    """对外返回的 ToolCall 视图。"""
+
+    id: str
+    run_id: str
+    tool_name: str
+    status: ToolCallStatus
+    output: JsonValue
+    error_code: str | None
+    error_message: str | None
+    expires_at: datetime | None
+
+    @classmethod
+    def from_domain(cls, call: ToolCall) -> "ToolCallView":
+        return cls(
+            id=call.id,
+            run_id=call.run_id,
+            tool_name=call.tool_name,
+            status=call.status,
+            output=call.output,
+            error_code=call.error_code,
+            error_message=call.error_message,
+            expires_at=call.expires_at,
+        )
+
+
+class ToolView(BaseModel):
+    """工具发现结果。"""
+
+    name: str
+    description: str
+    execution_mode: ExecutionMode
+    input_schema: dict[str, JsonValue]
+    output_schema: dict[str, JsonValue] | None
+
+    @classmethod
+    def from_domain(cls, definition: ToolDefinition) -> "ToolView":
+        output_schema = (
+            definition.output_model.model_json_schema()
+            if definition.output_model is not None
+            else None
+        )
+        return cls(
+            name=definition.name,
+            description=definition.description,
+            execution_mode=definition.execution_mode,
+            input_schema=definition.input_model.model_json_schema(),
+            output_schema=output_schema,
+        )
+
+
+class ToolListResponse(BaseModel):
+    """工具列表响应。"""
+
+    items: list[ToolView]

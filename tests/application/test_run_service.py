@@ -1,3 +1,6 @@
+from tests.fakes import RecordingEventPublisher
+
+from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.core.enums import EventType, MessageRole
@@ -16,6 +19,8 @@ async def test_create_run_writes_user_message_prompt_snapshot_and_event(
         prompt_registry=prompts,
         model_name="test-model",
         default_prompt_ref="default@1",
+        event_publisher=RecordingEventPublisher(),
+        cancellation_registry=RunCancellationRegistry(),
     )
     session = await sessions.create(title="demo")
 

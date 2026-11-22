@@ -6,9 +6,19 @@ from fastapi import APIRouter, Header
 from sse_starlette.event import ServerSentEvent
 from sse_starlette.sse import EventSourceResponse
 
-from prism_agent_kit.api.schemas import RunCreate, RunView
+from prism_agent_kit.api.schemas import (
+    RunCreate,
+    RunView,
+    ToolCallView,
+    ToolResultRequest,
+)
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.run_service import RunService
+from prism_agent_kit.application.tool_result_service import (
+    RemoteToolError,
+    RemoteToolResult,
+    ToolResultService,
+)
 from prism_agent_kit.core.enums import EventType, RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import RunEvent
@@ -101,6 +111,7 @@ def create_runs_router(
     service: RunService,
     *,
     event_bus: RunEventBus,
+    tool_result_service: ToolResultService,
     test_mode: bool,
     heartbeat_seconds: float,
 ) -> APIRouter:
@@ -126,6 +137,41 @@ def create_runs_router(
     async def get_run(run_id: str) -> RunView:
         run = await service.get(run_id)
         return RunView.from_domain(run)
+
+    @router.post("/runs/{run_id}/cancel", response_model=RunView, summary="取消 Run")
+    async def cancel_run(run_id: str) -> RunView:
+        run = await service.cancel(run_id)
+        return RunView.from_domain(run)
+
+    @router.post(
+        "/runs/{run_id}/tool-calls/{call_id}/result",
+        response_model=ToolCallView,
+        summary="提交远端工具结果",
+    )
+    async def submit_tool_result(
+        run_id: str,
+        call_id: str,
+        payload: ToolResultRequest,
+    ) -> ToolCallView:
+        error = (
+            RemoteToolError(
+                code=payload.error.code,
+                message=payload.error.message,
+            )
+            if payload.error is not None
+            else None
+        )
+        call = await tool_result_service.submit(
+            run_id,
+            call_id,
+            payload.input_digest,
+            RemoteToolResult(
+                ok=payload.ok,
+                output=payload.output,
+                error=error,
+            ),
+        )
+        return ToolCallView.from_domain(call)
 
     @router.get("/runs/{run_id}/events", summary="订阅 Run 事件流")
     async def stream_run_events(

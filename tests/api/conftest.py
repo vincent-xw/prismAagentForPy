@@ -11,14 +11,18 @@ from fastapi.testclient import TestClient
 from prism_agent_kit.api.errors import install_exception_handlers
 from prism_agent_kit.api.request_context import RequestIdMiddleware
 from prism_agent_kit.api.router import create_api_router
+from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
+from prism_agent_kit.application.tool_result_service import ToolResultService
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.ports import EventEnvelope
 from prism_agent_kit.core.prompts import PromptRegistry
 from prism_agent_kit.db.database import Database
 from prism_agent_kit.db.uow import UnitOfWorkFactory
+from prism_agent_kit.tools.registry import ToolRegistry
+from prism_agent_kit.tools.testing import echo_tool, wait_for_host_tool
 
 
 @dataclass(frozen=True)
@@ -28,11 +32,19 @@ class ApiTestContext:
     client: httpx.AsyncClient
     uow_factory: UnitOfWorkFactory
     event_bus: RunEventBus
+    cancellation_registry: RunCancellationRegistry
+    tool_registry: ToolRegistry
 
 
 def build_api_application(
     database_path: Path,
-) -> tuple[FastAPI, UnitOfWorkFactory, RunEventBus]:
+) -> tuple[
+    FastAPI,
+    UnitOfWorkFactory,
+    RunEventBus,
+    RunCancellationRegistry,
+    ToolRegistry,
+]:
     """构造绑定真实 SQLite 且不启动后台 Worker 的测试应用。"""
     settings = Settings(
         database_path=database_path,
@@ -44,12 +56,6 @@ def build_api_application(
     prompts = PromptRegistry()
     prompts.register(name="default", version="1", prompt="default system")
     session_service = SessionService(uow_factory)
-    run_service = RunService(
-        uow_factory=uow_factory,
-        prompt_registry=prompts,
-        model_name="test-model",
-        default_prompt_ref="default@1",
-    )
 
     async def load_events(
         run_id: str,
@@ -70,6 +76,23 @@ def build_api_application(
         ]
 
     event_bus = RunEventBus(load_events)
+    cancellation_registry = RunCancellationRegistry()
+    tool_registry = ToolRegistry()
+    tool_registry.register(echo_tool())
+    tool_registry.register(wait_for_host_tool())
+    run_service = RunService(
+        uow_factory=uow_factory,
+        prompt_registry=prompts,
+        model_name="test-model",
+        default_prompt_ref="default@1",
+        event_publisher=event_bus,
+        cancellation_registry=cancellation_registry,
+    )
+    tool_result_service = ToolResultService(
+        uow_factory=uow_factory,
+        tool_registry=tool_registry,
+        event_publisher=event_bus,
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -87,19 +110,21 @@ def build_api_application(
             session_service=session_service,
             run_service=run_service,
             event_bus=event_bus,
+            tool_result_service=tool_result_service,
+            tool_registry=tool_registry,
             test_mode=True,
             heartbeat_seconds=15.0,
         ),
         prefix=settings.api_prefix,
     )
 
-    return application, uow_factory, event_bus
+    return application, uow_factory, event_bus, cancellation_registry, tool_registry
 
 
 @pytest.fixture
 def api_client(migrated_database_path: Path) -> Iterator[TestClient]:
     """提供带真实 SQLite 迁移和完整 API 路由的同步测试客户端。"""
-    application, _, _ = build_api_application(migrated_database_path)
+    application, _, _, _, _ = build_api_application(migrated_database_path)
 
     with TestClient(application) as client:
         yield client
@@ -108,7 +133,13 @@ def api_client(migrated_database_path: Path) -> Iterator[TestClient]:
 @pytest.fixture
 async def api_context(migrated_database_path: Path) -> AsyncIterator[ApiTestContext]:
     """提供与事件设施共享事件循环的异步测试上下文。"""
-    application, uow_factory, event_bus = build_api_application(migrated_database_path)
+    (
+        application,
+        uow_factory,
+        event_bus,
+        cancellation_registry,
+        tool_registry,
+    ) = build_api_application(migrated_database_path)
     transport = httpx.ASGITransport(app=application)
 
     async with (
@@ -122,4 +153,6 @@ async def api_context(migrated_database_path: Path) -> AsyncIterator[ApiTestCont
             client=client,
             uow_factory=uow_factory,
             event_bus=event_bus,
+            cancellation_registry=cancellation_registry,
+            tool_registry=tool_registry,
         )
