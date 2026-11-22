@@ -47,7 +47,7 @@
 ./scripts/dev.sh
 ```
 
-首次运行会自动从示例创建 `backend/.env` 与 `ui/.env`。请先在 `backend/.env` 中填写 API Token 和模型配置，记住该 Token 供 UI 首次连接时使用，再次运行脚本；脚本会同步依赖、执行 SQLite 迁移、等待 Backend 健康后启动 UI。UI 默认连接 `http://127.0.0.1:8000`，开发页面为 `http://127.0.0.1:3000`，按 `Ctrl+C` 会同时停止两端。
+首次运行会创建最小化的 `backend/.env` 与 `ui/.env`；其他有默认值的配置无需重复写入，完整选项见 `backend/.env.example`。请先在 `backend/.env` 中填写 API Token 和模型配置，记住该 Token 供 UI 首次连接时使用，再次运行脚本；脚本会同步依赖、执行 SQLite 迁移、等待 Backend 健康后启动 UI。UI 默认连接 `http://127.0.0.1:8000`，开发页面为 `http://127.0.0.1:3000`，按 `Ctrl+C` 会同时停止两端。
 
 可使用 `BACKEND_PORT`、`UI_PORT` 覆盖默认端口；依赖已准备好时可用 `SKIP_DEPENDENCY_INSTALL=1` 跳过安装检查。完整参数见 `./scripts/dev.sh --help`。
 
