@@ -5,6 +5,7 @@ from typing import Any
 import httpx
 import pytest
 from openai import APIConnectionError, AsyncOpenAI
+from pydantic import SecretStr
 
 from prism_agent_kit.core.enums import MessageRole
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
@@ -255,3 +256,48 @@ async def test_invalid_tool_arguments_raise_protocol_error() -> None:
         await provider.stream(make_request())
 
     assert error.value.code is ErrorCode.MODEL_PROTOCOL_INVALID
+
+
+async def test_provider_closes_openai_client() -> None:
+    class ClosableClient:
+        closed = False
+
+        async def close(self) -> None:
+            self.closed = True
+
+    client = ClosableClient()
+    provider = OpenAICompatibleProvider(
+        model_name="test-model",
+        client=client,  # type: ignore[arg-type]
+    )
+
+    await provider.aclose()
+
+    assert client.closed is True
+
+
+async def test_provider_supports_socks_proxy_from_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for key in (
+        "ALL_PROXY",
+        "all_proxy",
+        "HTTP_PROXY",
+        "http_proxy",
+        "HTTPS_PROXY",
+        "https_proxy",
+        "NO_PROXY",
+        "no_proxy",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setenv("ALL_PROXY", "socks5://127.0.0.1:1080")
+    provider = OpenAICompatibleProvider(
+        model_name="test-model",
+        base_url="https://example.test/v1",
+        api_key=SecretStr("test-key"),
+    )
+
+    client = provider._require_client()
+
+    assert client is not None
+    await provider.aclose()

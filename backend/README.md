@@ -83,6 +83,8 @@ cp .env.example .env
 
 对接 DeepSeek 或其他 OpenAI-compatible 服务时，同时配置 `PRISM_AGENT_KIT_MODEL_BASE_URL`。上下文窗口必须大于最大输出 token 与 `PRISM_AGENT_KIT_CONTEXT_SAFETY_MARGIN_TOKENS` 之和；缺失或非法配置会直接导致启动失败，不会静默兜底。
 
+模型 HTTP 客户端遵循 `HTTP_PROXY`、`HTTPS_PROXY` 与 `ALL_PROXY` 环境变量；依赖已包含 `httpx[socks]`，可直接使用 `socks5://` 代理。
+
 模型密钥只从环境变量读取，不写入 SQLite、日志、SSE 或错误响应。`.env` 不应提交到 Git。
 
 ### 3. 初始化数据库

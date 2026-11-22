@@ -242,6 +242,14 @@ class OpenAICompatibleProvider:
             )
         return self._client
 
+    async def aclose(self) -> None:
+        """关闭延迟创建的异步 HTTP 客户端并释放连接池。"""
+        client = self._client
+        if client is None:
+            return
+        self._client = None
+        await client.close()
+
     def _build_messages(self, request: ModelRequest) -> list[dict[str, Any]]:
         """把领域消息重建为带工具调用配对信息的 Chat 消息。"""
         calls_by_message: dict[int, list[ToolCall]] = {}

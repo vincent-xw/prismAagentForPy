@@ -54,6 +54,7 @@ class ApplicationContainer:
         self._started = False
         self._database: Database | None = None
         self._event_bus: RunEventBus | None = None
+        self._owned_model_provider: OpenAICompatibleProvider | None = None
         self._tool_registry: ToolRegistry | None = None
         self._session_service: SessionService | None = None
         self._run_service: RunService | None = None
@@ -114,6 +115,7 @@ class ApplicationContainer:
         database: Database | None = None
         event_bus: RunEventBus | None = None
         worker: RunWorker | None = None
+        owned_model_provider: OpenAICompatibleProvider | None = None
         try:
             database = Database(self.settings.resolved_database_path)
             uow_factory = UnitOfWorkFactory(database.session_factory)
@@ -128,10 +130,10 @@ class ApplicationContainer:
             tool_registry = self._provided_tool_registry or ToolRegistry()
             cancellation_registry = RunCancellationRegistry()
 
-            model_provider = (
-                self._provided_model_provider
-                or OpenAICompatibleProvider.from_settings(self.settings)
-            )
+            model_provider = self._provided_model_provider
+            if model_provider is None:
+                owned_model_provider = OpenAICompatibleProvider.from_settings(self.settings)
+                model_provider = owned_model_provider
             context_window = self._require_positive_int(
                 "MODEL_CONTEXT_WINDOW",
                 self.settings.model_context_window,
@@ -196,6 +198,7 @@ class ApplicationContainer:
 
             self._database = database
             self._event_bus = event_bus
+            self._owned_model_provider = owned_model_provider
             self._tool_registry = tool_registry
             self._session_service = session_service
             self._run_service = run_service
@@ -213,6 +216,8 @@ class ApplicationContainer:
                 await worker.stop()
             if event_bus is not None:
                 await event_bus.close()
+            if owned_model_provider is not None:
+                await owned_model_provider.aclose()
             if database is not None:
                 await database.dispose()
             self._release_database_lock()
@@ -228,6 +233,9 @@ class ApplicationContainer:
                 await self._worker.stop()
             if self._event_bus is not None:
                 await self._event_bus.close()
+            if self._owned_model_provider is not None:
+                await self._owned_model_provider.aclose()
+                self._owned_model_provider = None
             if self._database is not None:
                 await self._database.dispose()
         finally:
