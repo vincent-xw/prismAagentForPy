@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 
 from prism_agent_kit.core.config import Settings, get_settings
 from prism_agent_kit.db.database import Database
+from prism_agent_kit.db.uow import UnitOfWorkFactory
 from prism_agent_kit.main import create_app
 
 
@@ -40,3 +41,9 @@ async def migrated_database(migrated_database_path: Path) -> AsyncIterator[Datab
         yield database
     finally:
         await database.dispose()
+
+
+@pytest.fixture
+async def uow_factory(migrated_database: Database) -> UnitOfWorkFactory:
+    """提供绑定临时数据库的工作单元工厂。"""
+    return UnitOfWorkFactory(migrated_database.session_factory)
