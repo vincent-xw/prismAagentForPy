@@ -8,7 +8,9 @@ from sqlalchemy import Connection, pool
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from prism_agent_kit.core.config import get_settings
+from prism_agent_kit.db import models as _models  # noqa: F401
 from prism_agent_kit.db.base import Base
+from prism_agent_kit.db.database import build_sqlite_url
 
 config = context.config
 
@@ -18,10 +20,17 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def get_database_url() -> str:
+    """根据本地配置生成迁移使用的 SQLite URL。"""
+    path = get_settings().resolved_database_path
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return build_sqlite_url(path)
+
+
 def run_migrations_offline() -> None:
     """以离线模式生成迁移 SQL。"""
     context.configure(
-        url=get_settings().database_url,
+        url=get_database_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -47,7 +56,7 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     """使用异步数据库驱动执行迁移。"""
     connectable = create_async_engine(
-        get_settings().database_url,
+        get_database_url(),
         poolclass=pool.NullPool,
     )
 
