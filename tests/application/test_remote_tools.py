@@ -1,8 +1,10 @@
 import asyncio
 import contextlib
+import sqlite3
 
 import pytest
 from pydantic import BaseModel
+from sqlalchemy.exc import IntegrityError
 from tests.fakes import (
     FixedEstimator,
     RecordingEventPublisher,
@@ -13,6 +15,7 @@ from prism_agent_kit.application.tool_result_service import (
     RemoteToolError,
     RemoteToolResult,
     ToolResultService,
+    _is_tool_message_unique_conflict,
 )
 from prism_agent_kit.core.context import ContextAssembler
 from prism_agent_kit.core.engine import EngineContext, SimpleAgentEngine
@@ -56,6 +59,22 @@ class BlockingFirstPublisher:
         self.events.append(event)
         if len(self.events) >= 2:
             self.second_published.set()
+
+
+def test_integrity_error_mapping_only_accepts_tool_message_uniqueness() -> None:
+    tool_conflict = IntegrityError(
+        "INSERT",
+        {},
+        sqlite3.IntegrityError("UNIQUE constraint failed: messages.run_id, messages.tool_call_id"),
+    )
+    foreign_key_error = IntegrityError(
+        "INSERT",
+        {},
+        sqlite3.IntegrityError("FOREIGN KEY constraint failed"),
+    )
+
+    assert _is_tool_message_unique_conflict(tool_conflict) is True
+    assert _is_tool_message_unique_conflict(foreign_key_error) is False
 
 
 def schema_remote_tool() -> ToolDefinition:

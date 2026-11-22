@@ -18,11 +18,32 @@ _ACTIVE_STATUSES = (
     RunStatus.RUNNING.value,
     RunStatus.WAITING_FOR_TOOL.value,
 )
+_ACTIVE_RUN_STATUSES = frozenset(
+    {
+        RunStatus.QUEUED,
+        RunStatus.RUNNING,
+        RunStatus.WAITING_FOR_TOOL,
+    }
+)
 
 
 def _storage_now() -> datetime:
     """返回适合写入 SQLite DateTime 列的当前 UTC 时间。"""
     return utc_now().replace(tzinfo=None)
+
+
+def _reject_committed_cancel_request(row: RunRow, run_id: str) -> None:
+    """取消请求已提交时拒绝非取消终态写入。"""
+    status = RunStatus(row.status)
+    if status is RunStatus.CANCELLED or (
+        status in _ACTIVE_RUN_STATUSES and row.cancel_requested_at is not None
+    ):
+        raise AgentKitError(
+            ErrorCode.RUN_CANCELLED,
+            "Run 已请求取消",
+            http_status=409,
+            details={"run_id": run_id, "status": status.value},
+        )
 
 
 class RunRepository:
@@ -122,6 +143,7 @@ class RunRepository:
         error_code: str | None = None,
         error_message: str | None = None,
         step_count: int | None = None,
+        require_no_cancel_request: bool = False,
     ) -> Run:
         """用状态条件更新实现 CAS, 避免并发写入覆盖已提交状态。"""
         for _ in range(3):
@@ -139,6 +161,8 @@ class RunRepository:
                 )
 
             current = RunStatus(row.status)
+            if require_no_cancel_request:
+                _reject_committed_cancel_request(row, run_id)
             ensure_run_transition(current, target)
             values: dict[str, object] = {"status": target.value}
             if target is RunStatus.RUNNING and row.started_at is None:
@@ -154,16 +178,16 @@ class RunRepository:
             if step_count is not None:
                 values["step_count"] = step_count
 
+            statement = update(RunRow).where(
+                RunRow.id == run_id,
+                RunRow.status == current.value,
+            )
+            if require_no_cancel_request:
+                statement = statement.where(RunRow.cancel_requested_at.is_(None))
             result = cast(
                 CursorResult[Any],
                 await self._session.execute(
-                    update(RunRow)
-                    .where(
-                        RunRow.id == run_id,
-                        RunRow.status == current.value,
-                    )
-                    .values(values)
-                    .execution_options(synchronize_session=False)
+                    statement.values(values).execution_options(synchronize_session=False)
                 ),
             )
             if result.rowcount == 1:
@@ -186,9 +210,12 @@ class RunRepository:
                 run_id,
                 populate_existing=True,
             )
-            if latest is not None and latest.status == target.value:
-                # 同一目标已由并发路径提交, 按幂等成功返回。
-                return run_to_domain(latest)
+            if latest is not None:
+                if require_no_cancel_request:
+                    _reject_committed_cancel_request(latest, run_id)
+                if latest.status == target.value:
+                    # 同一目标已由并发路径提交, 按幂等成功返回。
+                    return run_to_domain(latest)
 
         raise AgentKitError(
             ErrorCode.INVALID_RUN_TRANSITION,

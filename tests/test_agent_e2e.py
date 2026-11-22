@@ -1,4 +1,6 @@
 import json
+import os
+import stat
 import time
 from pathlib import Path
 
@@ -7,6 +9,7 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
 from prism_agent_kit.application.container import ApplicationContainer
+from prism_agent_kit.application.run_worker import RunWorker
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.enums import ExecutionMode
 from prism_agent_kit.core.ports import ModelResponse, ToolCallDraft
@@ -204,3 +207,28 @@ async def test_container_requires_explicit_model_budget_configuration(
     with pytest.raises(RuntimeError, match="MODEL_CONTEXT_WINDOW"):
         await container.start()
     await container.stop()
+
+
+async def test_container_secures_new_database_directory_before_file_lock(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    if os.name != "posix":
+        return
+    database_path = tmp_path / "container-private" / "agent.db"
+    settings = make_settings(database_path)
+    container = ApplicationContainer(
+        settings,
+        model_provider=ScriptedModelProvider([]),
+    )
+
+    async def skip_worker_start(worker: RunWorker) -> None:
+        return None
+
+    monkeypatch.setattr(RunWorker, "start", skip_worker_start)
+    await container.start()
+    try:
+        assert stat.S_IMODE(database_path.parent.stat().st_mode) == 0o700
+        assert stat.S_IMODE(database_path.stat().st_mode) == 0o600
+    finally:
+        await container.stop()

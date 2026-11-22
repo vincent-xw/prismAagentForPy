@@ -1,5 +1,6 @@
 import asyncio
 
+import pytest
 from pydantic import BaseModel
 from tests.fakes import (
     FixedEstimator,
@@ -18,9 +19,10 @@ from prism_agent_kit.core.enums import (
     RunStatus,
     ToolCallStatus,
 )
-from prism_agent_kit.core.errors import ErrorCode
+from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run
 from prism_agent_kit.core.ports import ModelResponse, ToolCallDraft
+from prism_agent_kit.db.repositories.runs import RunRepository
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 from prism_agent_kit.tools.contracts import ToolDefinition, ToolExecutionContext
 from prism_agent_kit.tools.executor import LocalToolExecutor
@@ -274,6 +276,39 @@ async def test_global_tool_timeout_caps_tool_definition_timeout(
         call = await uow.tool_calls.get(run.id, "call-1")
     assert call.status is ToolCallStatus.FAILED
     assert call.error_code == ErrorCode.TOOL_EXECUTION_TIMEOUT.value
+
+
+async def test_success_transition_cancel_conflict_returns_cancelled(
+    uow_factory: UnitOfWorkFactory,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run = await seed_running_run(uow_factory)
+    provider = ScriptedModelProvider([ModelResponse(text="late success")])
+    engine = make_engine(uow_factory, provider, RecordingEventPublisher())
+    original_transition = RunRepository.transition
+
+    async def reject_success(
+        repository: RunRepository,
+        run_id: str,
+        target: RunStatus,
+        **kwargs: object,
+    ) -> Run:
+        if target is RunStatus.SUCCEEDED:
+            raise AgentKitError(
+                ErrorCode.RUN_CANCELLED,
+                "Run 已请求取消",
+                http_status=409,
+            )
+        return await original_transition(repository, run_id, target, **kwargs)
+
+    monkeypatch.setattr(RunRepository, "transition", reject_success)
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+
+    assert outcome.kind == "cancelled"
+    async with uow_factory() as uow:
+        stored = await uow.runs.get(run.id)
+    assert stored.status is RunStatus.CANCELLED
 
 
 async def test_contract_failure_closes_remaining_tool_calls(

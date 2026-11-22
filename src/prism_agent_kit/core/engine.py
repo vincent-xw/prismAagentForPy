@@ -382,6 +382,7 @@ class SimpleAgentEngine:
                         run_id,
                         RunStatus.SUCCEEDED,
                         output_text=response.text,
+                        require_no_cancel_request=True,
                     )
                     persisted_events.append(
                         await uow.events.append(
@@ -400,6 +401,10 @@ class SimpleAgentEngine:
                 "模型返回了重复的工具调用 ID",
             )
             return outcome, [], []
+        except AgentKitError as error:
+            if error.code is ErrorCode.RUN_CANCELLED:
+                raise _CancelRequested from error
+            raise
 
         await self._publish_events(persisted_events)
         if not calls:

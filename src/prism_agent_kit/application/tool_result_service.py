@@ -26,6 +26,16 @@ _TERMINAL_TOOL_STATUSES = frozenset(
 )
 
 
+def _is_tool_message_unique_conflict(error: IntegrityError) -> bool:
+    """仅识别 messages 表的 run_id + tool_call_id 唯一约束冲突。"""
+    message = str(error.orig)
+    return (
+        "UNIQUE constraint failed" in message
+        and "messages.run_id" in message
+        and "messages.tool_call_id" in message
+    )
+
+
 class RemoteToolError(BaseModel):
     """远端宿主返回的工具错误。"""
 
@@ -153,6 +163,8 @@ class ToolResultService:
                         result.error.message,
                     )
             except IntegrityError as error:
+                if not _is_tool_message_unique_conflict(error):
+                    raise
                 raise AgentKitError(
                     ErrorCode.TOOL_RESULT_CONFLICT,
                     "工具结果与已有历史冲突",

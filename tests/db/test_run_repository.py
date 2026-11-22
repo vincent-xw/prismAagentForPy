@@ -135,3 +135,34 @@ async def test_stale_transition_cannot_overwrite_concurrent_terminal_state(
     async with uow_factory() as uow:
         stored = await uow.runs.get(run.id)
     assert stored.status is RunStatus.CANCELLED
+
+
+async def test_success_transition_rejects_committed_cancel_request(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(make_run(session.id))
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        await uow.runs.mark_cancel_requested(run.id)
+        await uow.commit()
+
+    async with uow_factory() as uow:
+        with pytest.raises(AgentKitError) as error:
+            await uow.runs.transition(
+                run.id,
+                RunStatus.SUCCEEDED,
+                require_no_cancel_request=True,
+            )
+
+    assert error.value.code is ErrorCode.RUN_CANCELLED
+    async with uow_factory() as uow:
+        stored = await uow.runs.get(run.id)
+    assert stored.status is RunStatus.RUNNING
+    assert stored.cancel_requested_at is not None

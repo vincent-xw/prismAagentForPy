@@ -16,14 +16,21 @@ def build_sqlite_url(path: Path) -> str:
     return f"sqlite+aiosqlite:///{path.expanduser().resolve()}"
 
 
+def ensure_private_directory(path: Path) -> Path:
+    """创建目录, 仅对本次新建的目录收紧为 0700。"""
+    resolved = path.expanduser().resolve()
+    existed = resolved.exists()
+    resolved.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if os.name == "posix" and not existed:
+        resolved.chmod(0o700)
+    return resolved
+
+
 def ensure_private_sqlite_path(path: Path) -> Path:
     """创建数据库文件, 仅收紧本函数新建目录与数据库文件的权限。"""
     resolved = path.expanduser().resolve()
-    parent_existed = resolved.parent.exists()
-    resolved.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    ensure_private_directory(resolved.parent)
     if os.name == "posix":
-        if not parent_existed:
-            resolved.parent.chmod(0o700)
         resolved.touch(exist_ok=True, mode=0o600)
         resolved.chmod(0o600)
     return resolved

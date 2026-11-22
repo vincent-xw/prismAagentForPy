@@ -21,7 +21,7 @@ from prism_agent_kit.core.prompts import (
     PromptRegistry,
 )
 from prism_agent_kit.core.token_budget import TiktokenEstimator
-from prism_agent_kit.db.database import Database
+from prism_agent_kit.db.database import Database, ensure_private_directory
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 from prism_agent_kit.providers.openai_compatible import OpenAICompatibleProvider
 from prism_agent_kit.tools.executor import LocalToolExecutor
@@ -107,6 +107,8 @@ class ApplicationContainer:
         if self._started:
             return
         self._validate_model_configuration()
+        # filelock 会按需创建父目录, 必须先建好私有目录再获取锁。
+        ensure_private_directory(self.settings.resolved_database_path.parent)
         await self._acquire_database_lock()
 
         database: Database | None = None
