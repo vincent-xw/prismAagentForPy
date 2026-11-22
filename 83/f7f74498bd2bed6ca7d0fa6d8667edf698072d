@@ -1,0 +1,87 @@
+src/prism_agent_kit/core/context.py
+  s_fa558348164fda::t_c852b45a6df771 79
+  s_fa558348164fda::t_1cbbf051ac3d27 70-72,97,107,109,114,116,121,127-130,140
+tests/api/test_runs.py
+  s_fa558348164fda::t_012d3c845153a5 24-35
+migrations/env.py
+  s_fa558348164fda::t_1cbbf051ac3d27 13,26
+tests/core/test_engine_local.py
+  s_fa558348164fda::t_e73a1ef78b43b6 259,305
+  s_fa558348164fda::t_5a9d99f2f2973e 61,63-65,69,84-101,249-258,261-277,279-304,306-321
+  s_fa558348164fda::t_7b9fd4a583994d 278,322-323
+  s_fa558348164fda::t_897cc1a2a39cdb 260
+src/prism_agent_kit/api/errors.py
+  s_fa558348164fda::t_79743956104bcc 8,113-134,156
+tests/db/test_migration.py
+  s_fa558348164fda::t_0f4f316ed2f1db 1-4,18-21
+  s_fa558348164fda::t_1e30aedacb7842 22-23
+src/prism_agent_kit/core/token_budget.py
+  s_fa558348164fda::t_1cbbf051ac3d27 8,22-23,74-82
+tests/core/test_config.py
+  s_fa558348164fda::t_0f4f316ed2f1db 22-30
+src/prism_agent_kit/core/errors.py
+  s_fa558348164fda::t_79743956104bcc 9-10
+migrations/versions/20261122_0002_unique_tool_message.py
+  s_fa558348164fda::t_c089ec8de30369 1-30
+tests/fakes.py
+  s_fa558348164fda::t_0f4f316ed2f1db 5,45
+  s_fa558348164fda::t_5c006afaa3d6b1 46-47
+src/prism_agent_kit/db/models.py
+  s_fa558348164fda::t_c089ec8de30369 61-70
+src/prism_agent_kit/core/config.py
+  s_fa558348164fda::t_e73a1ef78b43b6 64
+  s_fa558348164fda::t_1cbbf051ac3d27 61-63,65-68
+src/prism_agent_kit/application/run_service.py
+  s_fa558348164fda::t_e73a1ef78b43b6 168
+  s_fa558348164fda::t_558c444f7105ef 122
+tests/core/test_context.py
+  s_fa558348164fda::t_0f4f316ed2f1db 25-26,123-139,144-145
+  s_fa558348164fda::t_d8b1abebb2a5c1 140-143
+  s_fa558348164fda::t_984474f77180d1 82
+  s_fa558348164fda::t_f76889d5f0ce5e 27
+  s_fa558348164fda::t_74ef9e3907ba12 146-147
+tests/api/test_cancel.py
+  s_fa558348164fda::t_5a9d99f2f2973e 74-99
+src/prism_agent_kit/core/engine.py
+  s_fa558348164fda::t_d6c97c2dc8d10b 643-647,649-654
+  s_fa558348164fda::t_de0aa182bc1544 54,56-57
+  s_fa558348164fda::t_e73a1ef78b43b6 55,648
+  s_fa558348164fda::t_13e05c1af3ccd6 6,205-221
+  s_fa558348164fda::t_632fd05ee7956b 132,139,181-183,189-199,203-204,260-262,274-276,285,292-293
+  s_fa558348164fda::t_c547b47fb8ff62 222
+src/prism_agent_kit/db/database.py
+  s_fa558348164fda::t_1cbbf051ac3d27 1-2,19,21-42,44,58,65,70-73
+  s_fa558348164fda::t_e73a1ef78b43b6 20
+  s_fa558348164fda::t_c9751760b77a78 74
+tests/api/test_error_mapping.py
+  s_fa558348164fda::t_99d4c60a181893 87-100
+tests/application/test_remote_tools.py
+  s_fa558348164fda::t_e73a1ef78b43b6 2,44,529
+  s_fa558348164fda::t_098ba69af34ea4 43,45-60,387-528,530-570
+src/prism_agent_kit/application/run_worker.py
+  s_fa558348164fda::t_e73a1ef78b43b6 144
+  s_fa558348164fda::t_558c444f7105ef 110-114,139-143,145-151
+  s_fa558348164fda::t_251ff803d32ee5 152
+src/prism_agent_kit/application/tool_result_service.py
+  s_fa558348164fda::t_e73a1ef78b43b6 56
+  s_fa558348164fda::t_13e05c1af3ccd6 1,57,67-77,127-144
+  s_fa558348164fda::t_0f55a9f4863e28 145-146
+tests/db/test_database.py
+  s_fa558348164fda::t_0f4f316ed2f1db 1-2,18-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "83f7f74498bd2bed6ca7d0fa6d8667edf698072d",
+  "prompts": {},
+  "sessions": {
+    "s_fa558348164fda": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1fb65-d19e-7de0-b86d-f956ed9fbb23",
+        "model": "auto/deepseek-v4.1-flash"
+      },
+      "human_author": "vincent-xw <jiaxuewen2006@163.com>"
+    }
+  }
+}
