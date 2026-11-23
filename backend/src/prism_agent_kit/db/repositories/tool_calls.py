@@ -130,6 +130,20 @@ class ToolCallRepository:
         await self._session.flush()
         return tool_call_to_domain(row)
 
+    async def start_after_approval(self, run_id: str, call_id: str) -> ToolCall:
+        """审批通过后把调用从 awaiting_approval 置为 running。"""
+        row = await self._require_call(run_id, call_id)
+        if ToolCallStatus(row.status) is not ToolCallStatus.AWAITING_APPROVAL:
+            raise AgentKitError(
+                ErrorCode.TOOL_RESULT_CONFLICT,
+                "工具调用不在待审批状态",
+                http_status=409,
+                details={"call_id": call_id},
+            )
+        row.status = ToolCallStatus.RUNNING.value
+        await self._session.flush()
+        return tool_call_to_domain(row)
+
     async def fail(
         self,
         run_id: str,
