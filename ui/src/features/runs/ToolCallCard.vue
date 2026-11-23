@@ -4,6 +4,7 @@ import type { ToolProjection, ToolStatus } from './projection'
 defineProps<{ tool: ToolProjection }>()
 const labels: Record<ToolStatus, string> = {
   requested: '已请求，等待结果',
+  awaiting_approval: '等待确认写入',
   succeeded: '已完成',
   failed: '失败',
   expired: '已过期',
@@ -32,7 +33,7 @@ const labels: Record<ToolStatus, string> = {
     <p class="mt-3 text-[11px] text-muted-foreground">
       {{ tool.mode === 'remote' ? '外部宿主执行' : '本地执行' }}
     </p>
-    <details class="mt-3 text-xs">
+    <details v-if="tool.name !== 'file_write'" class="mt-3 text-xs">
       <summary class="cursor-pointer text-muted-foreground">调用参数</summary>
       <pre class="mt-2 max-h-56 overflow-auto rounded-lg bg-secondary p-3">{{
         JSON.stringify(tool.input, null, 2)

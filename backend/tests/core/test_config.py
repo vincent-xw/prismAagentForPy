@@ -37,3 +37,12 @@ def test_empty_api_token_is_normalized_to_none(tmp_path: Path) -> None:
     )
 
     assert settings.api_token is None
+
+
+def test_workspace_defaults() -> None:
+    settings = Settings()
+
+    assert settings.workspace_index_max_file_bytes == 1_048_576
+    assert settings.workspace_index_max_files == 20_000
+    assert settings.workspace_tool_approval_timeout_seconds == 1_800
+    assert settings.workspace_require_write_approval is True

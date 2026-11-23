@@ -77,8 +77,11 @@ class LocalToolExecutor:
                 ErrorCode.RUN_CANCELLED,
                 "工具执行已取消",
             )
+        except AgentKitError as error:
+            # 领域异常携带稳定错误码与安全文案，原样回传给模型与界面。
+            return ToolExecutionResult.failure(error.code, error.message)
         except Exception:
-            # 不透传工具异常正文。避免把内部细节写入历史或 API 响应。
+            # 其他异常不透传正文。避免把内部细节写入历史或 API 响应。
             return ToolExecutionResult.failure(
                 ErrorCode.TOOL_EXECUTION_FAILED,
                 "工具执行失败",

@@ -7,7 +7,21 @@ import {
 } from '@/lib/api/contracts'
 
 export type ToolStatus =
-  'requested' | 'succeeded' | 'failed' | 'expired' | 'cancelled' | 'incomplete'
+  | 'requested'
+  | 'awaiting_approval'
+  | 'succeeded'
+  | 'failed'
+  | 'expired'
+  | 'cancelled'
+  | 'incomplete'
+
+export interface PendingApproval {
+  callId: string
+  toolName: string
+  path: string
+  mode: string
+  bytes: number
+}
 export interface ToolProjection {
   callId: string
   name: string
@@ -28,6 +42,7 @@ export interface RunProjection {
   pendingSegments: { messageId: number; text: string; reasoning: string }[]
   completedMessageIds: number[]
   tools: ToolProjection[]
+  pendingApprovals: PendingApproval[]
 }
 export function createRunProjection(run: RunDto): RunProjection {
   return {
@@ -38,6 +53,7 @@ export function createRunProjection(run: RunDto): RunProjection {
     pendingSegments: [],
     completedMessageIds: [],
     tools: [],
+    pendingApprovals: [],
   }
 }
 
@@ -76,7 +92,7 @@ export function applyRunEvent(state: RunProjection, event: CoreEvent): RunProjec
         callId: event.call_id,
         name: event.tool_name,
         mode: event.execution_mode,
-        input: event.input,
+        input: event.input ?? null,
         status: 'requested',
         outcome: null,
         messageId: null,
@@ -85,9 +101,32 @@ export function applyRunEvent(state: RunProjection, event: CoreEvent): RunProjec
         errorMessage: null,
       })
       break
+    case 'tool.approval_required': {
+      const tool = state.tools.find((item) => item.callId === event.call_id)
+      if (tool) tool.status = 'awaiting_approval'
+      if (!state.pendingApprovals.some((item) => item.callId === event.call_id)) {
+        state.pendingApprovals.push({
+          callId: event.call_id,
+          toolName: event.tool_name,
+          path: event.path,
+          mode: event.mode,
+          bytes: event.bytes,
+        })
+      }
+      break
+    }
+    case 'tool.approved':
+    case 'tool.rejected':
+      state.pendingApprovals = state.pendingApprovals.filter(
+        (item) => item.callId !== event.call_id,
+      )
+      break
     case 'tool.completed':
     case 'tool.failed':
     case 'tool.expired': {
+      state.pendingApprovals = state.pendingApprovals.filter(
+        (item) => item.callId !== event.call_id,
+      )
       const tool = state.tools.find((item) => item.callId === event.call_id)
       if (!tool || tool.name !== event.tool_name) throw new Error('工具事件缺少匹配的请求记录。')
       tool.messageId = event.message_id

@@ -7,6 +7,7 @@ from prism_agent_kit.api.schemas import (
     SessionCreate,
     SessionListResponse,
     SessionView,
+    SessionWorkspaceUpdate,
 )
 
 
@@ -20,6 +21,19 @@ def create_sessions_router() -> APIRouter:
         service: SessionServiceDependency,
     ) -> SessionView:
         session = await service.create(payload.title)
+        return SessionView.from_domain(session)
+
+    @router.post(
+        "/sessions/{session_id}/workspace",
+        response_model=SessionView,
+        summary="绑定会话工作区",
+    )
+    async def bind_session_workspace(
+        session_id: str,
+        payload: SessionWorkspaceUpdate,
+        service: SessionServiceDependency,
+    ) -> SessionView:
+        session = await service.set_workspace(session_id, payload.workspace_id)
         return SessionView.from_domain(session)
 
     @router.get("/sessions", response_model=SessionListResponse, summary="列出 Session")

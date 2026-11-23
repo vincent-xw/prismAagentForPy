@@ -22,6 +22,7 @@ class Session(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid4()))
     title: str | None = None
+    workspace_id: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -31,6 +32,7 @@ class Run(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid4()))
     session_id: str
+    workspace_id: str | None = None
     status: RunStatus = RunStatus.QUEUED
     input_text: str
     prompt_name: str

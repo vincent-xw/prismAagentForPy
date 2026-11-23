@@ -7,13 +7,23 @@ const jsonObject = z.record(z.string(), z.json())
 export const sessionSchema = z.object({
   id,
   title: z.string().nullable(),
+  workspace_id: id.nullable(),
   created_at: date,
   updated_at: date,
 })
 export const runSchema = z.object({
   id,
   session_id: id,
-  status: z.enum(['queued', 'running', 'waiting_for_tool', 'succeeded', 'failed', 'cancelled']),
+  status: z.enum([
+    'queued',
+    'running',
+    'waiting_for_tool',
+    'waiting_for_approval',
+    'succeeded',
+    'failed',
+    'cancelled',
+  ]),
+  workspace_id: id.nullable(),
   input: z.string(),
   prompt_ref: z.string(),
   model: z.string(),
@@ -46,6 +56,70 @@ export const toolSchema = z.object({
 export const sessionsSchema = z.object({ items: z.array(sessionSchema) })
 export const messagesSchema = z.object({ items: z.array(messageSchema) })
 export const toolsSchema = z.object({ items: z.array(toolSchema) })
+export const toolCallSchema = z.object({
+  id,
+  run_id: id,
+  tool_name: id,
+  status: z.enum([
+    'pending',
+    'running',
+    'awaiting_approval',
+    'succeeded',
+    'failed',
+    'expired',
+    'cancelled',
+  ]),
+  output: z.json(),
+  error_code: z.string().nullable(),
+  error_message: z.string().nullable(),
+  expires_at: date.nullable(),
+})
+export const workspaceSchema = z.object({
+  id,
+  root_path: z.string(),
+  label: z.string().nullable(),
+  is_active: z.boolean(),
+  index_status: z.enum(['idle', 'indexing', 'ready', 'failed']),
+  index_error: z.string().nullable(),
+  file_count: z.number().int().nonnegative(),
+  indexed_at: date.nullable(),
+})
+export const workspacePickSchema = z.object({ path: z.string() })
+export const workspaceListSchema = z.object({
+  items: z.array(workspaceSchema),
+  active_id: id.nullable(),
+})
+export const treeResponseSchema = z.object({
+  items: z.array(
+    z.object({
+      name: z.string(),
+      type: z.enum(['file', 'dir']),
+      size: z.number().int().nullable().optional(),
+      modified_at: z.number().nullable().optional(),
+    }),
+  ),
+})
+export const fileResponseSchema = z.object({
+  path: z.string(),
+  content: z.string(),
+  truncated: z.boolean(),
+  size: z.number().int().nonnegative(),
+})
+export const searchResponseSchema = z.object({
+  items: z.array(z.object({ path: z.string(), snippet: z.string() })),
+})
+export const approvalPreviewSchema = z.object({
+  path: z.string(),
+  mode: z.string(),
+  bytes: z.number().int().nonnegative(),
+  exists: z.boolean(),
+  diff: z.string().nullable(),
+  truncated: z.boolean(),
+})
+export const approvalResponseSchema = z.object({
+  call: toolCallSchema,
+  run: runSchema,
+})
 export const healthSchema = z.object({
   status: z.literal('ok'),
   service: z.string(),
@@ -85,13 +159,34 @@ const eventSchema = z.discriminatedUnion('type', [
     call_id: id,
     tool_name: id,
     execution_mode: z.enum(['local', 'remote']),
-    input: z.json(),
+    // 需审批工具的正文不入事件，payload 只带 path/mode/bytes 摘要。
+    input: z.json().optional(),
+    path: z.string().optional(),
+    mode: z.string().optional(),
+    bytes: z.number().int().nonnegative().optional(),
     input_digest: id,
   }),
   z.object({ ...toolResult, type: z.literal('tool.completed') }),
   z.object({ ...toolFailure, type: z.literal('tool.failed') }),
   z.object({ ...toolFailure, type: z.literal('tool.expired') }),
   z.object({ ...base, type: z.literal('run.waiting_for_tool'), call_ids: z.array(id) }),
+  z.object({ ...base, type: z.literal('run.waiting_for_approval'), call_ids: z.array(id) }),
+  z.object({
+    ...base,
+    type: z.literal('tool.approval_required'),
+    call_id: id,
+    tool_name: id,
+    path: z.string(),
+    mode: z.string(),
+    bytes: z.number().int().nonnegative(),
+  }),
+  z.object({ ...base, type: z.literal('tool.approved'), call_id: id }),
+  z.object({
+    ...base,
+    type: z.literal('tool.rejected'),
+    call_id: id,
+    reason: z.string().optional(),
+  }),
   z.object({ ...base, type: z.literal('run.requeued'), call_ids: z.array(id) }),
   z.object({
     ...base,
@@ -119,3 +214,10 @@ export function parseCoreEvent(name: string, eventId: string | null, value: unkn
 export function isTerminal(run: RunDto): boolean {
   return run.status === 'succeeded' || run.status === 'failed' || run.status === 'cancelled'
 }
+
+export type ToolCallDto = z.infer<typeof toolCallSchema>
+export type WorkspaceDto = z.infer<typeof workspaceSchema>
+export type TreeEntryDto = z.infer<typeof treeResponseSchema>['items'][number]
+export type FileDto = z.infer<typeof fileResponseSchema>
+export type SearchHitDto = z.infer<typeof searchResponseSchema>['items'][number]
+export type ApprovalPreviewDto = z.infer<typeof approvalPreviewSchema>

@@ -6,7 +6,9 @@ from prism_agent_kit.application.container import ApplicationContainer
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
+from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_service import ToolResultService
+from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.tools.registry import ToolRegistry
 
@@ -41,6 +43,16 @@ def get_event_bus(request: Request) -> RunEventBus:
     return get_application_container(request).event_bus
 
 
+def get_workspace_service(request: Request) -> WorkspaceService:
+    """返回工作区应用服务。"""
+    return get_application_container(request).workspace_service
+
+
+def get_tool_approval_service(request: Request) -> ToolApprovalService:
+    """返回写入审批服务。"""
+    return get_application_container(request).tool_approval_service
+
+
 def get_tool_registry(request: Request) -> ToolRegistry:
     """返回工具注册表。"""
     return get_application_container(request).tool_registry
@@ -54,4 +66,9 @@ ToolResultServiceDependency = Annotated[
 ]
 EventBusDependency = Annotated[RunEventBus, Depends(get_event_bus)]
 ToolRegistryDependency = Annotated[ToolRegistry, Depends(get_tool_registry)]
+WorkspaceServiceDependency = Annotated[WorkspaceService, Depends(get_workspace_service)]
+ToolApprovalServiceDependency = Annotated[
+    ToolApprovalService,
+    Depends(get_tool_approval_service),
+]
 SettingsDependency = Annotated[Settings, Depends(get_request_settings)]

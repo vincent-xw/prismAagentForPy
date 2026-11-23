@@ -1,6 +1,7 @@
 from collections.abc import Awaitable, Callable
 from datetime import datetime
-from typing import Protocol
+from pathlib import Path
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field, JsonValue
 
@@ -74,3 +75,17 @@ class EventPublisher(Protocol):
     """事务提交后发布事件的端口。"""
 
     async def publish(self, event: EventEnvelope) -> None: ...
+
+
+class WorkspaceLocator(Protocol):
+    """Run 绑定的工作区定位与检索接口。"""
+
+    async def root_for(self, workspace_id: str | None) -> Path | None: ...
+
+    async def search(
+        self,
+        workspace_id: str,
+        query: str,
+        *,
+        limit: int = 20,
+    ) -> list[Any]: ...

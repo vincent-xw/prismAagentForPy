@@ -1,11 +1,9 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import cast
-
-from pydantic import JsonValue
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.run_resume import finalize_waiting_run
 from prism_agent_kit.core.engine import AgentEngine, EngineContext, EngineOutcome
 from prism_agent_kit.core.enums import (
     EventType,
@@ -209,7 +207,10 @@ class RunWorker:
         for run_id, call_ids in grouped.items():
             async with self._uow_factory() as uow:
                 run = await uow.runs.get(run_id)
-                if run.status is not RunStatus.WAITING_FOR_TOOL:
+                if run.status not in {
+                    RunStatus.WAITING_FOR_TOOL,
+                    RunStatus.WAITING_FOR_APPROVAL,
+                }:
                     continue
                 previous_event_id = await uow.events.last_id(run_id)
                 run_expired = 0
@@ -218,37 +219,31 @@ class RunWorker:
                     if call.status not in {
                         ToolCallStatus.PENDING,
                         ToolCallStatus.RUNNING,
+                        ToolCallStatus.AWAITING_APPROVAL,
                     }:
                         continue
                     if call.expires_at is None or call.expires_at > effective_now:
                         continue
-                    await uow.tool_calls.fail(
-                        run_id,
-                        call_id,
-                        ErrorCode.REMOTE_TOOL_TIMEOUT,
-                        "远端工具等待超时",
-                    )
+                    if call.status is ToolCallStatus.AWAITING_APPROVAL:
+                        await uow.tool_calls.fail(
+                            run_id,
+                            call_id,
+                            ErrorCode.TOOL_APPROVAL_TIMEOUT,
+                            "写入审批超时",
+                        )
+                    else:
+                        await uow.tool_calls.fail(
+                            run_id,
+                            call_id,
+                            ErrorCode.REMOTE_TOOL_TIMEOUT,
+                            "远端工具等待超时",
+                        )
                     run_expired += 1
 
                 if run_expired == 0:
                     continue
 
-                calls = await uow.tool_calls.list_for_run(run_id)
-                if all(call.status in _TERMINAL_TOOL_STATUSES for call in calls):
-                    await uow.runs.transition(run_id, RunStatus.QUEUED)
-                    await uow.events.append(
-                        RunEvent(
-                            run_id=run_id,
-                            event_type=EventType.RUN_REQUEUED,
-                            payload={
-                                "call_ids": cast(
-                                    JsonValue,
-                                    [call.id for call in calls],
-                                ),
-                                "reason": ErrorCode.REMOTE_TOOL_TIMEOUT.value,
-                            },
-                        )
-                    )
+                await finalize_waiting_run(uow, run_id)
 
                 new_events = await uow.events.list_after(
                     run_id,

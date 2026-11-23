@@ -1,11 +1,13 @@
 import asyncio
 import logging
 from datetime import timedelta
+from pathlib import Path
 from typing import Literal, Protocol, cast
 
 from pydantic import BaseModel, ConfigDict, JsonValue, ValidationError
 from sqlalchemy.exc import IntegrityError
 
+from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.core.context import ContextAssembler, ContextAssembly
 from prism_agent_kit.core.digests import canonical_json_digest
 from prism_agent_kit.core.enums import (
@@ -23,6 +25,7 @@ from prism_agent_kit.core.ports import (
     ModelProvider,
     ModelRequest,
     ModelResponse,
+    WorkspaceLocator,
 )
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 from prism_agent_kit.tools.contracts import (
@@ -67,7 +70,13 @@ class EngineContext(BaseModel):
 class EngineOutcome(BaseModel):
     """引擎执行结果。不把可恢复失败抛给 Worker。"""
 
-    kind: Literal["completed", "waiting_for_tools", "failed", "cancelled"]
+    kind: Literal[
+        "completed",
+        "waiting_for_tools",
+        "waiting_for_approval",
+        "failed",
+        "cancelled",
+    ]
     error_code: ErrorCode | None = None
     message: str | None = None
 
@@ -98,6 +107,10 @@ class SimpleAgentEngine:
         max_output_tokens: int | None,
         remote_tool_timeout_seconds: float,
         tool_timeout_seconds: float | None = None,
+        tool_result_recorder: ToolResultRecorder | None = None,
+        workspace_locator: WorkspaceLocator | None = None,
+        require_write_approval: bool = True,
+        approval_timeout_seconds: float = 1800,
     ) -> None:
         self._uow_factory = uow_factory
         self._model_provider = model_provider
@@ -109,6 +122,13 @@ class SimpleAgentEngine:
         self._max_output_tokens = max_output_tokens
         self._remote_tool_timeout_seconds = remote_tool_timeout_seconds
         self._tool_timeout_seconds = tool_timeout_seconds
+        self._workspace_locator = workspace_locator
+        self._require_write_approval = require_write_approval
+        self._approval_timeout_seconds = approval_timeout_seconds
+        self._tool_result_recorder = tool_result_recorder or ToolResultRecorder(
+            uow_factory=uow_factory,
+            event_publisher=event_publisher,
+        )
 
     async def execute(self, context: EngineContext) -> EngineOutcome:
         """执行一次已 claim 的 Run。"""
@@ -135,6 +155,9 @@ class SimpleAgentEngine:
             return await self._cancel_run(run.id)
 
         await self._emit_started(run.id)
+        workspace_root = None
+        if self._workspace_locator is not None:
+            workspace_root = await self._workspace_locator.root_for(run.workspace_id)
         tool_schemas = self._tool_registry.model_schemas()
 
         while True:
@@ -224,12 +247,16 @@ class SimpleAgentEngine:
                         ),
                     )
 
+            approval_calls: list[ToolCall] = []
             for call, definition in zip(
                 calls,
                 ordered_definitions,
                 strict=True,
             ):
                 if definition.execution_mode is ExecutionMode.REMOTE:
+                    continue
+                if definition.requires_approval and self._require_write_approval:
+                    approval_calls.append(call)
                     continue
                 if context.cancel.is_set():
                     return await self._cancel_run(run.id)
@@ -245,11 +272,13 @@ class SimpleAgentEngine:
                 result = await self._tool_executor.execute(
                     definition,
                     call.input,
-                    ToolExecutionContext(
+                    self._make_tool_context(
                         run_id=run.id,
                         session_id=current.session_id,
                         call_id=call.id,
                         cancel=context.cancel,
+                        workspace_id=run.workspace_id,
+                        workspace_root=workspace_root,
                     ),
                     timeout_seconds=effective_timeout,
                 )
@@ -262,6 +291,11 @@ class SimpleAgentEngine:
                         result,
                     )
                 await self._record_tool_result(run.id, call.id, result)
+
+            if approval_calls:
+                if await self._is_cancel_requested(run.id, context.cancel):
+                    return await self._cancel_run(run.id)
+                return await self._wait_for_approval(run.id, approval_calls)
 
             if any(
                 definition.execution_mode is ExecutionMode.REMOTE
@@ -347,18 +381,35 @@ class SimpleAgentEngine:
                     )
                 )
                 for call in calls:
+                    if definitions[call.id].requires_approval:
+                        # 需审批工具的正文不进入持久事件, 只保留可展示的摘要。
+                        data = call.input if isinstance(call.input, dict) else {}
+                        content = data.get("content")
+                        payload: dict[str, JsonValue] = {
+                            "call_id": call.id,
+                            "tool_name": call.tool_name,
+                            "execution_mode": call.execution_mode.value,
+                            "path": str(data.get("path", "")),
+                            "mode": str(data.get("mode", "overwrite")),
+                            "bytes": len(content.encode("utf-8"))
+                            if isinstance(content, str)
+                            else 0,
+                            "input_digest": call.input_digest,
+                        }
+                    else:
+                        payload = {
+                            "call_id": call.id,
+                            "tool_name": call.tool_name,
+                            "execution_mode": call.execution_mode.value,
+                            "input": call.input,
+                            "input_digest": call.input_digest,
+                        }
                     persisted_events.append(
                         await uow.events.append(
                             RunEvent(
                                 run_id=run_id,
                                 event_type=EventType.TOOL_REQUESTED,
-                                payload={
-                                    "call_id": call.id,
-                                    "tool_name": call.tool_name,
-                                    "execution_mode": call.execution_mode.value,
-                                    "input": call.input,
-                                    "input_digest": call.input_digest,
-                                },
+                                payload=payload,
                             )
                         )
                     )
@@ -438,30 +489,8 @@ class SimpleAgentEngine:
         call_id: str,
         result: ToolExecutionResult,
     ) -> None:
-        """把单次本地工具结果与其事件提交到数据库。"""
-        async with self._uow_factory() as uow:
-            previous_event_id = await uow.events.last_id(run_id)
-            if result.ok:
-                await uow.tool_calls.complete(run_id, call_id, result.output)
-            else:
-                if result.error_code is None:
-                    raise AgentKitError(
-                        ErrorCode.INTERNAL_ERROR,
-                        "工具失败结果缺少错误码",
-                        http_status=500,
-                    )
-                await uow.tool_calls.fail(
-                    run_id,
-                    call_id,
-                    result.error_code,
-                    result.error_message or "工具执行失败",
-                )
-            new_events = await uow.events.list_after(
-                run_id,
-                after_id=previous_event_id,
-            )
-            await uow.commit()
-        await self._publish_events(new_events)
+        """把单次本地工具结果委托给共享记录器，保持事件与历史写法一致。"""
+        await self._tool_result_recorder.record(run_id, call_id, result)
 
     async def _fail_after_contract(
         self,
@@ -527,6 +556,75 @@ class SimpleAgentEngine:
             await uow.commit()
         await self._publish_events(new_events)
         return EngineOutcome(kind="waiting_for_tools")
+
+    def _make_tool_context(
+        self,
+        *,
+        run_id: str,
+        session_id: str,
+        call_id: str,
+        cancel: asyncio.Event,
+        workspace_id: str | None,
+        workspace_root: Path | None,
+    ) -> ToolExecutionContext:
+        """构造工具上下文，并按需注入工作区根与检索回调。"""
+        search = None
+        if self._workspace_locator is not None and workspace_id is not None:
+
+            async def search(query: str, limit: int) -> list[object]:
+                assert self._workspace_locator is not None
+                return await self._workspace_locator.search(workspace_id, query, limit=limit)
+
+        return ToolExecutionContext(
+            run_id=run_id,
+            session_id=session_id,
+            call_id=call_id,
+            cancel=cancel,
+            workspace_root=workspace_root,
+            workspace_id=workspace_id,
+            search=search,
+        )
+
+    async def _wait_for_approval(
+        self,
+        run_id: str,
+        calls: list[ToolCall],
+    ) -> EngineOutcome:
+        """把需审批的调用置为 awaiting_approval，并让 Run 进入等待审批。"""
+        async with self._uow_factory() as uow:
+            previous_event_id = await uow.events.last_id(run_id)
+            expires_at = utc_now() + timedelta(seconds=self._approval_timeout_seconds)
+            for call in calls:
+                await uow.tool_calls.await_call(run_id, call.id, expires_at)
+            await uow.runs.transition(run_id, RunStatus.WAITING_FOR_APPROVAL)
+            await uow.events.append(
+                RunEvent(
+                    run_id=run_id,
+                    event_type=EventType.RUN_WAITING_FOR_APPROVAL,
+                    payload={"call_ids": cast(JsonValue, [call.id for call in calls])},
+                )
+            )
+            for call in calls:
+                data = call.input if isinstance(call.input, dict) else {}
+                content = data.get("content")
+                bytes_count = len(content.encode("utf-8")) if isinstance(content, str) else 0
+                await uow.events.append(
+                    RunEvent(
+                        run_id=run_id,
+                        event_type=EventType.TOOL_APPROVAL_REQUIRED,
+                        payload={
+                            "call_id": call.id,
+                            "tool_name": call.tool_name,
+                            "path": str(data.get("path", "")),
+                            "mode": str(data.get("mode", "overwrite")),
+                            "bytes": bytes_count,
+                        },
+                    )
+                )
+            new_events = await uow.events.list_after(run_id, after_id=previous_event_id)
+            await uow.commit()
+        await self._publish_events(new_events)
+        return EngineOutcome(kind="waiting_for_approval")
 
     async def _fail_run(
         self,

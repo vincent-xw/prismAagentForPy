@@ -68,6 +68,8 @@ target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
+# 允许中文注释与文案使用全角标点, 避免与 RUF001/2/3 冲突。
+allowed-confusables = ["，", "：", "；", "（", "）", "！", "？"]
 select = ["E", "F", "I", "UP", "B", "SIM", "ASYNC", "RUF"]
 
 [tool.mypy]

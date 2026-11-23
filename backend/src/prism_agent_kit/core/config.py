@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     remote_tool_timeout_seconds: float = 300.0
     worker_concurrency: int = 2
     sse_heartbeat_seconds: float = 15.0
+    workspace_index_max_file_bytes: int = 1_048_576
+    workspace_index_max_files: int = 20_000
+    workspace_tool_approval_timeout_seconds: int = 1_800
+    workspace_require_write_approval: bool = True
 
     @property
     def resolved_database_path(self) -> Path:

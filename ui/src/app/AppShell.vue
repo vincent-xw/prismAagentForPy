@@ -12,22 +12,52 @@ import {
 } from '@/components/ui/sheet'
 import { useAppContext } from './context'
 import SessionSidebar from '@/features/sessions/SessionSidebar.vue'
+import SessionMeta from '@/features/sessions/SessionMeta.vue'
+import type { WorkspaceDto } from '@/lib/api/contracts'
 const context = useAppContext()
-const { conversation, connection } = context
+const { conversation, connection, client } = context
 const route = useRoute()
 const router = useRouter()
 const navigationOpen = ref(false)
 const collapsed = ref(false)
 const state = computed(() => conversation.value!.state)
 const settings = computed(() => route.path === '/settings')
+const workspace = computed(() => route.path === '/workspace')
 const lastSessionPath = computed(() =>
   state.value.selectedSessionId ? `/sessions/${state.value.selectedSessionId}` : '/',
 )
+const workspaces = ref<WorkspaceDto[]>([])
+const currentSession = computed(
+  () => state.value.sessions.find((item) => item.id === state.value.selectedSessionId) ?? null,
+)
+const sessionPath = computed(() =>
+  state.value.selectedSessionId ? `/sessions/${state.value.selectedSessionId}` : '/',
+)
+const activeTab = computed(() => (route.path.endsWith('/execution') ? 'execution' : 'session'))
+
+async function loadWorkspaces(): Promise<void> {
+  if (client === undefined || connection.state.status !== 'ready') return
+  try {
+    workspaces.value = (await client.listWorkspaces()).items
+  } catch {
+    workspaces.value = []
+  }
+}
+
+async function bindWorkspace(workspaceId: string | null): Promise<void> {
+  const session = currentSession.value
+  if (session === null || client === undefined) return
+  await client.setSessionWorkspace(session.id, workspaceId)
+  await conversation.value!.loadSessions()
+  await loadWorkspaces()
+}
 const title = computed(() =>
   settings.value
     ? '连接与外观'
-    : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
-      '新的会话'),
+    : workspace.value
+      ? '工作区'
+      : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
+        '新的会话'),
 )
 async function create() {
   navigationOpen.value = false
@@ -47,6 +77,7 @@ watch(
     await controller.loadSessions()
     if (typeof route.params.sessionId === 'string')
       await controller.openSession(route.params.sessionId)
+    await loadWorkspaces()
   },
   { immediate: true },
 )
@@ -79,8 +110,13 @@ onMounted(() => {
         @select="select"
       />
       <RouterLink
+        to="/workspace"
+        class="mx-4 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+        ><PanelsLeftBottom class="size-4" />工作区</RouterLink
+      >
+      <RouterLink
         to="/settings"
-        class="mx-4 mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+        class="mx-4 mb-4 mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
         ><Settings class="size-4" />设置</RouterLink
       >
     </aside>
@@ -108,6 +144,38 @@ onMounted(() => {
           ><ArrowLeft class="size-4"
         /></RouterLink>
         <h2 class="min-w-0 truncate text-[13px] font-medium">{{ title }}</h2>
+        <SessionMeta
+          v-if="currentSession !== null && !settings && !workspace"
+          :session="currentSession"
+          :workspaces="workspaces"
+          @bind="bindWorkspace"
+        />
+        <nav
+          v-if="currentSession !== null && !settings && !workspace"
+          class="ml-1 hidden items-center gap-0.5 rounded-full border bg-card p-0.5 text-xs sm:flex"
+          aria-label="会话与执行详情切换"
+        >
+          <RouterLink
+            :to="sessionPath"
+            class="rounded-full px-3 py-1 transition"
+            :class="
+              activeTab === 'session'
+                ? 'bg-secondary text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            "
+            >会话</RouterLink
+          >
+          <RouterLink
+            :to="`${sessionPath}/execution`"
+            class="rounded-full px-3 py-1 transition"
+            :class="
+              activeTab === 'execution'
+                ? 'bg-secondary text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            "
+            >执行详情</RouterLink
+          >
+        </nav>
         <div class="ml-auto flex shrink-0 items-center gap-2">
           <span
             class="size-1.5 rounded-full"

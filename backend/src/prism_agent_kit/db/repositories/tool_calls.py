@@ -87,7 +87,11 @@ class ToolCallRepository:
             select(ToolCallRow)
             .where(
                 ToolCallRow.status.in_(
-                    (ToolCallStatus.PENDING.value, ToolCallStatus.RUNNING.value)
+                    (
+                        ToolCallStatus.PENDING.value,
+                        ToolCallStatus.RUNNING.value,
+                        ToolCallStatus.AWAITING_APPROVAL.value,
+                    )
                 ),
                 ToolCallRow.expires_at.is_not(None),
                 ToolCallRow.expires_at <= storage_now,
@@ -103,6 +107,40 @@ class ToolCallRepository:
             raise AgentKitError(
                 ErrorCode.TOOL_RESULT_CONFLICT,
                 "ToolCall 状态不允许开始执行",
+                http_status=409,
+                details={"call_id": call_id},
+            )
+        row.status = ToolCallStatus.RUNNING.value
+        await self._session.flush()
+        return tool_call_to_domain(row)
+
+    async def await_call(
+        self,
+        run_id: str,
+        call_id: str,
+        expires_at: datetime,
+    ) -> ToolCall:
+        """把待执行工具调用标记为等待审批并写入截止时间。"""
+        row = await self._require_call(run_id, call_id)
+        if ToolCallStatus(row.status) is not ToolCallStatus.PENDING:
+            raise AgentKitError(
+                ErrorCode.TOOL_RESULT_CONFLICT,
+                "ToolCall 状态不允许进入待审批",
+                http_status=409,
+                details={"call_id": call_id},
+            )
+        row.status = ToolCallStatus.AWAITING_APPROVAL.value
+        row.expires_at = expires_at.astimezone(UTC).replace(tzinfo=None)
+        await self._session.flush()
+        return tool_call_to_domain(row)
+
+    async def start_after_approval(self, run_id: str, call_id: str) -> ToolCall:
+        """审批通过后把调用从 awaiting_approval 置为 running。"""
+        row = await self._require_call(run_id, call_id)
+        if ToolCallStatus(row.status) is not ToolCallStatus.AWAITING_APPROVAL:
+            raise AgentKitError(
+                ErrorCode.TOOL_RESULT_CONFLICT,
+                "工具调用不在待审批状态",
                 http_status=409,
                 details={"call_id": call_id},
             )
@@ -133,7 +171,10 @@ class ToolCallRepository:
             )
         run = await self._require_run(run_id)
         code_value = error_code.value if isinstance(error_code, ErrorCode) else error_code
-        if code_value == ErrorCode.REMOTE_TOOL_TIMEOUT.value:
+        if code_value in {
+            ErrorCode.REMOTE_TOOL_TIMEOUT.value,
+            ErrorCode.TOOL_APPROVAL_TIMEOUT.value,
+        }:
             tool_status = ToolCallStatus.EXPIRED
             event_type = EventType.TOOL_EXPIRED
         elif code_value == ErrorCode.RUN_CANCELLED.value:
@@ -268,7 +309,11 @@ class ToolCallRepository:
             .where(
                 ToolCallRow.run_id == run_id,
                 ToolCallRow.status.in_(
-                    (ToolCallStatus.PENDING.value, ToolCallStatus.RUNNING.value)
+                    (
+                        ToolCallStatus.PENDING.value,
+                        ToolCallStatus.RUNNING.value,
+                        ToolCallStatus.AWAITING_APPROVAL.value,
+                    )
                 ),
             )
             .order_by(ToolCallRow.created_at, ToolCallRow.id)
@@ -345,7 +390,7 @@ class ToolCallRepository:
     @staticmethod
     def _closure_status(error_code: ErrorCode) -> tuple[ToolCallStatus, EventType]:
         """根据闭合原因决定工具状态与事件类型。"""
-        if error_code is ErrorCode.REMOTE_TOOL_TIMEOUT:
+        if error_code in {ErrorCode.REMOTE_TOOL_TIMEOUT, ErrorCode.TOOL_APPROVAL_TIMEOUT}:
             return ToolCallStatus.EXPIRED, EventType.TOOL_EXPIRED
         if error_code is ErrorCode.RUN_CANCELLED:
             return ToolCallStatus.CANCELLED, EventType.TOOL_FAILED

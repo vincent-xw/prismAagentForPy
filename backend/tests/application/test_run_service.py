@@ -79,3 +79,92 @@ async def test_create_run_touches_session_activity(
 
     updated = await sessions.get(session.id)
     assert updated.updated_at > old_activity
+
+
+class _ActiveWorkspace:
+    """返回固定活跃工作区的测试替身。"""
+
+    def __init__(self, workspace: object) -> None:
+        self._workspace = workspace
+
+    async def active(self) -> object:
+        return self._workspace
+
+
+async def test_session_binds_active_workspace(uow_factory: UnitOfWorkFactory) -> None:
+    from prism_agent_kit.core.workspace import Workspace
+
+    async with uow_factory() as uow:
+        workspace = await uow.workspaces.create(Workspace(root_path="/tmp/project-a"))
+        await uow.commit()
+    sessions = SessionService(uow_factory, workspace_service=_ActiveWorkspace(workspace))
+
+    session = await sessions.create(title="demo")
+
+    assert session.workspace_id == workspace.id
+
+
+async def test_run_inherits_session_workspace_even_after_switch(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    from prism_agent_kit.core.workspace import Workspace
+
+    async with uow_factory() as uow:
+        first = await uow.workspaces.create(Workspace(root_path="/tmp/project-a"))
+        second = await uow.workspaces.create(Workspace(root_path="/tmp/project-b"))
+        await uow.commit()
+    sessions = SessionService(uow_factory, workspace_service=_ActiveWorkspace(first))
+    session = await sessions.create(title="demo")
+    prompts = PromptRegistry()
+    prompts.register(name="default", version="1", prompt="default system")
+    runs = RunService(
+        uow_factory=uow_factory,
+        prompt_registry=prompts,
+        model_name="test-model",
+        default_prompt_ref="default@1",
+        event_publisher=RecordingEventPublisher(),
+        cancellation_registry=RunCancellationRegistry(),
+    )
+    # 激活工作区已切到 second，但会话仍绑定 first
+    sessions_now = SessionService(uow_factory, workspace_service=_ActiveWorkspace(second))
+    assert (await sessions_now.get(session.id)).workspace_id == first.id
+
+    run = await runs.create(session.id, input_text="hello", prompt_ref=None, metadata=None)
+
+    assert run.workspace_id == first.id
+
+
+async def test_run_without_session_workspace_stays_unbound(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    prompts = PromptRegistry()
+    prompts.register(name="default", version="1", prompt="default system")
+    sessions = SessionService(uow_factory)
+    runs = RunService(
+        uow_factory=uow_factory,
+        prompt_registry=prompts,
+        model_name="test-model",
+        default_prompt_ref="default@1",
+        event_publisher=RecordingEventPublisher(),
+        cancellation_registry=RunCancellationRegistry(),
+    )
+    session = await sessions.create(title="demo")
+
+    run = await runs.create(session.id, input_text="hello", prompt_ref=None, metadata=None)
+
+    assert run.workspace_id is None
+
+
+async def test_session_workspace_can_be_rebound(uow_factory: UnitOfWorkFactory) -> None:
+    from prism_agent_kit.core.workspace import Workspace
+
+    async with uow_factory() as uow:
+        workspace = await uow.workspaces.create(Workspace(root_path="/tmp/project-b"))
+        await uow.commit()
+    sessions = SessionService(uow_factory)
+    session = await sessions.create(title="demo")
+    assert session.workspace_id is None
+
+    updated = await sessions.set_workspace(session.id, workspace.id)
+
+    assert updated.workspace_id == workspace.id

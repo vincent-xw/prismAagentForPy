@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, JsonValue, field_validator
 
 from prism_agent_kit.core.enums import ExecutionMode, MessageRole, RunStatus, ToolCallStatus
 from prism_agent_kit.core.models import Message, Run, Session, ToolCall
+from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.tools.contracts import ToolDefinition
 
 
@@ -13,11 +14,18 @@ class SessionCreate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
 
 
+class SessionWorkspaceUpdate(BaseModel):
+    """会话绑定工作区请求；workspace_id 为空表示解绑。"""
+
+    workspace_id: str | None = None
+
+
 class SessionView(BaseModel):
     """对外返回的 Session 视图。"""
 
     id: str
     title: str | None
+    workspace_id: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -26,6 +34,7 @@ class SessionView(BaseModel):
         return cls(
             id=session.id,
             title=session.title,
+            workspace_id=session.workspace_id,
             created_at=session.created_at,
             updated_at=session.updated_at,
         )
@@ -58,6 +67,7 @@ class RunView(BaseModel):
 
     id: str
     session_id: str
+    workspace_id: str | None
     status: RunStatus
     input: str
     prompt_ref: str
@@ -76,6 +86,7 @@ class RunView(BaseModel):
         return cls(
             id=run.id,
             session_id=run.session_id,
+            workspace_id=run.workspace_id,
             status=run.status,
             input=run.input_text,
             prompt_ref=run.prompt_ref,
@@ -196,3 +207,111 @@ class ToolListResponse(BaseModel):
     """工具列表响应。"""
 
     items: list[ToolView]
+
+
+class WorkspaceView(BaseModel):
+    """对外返回的工作区视图。"""
+
+    id: str
+    root_path: str
+    label: str | None
+    is_active: bool
+    index_status: str
+    index_error: str | None
+    file_count: int
+    indexed_at: datetime | None
+
+    @classmethod
+    def from_domain(cls, workspace: "Workspace") -> "WorkspaceView":
+        return cls(
+            id=workspace.id,
+            root_path=workspace.root_path,
+            label=workspace.label,
+            is_active=workspace.is_active,
+            index_status=workspace.index_status.value,
+            index_error=workspace.index_error,
+            file_count=workspace.file_count,
+            indexed_at=workspace.indexed_at,
+        )
+
+
+class WorkspaceListResponse(BaseModel):
+    """工作区列表。"""
+
+    items: list[WorkspaceView]
+    active_id: str | None
+
+
+class WorkspaceCreate(BaseModel):
+    """绑定工作区请求。"""
+
+    path: str
+    label: str | None = Field(default=None, max_length=255)
+
+
+class WorkspacePickResponse(BaseModel):
+    """原生目录选择结果。"""
+
+    path: str
+
+
+class TreeEntryView(BaseModel):
+    """目录项视图。"""
+
+    name: str
+    type: str
+    size: int | None = None
+    modified_at: float | None = None
+
+
+class TreeResponse(BaseModel):
+    """目录列表。"""
+
+    items: list[TreeEntryView]
+
+
+class FileView(BaseModel):
+    """文件读取视图。"""
+
+    path: str
+    content: str
+    truncated: bool
+    size: int
+
+
+class SearchHitView(BaseModel):
+    """检索命中视图。"""
+
+    path: str
+    snippet: str
+
+
+class SearchResponse(BaseModel):
+    """检索结果。"""
+
+    items: list[SearchHitView]
+
+
+class ApprovalRequest(BaseModel):
+    """审批请求。"""
+
+    decision: str
+    reason: str | None = Field(default=None, max_length=200)
+
+
+class ApprovalPreviewView(BaseModel):
+    """审批预览视图。"""
+
+    path: str
+    mode: str
+    bytes: int
+    exists: bool
+    diff: str | None
+    truncated: bool
+
+
+class ApprovalResponse(BaseModel):
+    """审批结果，同时返回调用与 Run 的最新状态。"""
+
+    call: ToolCallView
+    run: RunView

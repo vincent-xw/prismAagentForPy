@@ -3,13 +3,21 @@ import type { MessageDto, RunDto, SessionDto } from '@/lib/api/contracts'
 // 完整 DTO 夹具只用于测试；生产请求不补造字段。
 export const stamp = '2026-11-22T00:00:00Z'
 export function sessionDto(overrides: Partial<SessionDto> = {}): SessionDto {
-  return { id: 's1', title: null, created_at: stamp, updated_at: stamp, ...overrides }
+  return {
+    id: 's1',
+    title: null,
+    workspace_id: null,
+    created_at: stamp,
+    updated_at: stamp,
+    ...overrides,
+  }
 }
 export function runDto(overrides: Partial<RunDto> = {}): RunDto {
   return {
     id: 'r1',
     session_id: 's1',
     status: 'running',
+    workspace_id: null,
     input: '你好',
     prompt_ref: 'default',
     model: 'test-model',

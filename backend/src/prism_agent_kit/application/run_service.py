@@ -50,10 +50,12 @@ class RunService:
         """在单个事务中创建 user Message、Run 和排队事件。"""
         prompt = self._resolve_prompt(prompt_ref)
         async with self._uow_factory() as uow:
+            session = await uow.sessions.get(session_id)
             await uow.sessions.touch(session_id)
             run = await uow.runs.create(
                 Run(
                     session_id=session_id,
+                    workspace_id=session.workspace_id,
                     input_text=input_text,
                     prompt_name=prompt.name,
                     prompt_version=prompt.version,

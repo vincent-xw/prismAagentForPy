@@ -69,3 +69,27 @@ def test_unknown_prompt_version_is_rejected(api_client: TestClient) -> None:
 
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "PROMPT_NOT_FOUND"
+
+
+def test_bind_workspace_to_existing_session(api_client, tmp_path) -> None:
+    root = tmp_path / "ws"
+    root.mkdir()
+    workspace_id = api_client.post("/api/v1/workspaces", json={"path": str(root)}).json()["id"]
+    session = api_client.post("/api/v1/sessions", json={"title": "demo"}).json()
+
+    response = api_client.post(
+        f"/api/v1/sessions/{session['id']}/workspace",
+        json={"workspace_id": workspace_id},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["workspace_id"] == workspace_id
+
+
+def test_bind_unknown_workspace_returns_404(api_client) -> None:
+    session = api_client.post("/api/v1/sessions", json={"title": "demo"}).json()
+    response = api_client.post(
+        f"/api/v1/sessions/{session['id']}/workspace",
+        json={"workspace_id": "missing"},
+    )
+    assert response.status_code == 404

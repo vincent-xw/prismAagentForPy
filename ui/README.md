@@ -1,6 +1,6 @@
 # Prism Core UI
 
-Vue 3 + TypeScript + Vite 的独立前端，使用 Tailwind CSS 4、自有语义主题和按需 shadcn-vue / Reka 组件。首期提供会话工作台、执行详情和独立设置页。
+Vue 3 + TypeScript + Vite 的独立前端，使用 Tailwind CSS 4、自有语义主题和按需 shadcn-vue / Reka 组件。提供会话工作台、执行详情、独立设置页与工作区页；会话页支持写入审批。
 
 ## 启动
 
@@ -31,7 +31,7 @@ Python Backend 位于仓库根 `backend/`。启动后端后，将 `PRISM_UI_API_
 - 执行详情展示真实 Run 与工具事件。缺少消息关联时显示未完整取得，不从工具输出对象的形状推断失败。
 - 桌面详情位于工作区内；窄屏才使用 Sheet。引导、导航与详情避免多层模态叠加。
 - 设置支持浅色、深色、跟随系统，首次绘制前应用主题；提供连接与只读工具目录。
-- 消息使用安全纯文本与结构化数据展示，首期不渲染原始 HTML，也未引入 Markdown 渲染器。
+- 消息正文按 Markdown 渲染（含 GFM 表格），渲染前禁用原始 HTML 并经 DOMPurify 清洗；流式增量阶段保持纯文本。
 
 ## 验证
 
@@ -56,3 +56,5 @@ rtk pnpm test:e2e
 ## 扩展边界
 
 `src/app/` 装配应用与导航；`features/` 按会话、执行、连接和设置分工；`lib/api/` 集中维护 HTTP DTO 校验与 SSE。新增模块在具备真实 Backend 能力后注册路由和导航，不提前展示空白能力入口。主题统一维护在 `src/styles/tokens.css`，基础组件源码在 `src/components/ui/`，可自主维护变体与布局。
+
+SSE 客户端对单条无法解析的事件会跳过并在控制台记录细节，不再用协议错误打断整个会话视图。

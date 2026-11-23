@@ -6,6 +6,7 @@ _ALLOWED_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
     RunStatus.RUNNING: frozenset(
         {
             RunStatus.WAITING_FOR_TOOL,
+            RunStatus.WAITING_FOR_APPROVAL,
             RunStatus.SUCCEEDED,
             RunStatus.FAILED,
             RunStatus.CANCELLED,
@@ -13,6 +14,14 @@ _ALLOWED_TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
     ),
     RunStatus.WAITING_FOR_TOOL: frozenset(
         {RunStatus.QUEUED, RunStatus.FAILED, RunStatus.CANCELLED}
+    ),
+    RunStatus.WAITING_FOR_APPROVAL: frozenset(
+        {
+            RunStatus.QUEUED,
+            RunStatus.WAITING_FOR_TOOL,
+            RunStatus.FAILED,
+            RunStatus.CANCELLED,
+        }
     ),
     RunStatus.SUCCEEDED: frozenset(),
     RunStatus.FAILED: frozenset(),

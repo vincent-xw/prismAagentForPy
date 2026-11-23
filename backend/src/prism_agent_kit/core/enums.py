@@ -7,6 +7,7 @@ class RunStatus(StrEnum):
     QUEUED = "queued"
     RUNNING = "running"
     WAITING_FOR_TOOL = "waiting_for_tool"
+    WAITING_FOR_APPROVAL = "waiting_for_approval"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     CANCELLED = "cancelled"
@@ -17,10 +18,20 @@ class ToolCallStatus(StrEnum):
 
     PENDING = "pending"
     RUNNING = "running"
+    AWAITING_APPROVAL = "awaiting_approval"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     EXPIRED = "expired"
     CANCELLED = "cancelled"
+
+
+class IndexStatus(StrEnum):
+    """工作区全文索引状态。"""
+
+    IDLE = "idle"
+    INDEXING = "indexing"
+    READY = "ready"
+    FAILED = "failed"
 
 
 class MessageRole(StrEnum):
@@ -49,6 +60,10 @@ class EventType(StrEnum):
     TOOL_FAILED = "tool.failed"
     TOOL_EXPIRED = "tool.expired"
     RUN_WAITING_FOR_TOOL = "run.waiting_for_tool"
+    RUN_WAITING_FOR_APPROVAL = "run.waiting_for_approval"
+    TOOL_APPROVAL_REQUIRED = "tool.approval_required"
+    TOOL_APPROVED = "tool.approved"
+    TOOL_REJECTED = "tool.rejected"
     RUN_REQUEUED = "run.requeued"
     CONTEXT_TRIMMED = "context.trimmed"
     RUN_SUCCEEDED = "run.succeeded"

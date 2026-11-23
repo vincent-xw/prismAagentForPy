@@ -1,6 +1,7 @@
 import asyncio
 import re
 from collections.abc import Awaitable, Callable
+from pathlib import Path
 from typing import Any, cast
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
@@ -22,6 +23,9 @@ class ToolExecutionContext(BaseModel):
     session_id: str
     call_id: str
     cancel: asyncio.Event
+    workspace_root: Path | None = None
+    workspace_id: str | None = None
+    search: Callable[[str, int], Awaitable[list[Any]]] | None = None
     progress: ProgressCallback | None = None
 
 
@@ -59,6 +63,7 @@ class ToolDefinition(BaseModel):
     output_model: type[Any] | None
     execution_mode: ExecutionMode
     timeout_seconds: float = Field(gt=0)
+    requires_approval: bool = False
     handler: LocalToolHandler | None = None
 
     def to_model_schema(self) -> dict[str, JsonValue]:

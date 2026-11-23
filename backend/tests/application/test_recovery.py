@@ -189,3 +189,59 @@ async def test_expired_remote_tool_requeues_run(
     event_types = {event.event_type.value for event in events}
     assert "tool.expired" in event_types
     assert "run.requeued" in event_types
+
+
+async def seed_waiting_for_approval_run(uow_factory: UnitOfWorkFactory) -> tuple[str, str]:
+    """创建 waiting_for_approval Run 与待审批调用。"""
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(
+            Run(
+                session_id=session.id,
+                input_text="hello",
+                prompt_name="default",
+                prompt_version="1",
+                system_prompt="system",
+                model="test-model",
+            )
+        )
+        await uow.messages.append(
+            Message(session_id=session.id, run_id=run.id, role=MessageRole.USER, content="hello")
+        )
+        await uow.commit()
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        assistant = await uow.messages.append(
+            Message(session_id=session.id, run_id=run.id, role=MessageRole.ASSISTANT, content="")
+        )
+        assert assistant.id is not None
+        payload = {"path": "a.md", "content": "hi", "mode": "overwrite"}
+        await uow.tool_calls.create_many(
+            [
+                ToolCall(
+                    id="call-approve",
+                    run_id=run.id,
+                    assistant_message_id=assistant.id,
+                    tool_name="file_write",
+                    execution_mode=ExecutionMode.LOCAL,
+                    input=payload,
+                    input_digest=canonical_json_digest(payload),
+                )
+            ]
+        )
+        await uow.tool_calls.await_call(run.id, "call-approve", utc_now() + timedelta(seconds=600))
+        await uow.runs.transition(run.id, RunStatus.WAITING_FOR_APPROVAL)
+        await uow.commit()
+        return run.id, "call-approve"
+
+
+async def test_recovery_keeps_waiting_for_approval(uow_factory: UnitOfWorkFactory) -> None:
+    run_id, call_id = await seed_waiting_for_approval_run(uow_factory)
+    worker = make_worker(uow_factory)
+
+    assert await worker.recover_interrupted_runs() == 0
+    async with uow_factory() as uow:
+        run = await uow.runs.get(run_id)
+        assert run.status is RunStatus.WAITING_FOR_APPROVAL
+        call = await uow.tool_calls.get(run_id, call_id)
+        assert call.status is ToolCallStatus.AWAITING_APPROVAL

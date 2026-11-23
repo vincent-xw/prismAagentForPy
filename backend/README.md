@@ -18,10 +18,12 @@
 - 远端结果校验 `input_digest`，重复提交幂等，冲突结果拒绝覆盖。
 - SSE 合并持久事件重放与临时文本增量；终态 Run 可有限重放。
 - 支持取消、远端工具超时、进程中断恢复和最大步数限制。
+- 会话绑定工作区（单活跃；新建会话取当前活跃工作区，Run 继承会话绑定）、FTS5 全文索引与检索。
+- `file_list`/`file_read`/`file_search`/`file_write` 工具；写入需用户审批。
 - 在完整 assistant/tool 消息组边界裁剪上下文，不删除 SQLite 历史。
 - 非测试环境强制 API Token；模型密钥不写入数据库、日志或 SSE。
 
-当前后端**不包含**：MCP Client、Workspace、RAG、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
+当前后端**不包含**：MCP Client、向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
 ## 技术栈
 

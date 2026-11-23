@@ -14,6 +14,7 @@ def make_app(database_path: Path) -> FastAPI:
         Settings(
             database_path=database_path,
             environment="test",
+            api_token=None,
             model_name="test-model",
             model_api_key=SecretStr("test-key"),
             model_context_window=4096,
