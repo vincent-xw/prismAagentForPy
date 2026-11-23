@@ -8,6 +8,7 @@ from prism_agent_kit.db.repositories.messages import MessageRepository
 from prism_agent_kit.db.repositories.runs import RunRepository
 from prism_agent_kit.db.repositories.sessions import SessionRepository
 from prism_agent_kit.db.repositories.tool_calls import ToolCallRepository
+from prism_agent_kit.db.repositories.workspaces import WorkspaceRepository
 
 
 class UnitOfWork:
@@ -21,6 +22,7 @@ class UnitOfWork:
         self.messages: MessageRepository
         self.tool_calls: ToolCallRepository
         self.events: EventRepository
+        self.workspaces: WorkspaceRepository
 
     async def __aenter__(self) -> Self:
         session = self._session_factory()
@@ -30,6 +32,7 @@ class UnitOfWork:
         self.messages = MessageRepository(session)
         self.tool_calls = ToolCallRepository(session)
         self.events = EventRepository(session)
+        self.workspaces = WorkspaceRepository(session)
         return self
 
     async def __aexit__(

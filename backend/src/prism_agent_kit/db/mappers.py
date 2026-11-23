@@ -7,13 +7,16 @@ from prism_agent_kit.core.enums import (
     RunStatus,
     ToolCallStatus,
 )
+from prism_agent_kit.core.enums import IndexStatus
 from prism_agent_kit.core.models import Message, Run, RunEvent, Session, ToolCall
+from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.db.models import (
     MessageRow,
     RunEventRow,
     RunRow,
     SessionRow,
     ToolCallRow,
+    WorkspaceRow,
 )
 
 
@@ -192,4 +195,36 @@ def run_event_to_domain(row: RunEventRow) -> RunEvent:
         event_type=EventType(row.event_type),
         payload=row.payload,
         created_at=_from_storage(row.created_at),
+    )
+
+
+def workspace_to_row(workspace: Workspace) -> WorkspaceRow:
+    """把 Workspace 领域模型转换为 ORM 行。"""
+    return WorkspaceRow(
+        id=workspace.id,
+        root_path=workspace.root_path,
+        label=workspace.label,
+        is_active=1 if workspace.is_active else 0,
+        index_status=workspace.index_status.value,
+        index_error=workspace.index_error,
+        file_count=workspace.file_count,
+        indexed_at=_optional_to_storage(workspace.indexed_at),
+        created_at=_to_storage(workspace.created_at),
+        updated_at=_to_storage(workspace.updated_at),
+    )
+
+
+def workspace_to_domain(row: WorkspaceRow) -> Workspace:
+    """把 Workspace ORM 行转换为领域模型。"""
+    return Workspace(
+        id=row.id,
+        root_path=row.root_path,
+        label=row.label,
+        is_active=row.is_active == 1,
+        index_status=IndexStatus(row.index_status),
+        index_error=row.index_error,
+        file_count=row.file_count,
+        indexed_at=_optional_from_storage(row.indexed_at),
+        created_at=_from_storage(row.created_at),
+        updated_at=_from_storage(row.updated_at),
     )
