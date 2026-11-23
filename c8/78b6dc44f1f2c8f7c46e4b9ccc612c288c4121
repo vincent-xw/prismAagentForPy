@@ -1,0 +1,24 @@
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 44-47
+backend/src/prism_agent_kit/core/enums.py
+  h_c3a612a540ca0b 10,21,28-36,63-66
+backend/src/prism_agent_kit/core/errors.py
+  h_c3a612a540ca0b 35-47
+backend/src/prism_agent_kit/core/state.py
+  h_c3a612a540ca0b 9,18-25
+backend/tests/core/test_config.py
+  h_c3a612a540ca0b 40-48
+backend/tests/core/test_state.py
+  h_c3a612a540ca0b 42-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "c878b6dc44f1f2c8f7c46e4b9ccc612c288c4121",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
