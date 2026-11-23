@@ -1,0 +1,62 @@
+backend/migrations/versions/20261123_0003_workspace.py
+  h_c3a612a540ca0b 18
+backend/pyproject.toml
+  h_c3a612a540ca0b 71-72
+backend/src/prism_agent_kit/api/routes/runs.py
+  h_c3a612a540ca0b 13,213
+backend/src/prism_agent_kit/api/routes/workspaces.py
+  h_c3a612a540ca0b 23,132
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 8
+backend/src/prism_agent_kit/application/index_tasks.py
+  h_c3a612a540ca0b 10-11,57
+backend/src/prism_agent_kit/application/tool_approval_service.py
+  h_c3a612a540ca0b 19,115,191,204-205,304-317,319-329,331,339,367
+backend/src/prism_agent_kit/application/workspace_indexer.py
+  h_c3a612a540ca0b 74,77-78,105
+backend/src/prism_agent_kit/application/workspace_service.py
+  h_c3a612a540ca0b 50,61,78-97,120
+backend/src/prism_agent_kit/core/engine.py
+  h_c3a612a540ca0b 4,10,551,559,607
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 6
+backend/src/prism_agent_kit/db/repositories/workspace_documents.py
+  h_c3a612a540ca0b 36,125
+backend/src/prism_agent_kit/db/repositories/workspaces.py
+  h_c3a612a540ca0b 47
+backend/src/prism_agent_kit/tools/workspace_tools.py
+  h_c3a612a540ca0b 229,237,294
+backend/tests/api/conftest.py
+  h_c3a612a540ca0b 16,107
+backend/tests/api/test_approval.py
+  h_c3a612a540ca0b 53,89
+backend/tests/application/test_recovery.py
+  h_c3a612a540ca0b 232
+backend/tests/application/test_run_worker.py
+  h_c3a612a540ca0b 136
+backend/tests/application/test_tool_approval_service.py
+  h_c3a612a540ca0b 6,13,36-38,57,160,243,259
+backend/tests/application/test_tool_result_recorder.py
+  h_c3a612a540ca0b 1-2,5-12
+backend/tests/application/test_workspace_service.py
+  h_c3a612a540ca0b 16-18,28-30,38-40,82,85-87,101-103,140-142
+backend/tests/core/test_engine_approval.py
+  h_c3a612a540ca0b 121,129-135,169-171,197-201,206-210
+backend/tests/db/test_migration.py
+  h_c3a612a540ca0b 161
+backend/tests/db/test_workspace_documents.py
+  h_c3a612a540ca0b 17-19,50
+backend/tests/db/test_workspace_repository.py
+  h_c3a612a540ca0b 48-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e13d670b85d468f56b3cbad301673337db2c1313",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
