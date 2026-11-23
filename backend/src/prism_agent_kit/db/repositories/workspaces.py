@@ -108,6 +108,13 @@ class WorkspaceRepository:
         await self._session.refresh(row)
         return workspace_to_domain(row)
 
+    async def list_with_status(self, status: IndexStatus) -> list[Workspace]:
+        """按索引状态列出工作区。"""
+        result = await self._session.scalars(
+            select(WorkspaceRow).where(WorkspaceRow.index_status == status.value)
+        )
+        return [workspace_to_domain(row) for row in result]
+
     async def delete(self, workspace_id: str) -> None:
         """删除非活跃工作区绑定。"""
         row = await self._session.get(WorkspaceRow, workspace_id)
