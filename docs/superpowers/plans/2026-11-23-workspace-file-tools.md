@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-23-workspace-file-tools-design.md`
 
+> **2026-11-23 变更**：工作区绑定已由 Run 级调整为**会话级**（`sessions.workspace_id` + 迁移 `20261123_0004`），详见设计文档 §19。本计划其余内容为当时实施记录，保持原样。
+
 ## Global Constraints
 
 - 不新增运行时依赖：FTS5 / `sqlite3` 来自标准库；目录选择用系统命令（`osascript` / `zenity` / PowerShell）。

@@ -1,6 +1,6 @@
 # PrismAgentKit 工作区与文件工具设计（迁移第二部分）
 
-- 状态：待评审（已过一轮独立 builder 评审）
+- 状态：已实现（2026-11-23 追加：工作区绑定调整为会话级，见 §19 变更记录）
 - 日期：2026-11-23
 - 关联：[Python Agent Core 设计](2026-11-22-python-agent-core-design.md)、[Core UI 设计](2026-11-22-core-ui-design.md)
 
@@ -9,6 +9,7 @@
 - 第二部分范围选 **A：Workspace + 本地文件工具（最小版）**，不选 MCP Client，也不选可用性收尾。
 - **写入文件纳入本期**。
 - **前端交互一并交付**（工作区页 + 写入审批）。
+- **工作区与会话的关系（后续确认）**：采用**会话级绑定**——新建会话绑定当时的活跃工作区，Run 继承会话的绑定；切换活跃工作区只影响新建会话，已有会话保持原绑定。
 
 ## 1. 背景与意图
 
@@ -20,7 +21,7 @@
 
 ### 2.1 功能目标
 
-1. 绑定 / 切换本地工作区，并把绑定关系持久化；同一时刻只有一个活跃工作区，但**已开始的 Run 固定在自己创建时的工作区**。
+1. 绑定 / 切换本地工作区并持久化；同一时刻只有一个活跃工作区；**会话绑定工作区**（新建会话取当前活跃工作区），Run 继承会话的绑定，切换活跃工作区只影响新会话。
 2. 对工作区建立全文索引（SQLite FTS5），支持中英文正文检索并返回命中片段。
 3. 提供 4 个工具：`file_list`、`file_read`、`file_search`、`file_write`。
 4. `file_write` 必须经过用户审批后执行；未审批不得落盘。
@@ -82,7 +83,8 @@
 | 索引粒度 | 整文件 / 分块 | **整文件**：最小版够用，`snippet` 直接可用；分块留给向量阶段 |
 | 目录选择 | 浏览器目录 API / 手输路径 / 后端原生对话框 | **后端原生对话框**（`osascript` / `zenity` / PowerShell），失败回退手输。浏览器拿不到真实绝对路径，手输单独使用体验差 |
 | 写入安全 | 直接写 / 写前审批 | **写前审批**：写入是本项目第一次让模型改用户磁盘，必须先有闸门；审批可用配置关闭（默认开启） |
-| 工作区作用域 | 全局当前活跃 / Run 级固定 | **Run 级固定**：Run 创建时记录 `workspace_id`，其全部工具调用、审批执行、写后重索引都用它。否则"预览看的是 A 目录、审批时写入 B 目录"是真实安全事故 |
+| 工作区作用域 | 全局当前活跃 / Run 级固定 / 会话级绑定 | **会话级绑定（最终采用）**：新建会话写入 `sessions.workspace_id`，Run 创建时复制为 `runs.workspace_id`。既避免"预览 A、写入 B"，也让"会话"成为项目上下文的稳定容器；切换活跃工作区只影响新会话 |
+| 会话内切换工作区 | 允许 / 禁止 | **禁止**：切换只对新建会话生效，避免同一会话的历史跨项目 |
 | 活跃工作区数量 | 单活跃 / 多活跃 | **单活跃**：最小版心智简单；Run 固定后，切换只影响新 Run |
 
 ## 7. 总体架构
@@ -170,13 +172,16 @@ class EventType:      # 新增
 3. `op.execute` 建 FTS5 虚拟表；`downgrade` 里 `DROP TABLE workspace_documents`。
 4. **重建 `runs` 的部分唯一索引**：`ux_runs_one_active_per_session` 的 `sqlite_where` 必须加入 `'waiting_for_approval'`，否则审批中的 Run 会让同会话无法开新 Run。SQLite 不支持原地改索引条件，需 drop + create。
 5. `runs.status` / `tool_calls.status` 是 `String`，无需改列，只需枚举与状态机同步。
+6. 后续迁移 `20261123_0004_session_workspace`：`sessions` 增加可空列 `workspace_id`（FK → `workspaces.id`，`ON DELETE SET NULL`），并用每个会话最早一个带工作区的 Run 回填历史会话。
 
-### 8.5 Run 与工作区绑定
+### 8.5 会话与工作区绑定
 
-- `runs.workspace_id` 可空：Run 创建时取当前活跃工作区（无则 NULL）。
-- 工具解析路径时**只用 Run 的 `workspace_id`**，不看"当前活跃"；`workspace_id` 为 NULL 时工具返回 `WORKSPACE_NOT_BOUND`。
-- 审批执行、写后重索引同样按该 Run 的 `workspace_id` 定位。
-- `RunView` 增加只读字段 `workspace_id`（可空），UI 显示"本次会话绑定的目录"；切换活跃工作区不影响在跑/等待审批的 Run，只影响之后新建的 Run。
+- `sessions.workspace_id` 可空：新建会话时取当时的活跃工作区（无则 NULL）。
+- `runs.workspace_id` 可空：Run 创建时**复制会话的 `workspace_id`**，作为审计快照。
+- 工具解析路径、审批执行、写后重索引都用 **Run 的 `workspace_id`**；Run 未绑定（会话未绑定或工作区已删除）时返回 `WORKSPACE_NOT_BOUND`。
+- 切换活跃工作区**只影响之后新建的会话**；在跑、等待审批以及已有会话保持原绑定。
+- 删除工作区时，`sessions.workspace_id` 与 `runs.workspace_id` 因 `SET NULL` 变空，相关会话回到未绑定状态。
+- `RunView` 与 `SessionView` 都暴露只读 `workspace_id`（可空），UI 用于显示"本会话绑定的目录"。
 
 ## 9. 工作区服务
 
@@ -200,6 +205,7 @@ def resolve_in_workspace(root: str, rel: str) -> Path:
 2. `POST /workspaces {path, label?}`：校验为绝对路径、存在、是目录、可读；拒绝与应用数据目录（`agent.db` 所在目录）重叠的根；`realpath` 去重后落库并激活。
 3. 激活：同一事务内把旧活跃置 0、新活跃置 1，并触发后台索引。
 4. 切换工作区不删除旧索引；再次激活复用已有索引并触发一次重建（保证不陈旧）。
+5. **会话绑定**：`SessionService.create` 在创建会话时读取当前活跃工作区并写入 `sessions.workspace_id`；`RunService.create` 不再读活跃工作区，而是读取会话的 `workspace_id` 并复制到 Run。
 
 ### 9.3 目录树与读文件
 
@@ -315,7 +321,7 @@ ToolCall:   pending ──→ awaiting_approval ──→ running ──→ succ
 | GET | `/runs/{run_id}/tool-calls/{call_id}/preview` | 写入预览 `{path, mode, bytes, exists, diff, truncated}`（仅 `awaiting_approval` 可读） |
 | POST | `/runs/{run_id}/tool-calls/{call_id}/approval` | 审批写入 |
 
-响应新增 `WorkspaceView`：`{id, root_path, label, is_active, index_status, index_error, file_count, indexed_at}`。
+响应新增 `WorkspaceView`：`{id, root_path, label, is_active, index_status, index_error, file_count, indexed_at}`；`SessionView` 增加 `workspace_id`（可空）。
 `RunView` 增加 `workspace_id`；`RunView.status` 与 `ToolCallView.status` 增加取值——**前端契约同步更新**。
 
 ## 13. UI 设计
@@ -340,6 +346,7 @@ ToolCall:   pending ──→ awaiting_approval ──→ running ──→ succ
 
 - `RunInspector` 增加"待审批"区：按 `tool.approval_required` 事件渲染卡片，先显示 `path`、`mode`、`bytes`，卡片展开时请求 `.../preview` 拿 diff 与 `exists`；底部 `允许写入` / `拒绝` 两个按钮，提交期间禁用并显示处理中；响应里的 `call`、`run` 直接更新本地状态。
 - `SessionPage` 顶部横幅：当活跃 Run 为 `waiting_for_approval` 时显示"等待你确认写入（N）"，点击打开 Run 详情。
+- 会话页状态栏显示"工作区：<名称>"（`SessionDto.workspace_id` → 工作区列表映射）。
 - `ToolCallCard` 与状态标签补齐 `awaiting_approval`（待审批）、`TOOL_REJECTED`（已拒绝）文案；`file_write` 不渲染正文。
 - 刷新恢复：审批卡片完全由 `GET /runs/{id}` 的 `status` + SSE 事件重放（`tool.approval_required` / `tool.approved` / `tool.rejected`）重建；**不新增** `RunView.tool_calls` 字段。
 
@@ -419,10 +426,19 @@ UI：
 - `core/errors.py`：13 个错误码。
 - `core/config.py`：4 个配置项。
 - `core/engine.py`：`EngineOutcome.kind` 增加 `waiting_for_approval`；本地工具循环遇到 `requires_approval` 时挂起；`_record_tool_result` 抽成共享 `ToolResultRecorder`。
-- `db/models.py`：`workspaces` 表、`runs.workspace_id` 列、`runs` 部分唯一索引条件更新。
+- `db/models.py`：`workspaces` 表、`runs.workspace_id` 列、`sessions.workspace_id` 列、`runs` 部分唯一索引条件更新。
 - `db/repositories/`：新增 `workspaces.py`、`workspace_documents.py`；`tool_calls.py` 增加 `await_call`/`start_after_approval`，`close_open_calls` 覆盖新状态；`runs.py` 的 `_ACTIVE_STATUSES` 加入 `waiting_for_approval`；`tool_calls.list_expired` 覆盖 `awaiting_approval`。
-- `application/`：新增 `workspace_service.py`、`workspace_indexer.py`、`index_tasks.py`、`tool_approval_service.py`；`container.py` 装配与关停；`run_worker.py` 过期扫描与恢复范围；`run_service.py` 创建 Run 时写入 `workspace_id`。
+- `application/`：新增 `workspace_service.py`、`workspace_indexer.py`、`index_tasks.py`、`tool_approval_service.py`、`run_resume.py`；`container.py` 装配与关停；`run_worker.py` 过期扫描与恢复范围；`session_service.py` 创建会话时绑定活跃工作区；`run_service.py` 创建 Run 时继承会话的 `workspace_id`。
 - `tools/`：新增 `workspace_tools.py`；`contracts.py` 的 `ToolDefinition` 增加 `requires_approval`。
 - `api/`：新增 `routes/workspaces.py`、`routes/runs.py` 审批路由、`schemas.py` 新 DTO（含 `RunView.workspace_id`）、`errors.py` 映射。
-- `migrations/versions/20261123_0003_workspace.py`。
+- `migrations/versions/20261123_0003_workspace.py`、`migrations/versions/20261123_0004_session_workspace.py`。
 - `ui/src/lib/api/contracts.ts`、`client.ts`、`app/modules.ts`、`app/router.ts`、`features/workspace/*`、`features/runs/RunInspector.vue`、`features/runs/ToolCallCard.vue`、`features/sessions/SessionPage.vue`。
+
+## 19. 变更记录
+
+### 2026-11-23：工作区绑定从 Run 级调整为会话级
+
+- **原设计**：只有 `runs.workspace_id`，每次创建 Run 取当时的活跃工作区；会话没有工作区归属。问题：同一会话切换工作区后，后续消息会落到新目录，历史与文件上下文可能跨项目，用户也看不出会话属于哪个目录。
+- **现设计**：新增 `sessions.workspace_id`（可空），新建会话绑定当时活跃工作区，Run 复制该值作快照；切换活跃工作区只影响新建会话。
+- **兼容与迁移**：迁移 `0004` 用每个会话最早一个带工作区的 Run 回填；历史会话不需要人工处理。工作区删除时 `SET NULL`，会话回到未绑定。
+- **影响面**：`SessionService`（绑定时机）、`RunService`（改为继承会话）、`SessionView`/`SessionDto`、会话页展示；工具与审批执行路径不变。
