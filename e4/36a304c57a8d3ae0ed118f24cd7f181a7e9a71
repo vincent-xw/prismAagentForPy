@@ -1,0 +1,18 @@
+backend/src/prism_agent_kit/application/tool_approval_service.py
+  h_c3a612a540ca0b 1-377
+backend/src/prism_agent_kit/db/repositories/tool_calls.py
+  h_c3a612a540ca0b 133-146
+backend/tests/application/test_tool_approval_service.py
+  h_c3a612a540ca0b 1-275
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e436a304c57a8d3ae0ed118f24cd7f181a7e9a71",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
