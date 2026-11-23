@@ -1,0 +1,20 @@
+backend/src/prism_agent_kit/application/index_tasks.py
+  h_c3a612a540ca0b 1-85
+backend/src/prism_agent_kit/application/workspace_indexer.py
+  h_c3a612a540ca0b 1-208
+backend/src/prism_agent_kit/db/repositories/workspaces.py
+  h_c3a612a540ca0b 111-117
+backend/tests/application/test_workspace_indexer.py
+  h_c3a612a540ca0b 1-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "63f09641eae149aa61838af21d3d403e46f575b8",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
