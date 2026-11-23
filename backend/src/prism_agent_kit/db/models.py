@@ -1,10 +1,38 @@
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, String, Text, text
+from sqlalchemy import (
+    JSON,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from prism_agent_kit.db.base import Base
+
+
+class WorkspaceRow(Base):
+    """本地工作区的 SQLite 持久化行。"""
+
+    __tablename__ = "workspaces"
+    __table_args__ = (UniqueConstraint("root_path", name="ux_workspaces_root_path"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    root_path: Mapped[str] = mapped_column(Text)
+    label: Mapped[str | None] = mapped_column(String(255))
+    is_active: Mapped[int] = mapped_column(Integer, default=0)
+    index_status: Mapped[str] = mapped_column(String(16), default="idle")
+    index_error: Mapped[str | None] = mapped_column(Text)
+    file_count: Mapped[int] = mapped_column(Integer, default=0)
+    indexed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
 class SessionRow(Base):
@@ -29,7 +57,9 @@ class RunRow(Base):
             "ux_runs_one_active_per_session",
             "session_id",
             unique=True,
-            sqlite_where=text("status IN ('queued', 'running', 'waiting_for_tool')"),
+            sqlite_where=text(
+                "status IN ('queued', 'running', 'waiting_for_tool', 'waiting_for_approval')"
+            ),
         ),
     )
 
@@ -37,6 +67,10 @@ class RunRow(Base):
     session_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("sessions.id", ondelete="CASCADE"),
+    )
+    workspace_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("workspaces.id", ondelete="SET NULL"),
     )
     status: Mapped[str] = mapped_column(String(32))
     input_text: Mapped[str] = mapped_column(Text)

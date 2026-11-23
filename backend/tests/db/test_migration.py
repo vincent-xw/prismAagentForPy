@@ -154,3 +154,35 @@ async def test_terminal_run_does_not_block_new_active_run(
                     "2026-11-22 00:00:00",
                 ),
             )
+
+
+def test_workspace_schema_applied(migrated_database_path: Path) -> None:
+    with sqlite3.connect(migrated_database_path) as connection:
+        workspace_cols = {
+            row[1] for row in connection.execute("PRAGMA table_info(workspaces)")
+        }
+        assert {
+            "id",
+            "root_path",
+            "label",
+            "is_active",
+            "index_status",
+            "index_error",
+            "file_count",
+            "indexed_at",
+            "created_at",
+            "updated_at",
+        } <= workspace_cols
+
+        run_cols = {row[1] for row in connection.execute("PRAGMA table_info(runs)")}
+        assert "workspace_id" in run_cols
+
+        index_sql = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE name = 'ux_runs_one_active_per_session'"
+        ).fetchone()[0]
+        assert "waiting_for_approval" in index_sql
+
+        fts_sql = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE name = 'workspace_documents'"
+        ).fetchone()[0]
+        assert "trigram" in fts_sql
