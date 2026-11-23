@@ -1,0 +1,48 @@
+README.md
+  h_c3a612a540ca0b 29
+backend/README.md
+  h_c3a612a540ca0b 21
+backend/migrations/versions/20261123_0004_session_workspace.py
+  h_c3a612a540ca0b 1-48
+backend/src/prism_agent_kit/api/schemas.py
+  h_c3a612a540ca0b 22,31
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 246-249
+backend/src/prism_agent_kit/application/run_service.py
+  h_c3a612a540ca0b 53,58
+backend/src/prism_agent_kit/application/session_service.py
+  h_c3a612a540ca0b 12-16,18,21-25,27
+backend/src/prism_agent_kit/core/models.py
+  h_c3a612a540ca0b 25
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 48,59
+backend/src/prism_agent_kit/db/models.py
+  h_c3a612a540ca0b 45-48
+backend/src/prism_agent_kit/db/repositories/sessions.py
+  h_c3a612a540ca0b 18-23,25
+backend/tests/application/test_run_service.py
+  h_c3a612a540ca0b 82-155
+backend/tests/db/test_migration.py
+  h_c3a612a540ca0b 187-244
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 2,16,27-58,147-149
+ui/src/features/workspace/WorkspacePage.vue
+  h_c3a612a540ca0b 76-78
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 10
+ui/tests/support/fixtures.ts
+  h_c3a612a540ca0b 6-13
+ui/tests/unit/contracts.test.ts
+  h_c3a612a540ca0b 76-79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ac78238cfe77e22b6734bdb85b18a26b0fff0416",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
