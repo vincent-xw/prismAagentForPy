@@ -28,6 +28,15 @@ class SessionService:
             await uow.commit()
         return session
 
+    async def set_workspace(self, session_id: str, workspace_id: str | None) -> Session:
+        """把已有会话重新绑定到工作区；工作区必须存在。"""
+        async with self._uow_factory() as uow:
+            if workspace_id is not None:
+                await uow.workspaces.get(workspace_id)
+            session = await uow.sessions.set_workspace(session_id, workspace_id)
+            await uow.commit()
+        return session
+
     async def list(self) -> list[Session]:
         """按最近活动顺序列出 Session。"""
         async with self._uow_factory() as uow:

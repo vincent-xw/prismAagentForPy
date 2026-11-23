@@ -442,3 +442,4 @@ UI：
 - **现设计**：新增 `sessions.workspace_id`（可空），新建会话绑定当时活跃工作区，Run 复制该值作快照；切换活跃工作区只影响新建会话。
 - **兼容与迁移**：迁移 `0004` 用每个会话最早一个带工作区的 Run 回填；历史会话不需要人工处理。工作区删除时 `SET NULL`，会话回到未绑定。
 - **影响面**：`SessionService`（绑定时机）、`RunService`（改为继承会话）、`SessionView`/`SessionDto`、会话页展示；工具与审批执行路径不变。
+- **补充接口**：`POST /sessions/{session_id}/workspace`（body `{workspace_id}`，可为空表示解绑）用于把已有会话重新绑定到工作区；绑定后新建的 Run 才继承新值，历史 Run 保持原快照。

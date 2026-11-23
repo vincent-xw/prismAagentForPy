@@ -140,3 +140,30 @@ async def test_cancelled_context_returns_run_cancelled() -> None:
 
     assert result.ok is False
     assert result.error_code is ErrorCode.RUN_CANCELLED
+
+
+async def test_executor_preserves_domain_error_code() -> None:
+    """工具内部抛出的领域异常必须保留错误码与消息，而不是被吞成通用失败。"""
+    from prism_agent_kit.core.errors import AgentKitError, ErrorCode
+
+    async def handler(_raw: object, _context: object) -> None:
+        raise AgentKitError(ErrorCode.WORKSPACE_NOT_BOUND, "尚未绑定工作区", http_status=409)
+
+    definition = ToolDefinition(
+        name="boom",
+        description="boom",
+        input_model=EchoInput,
+        output_model=None,
+        execution_mode=ExecutionMode.LOCAL,
+        timeout_seconds=5,
+        handler=handler,
+    )
+    result = await LocalToolExecutor().execute(
+        definition,
+        {"text": "x"},
+        ToolExecutionContext(run_id="r", session_id="s", call_id="c", cancel=asyncio.Event()),
+    )
+
+    assert result.ok is False
+    assert result.error_code is ErrorCode.WORKSPACE_NOT_BOUND
+    assert result.error_message == "尚未绑定工作区"

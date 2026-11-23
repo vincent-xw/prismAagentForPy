@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import SessionPage from '@/features/sessions/SessionPage.vue'
 import SettingsRoute from '@/features/settings/SettingsRoute.vue'
 import WorkspacePage from '@/features/workspace/WorkspacePage.vue'
+import ExecutionPage from '@/features/runs/ExecutionPage.vue'
 import NotFoundPage from './NotFoundPage.vue'
 
 export const router = createRouter({
@@ -9,6 +10,7 @@ export const router = createRouter({
   routes: [
     { path: '/', component: SessionPage },
     { path: '/sessions/:sessionId', component: SessionPage },
+    { path: '/sessions/:sessionId/execution', component: ExecutionPage },
     { path: '/workspace', component: WorkspacePage },
     { path: '/settings', component: SettingsRoute },
     { path: '/:pathMatch(.*)*', component: NotFoundPage },

@@ -111,6 +111,14 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
       request('/sessions', sessionSchema, 'POST', { title }, signal),
     getSession: (id: string, signal?: AbortSignal) =>
       request(`/sessions/${encodeURIComponent(id)}`, sessionSchema, 'GET', undefined, signal),
+    setSessionWorkspace: (id: string, workspaceId: string | null, signal?: AbortSignal) =>
+      request(
+        `/sessions/${encodeURIComponent(id)}/workspace`,
+        sessionSchema,
+        'POST',
+        { workspace_id: workspaceId },
+        signal,
+      ),
     listMessages: (id: string, signal?: AbortSignal) =>
       request(
         `/sessions/${encodeURIComponent(id)}/messages`,

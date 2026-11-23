@@ -27,6 +27,22 @@ class SessionRepository:
         await self._session.flush()
         return domain
 
+    async def set_workspace(self, session_id: str, workspace_id: str | None) -> Session:
+        """把会话重新绑定到指定工作区（或解绑）。"""
+        row = await self._session.get(SessionRow, session_id)
+        if row is None:
+            raise AgentKitError(
+                ErrorCode.SESSION_NOT_FOUND,
+                "Session 不存在",
+                http_status=404,
+                details={"session_id": session_id},
+            )
+        row.workspace_id = workspace_id
+        row.updated_at = utc_now().replace(tzinfo=None)
+        await self._session.flush()
+        await self._session.refresh(row)
+        return session_to_domain(row)
+
     async def get(self, session_id: str) -> Session:
         """按 ID 读取 Session。不存在时抛出 404 领域错误。"""
         row = await self._session.get(SessionRow, session_id)

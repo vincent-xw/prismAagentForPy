@@ -1,28 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAppContext } from '@/app/context'
 import { isTerminal } from '@/lib/api/contracts'
 import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet'
 import MessageList from './MessageList.vue'
 import MessageComposer from './MessageComposer.vue'
-import RunInspector from '@/features/runs/RunInspector.vue'
 const { conversation, connection, client } = useAppContext()
-const inspectorOpen = ref(false)
-const isNarrow = ref(window.matchMedia('(max-width: 767px)').matches)
-const media = window.matchMedia('(max-width: 767px)')
-import { onMounted, onUnmounted } from 'vue'
-const onMedia = () => {
-  isNarrow.value = media.matches
-}
-onMounted(() => media.addEventListener('change', onMedia))
-onUnmounted(() => media.removeEventListener('change', onMedia))
+const router = useRouter()
 const state = computed(() => conversation.value!.state)
 const workspaceLabel = ref<string | null>(null)
 
@@ -75,8 +60,9 @@ const messages = computed(() =>
   state.value.selectedSessionId ? (state.value.messages[state.value.selectedSessionId] ?? []) : [],
 )
 async function inspect(runId: string) {
-  inspectorOpen.value = true
-  await conversation.value!.selectRun(runId)
+  const sessionId = state.value.selectedSessionId
+  if (sessionId === null) return
+  await router.push({ path: `/sessions/${sessionId}/execution`, query: { run: runId } })
 }
 const labels = {
   queued: '排队中',
@@ -90,11 +76,7 @@ const labels = {
 </script>
 <template>
   <div class="relative flex min-h-0 min-w-0 flex-1">
-    <section
-      class="min-h-0 min-w-0 flex-1 flex-col"
-      :class="inspectorOpen && !isNarrow ? 'hidden xl:flex' : 'flex'"
-      aria-label="会话工作台"
-    >
+    <section class="flex min-h-0 min-w-0 flex-1 flex-col" aria-label="会话工作台">
       <div
         v-if="connection.state.status !== 'ready'"
         class="flex flex-wrap items-center justify-center gap-2 border-b bg-accent/50 px-4 py-2 text-xs"
@@ -175,22 +157,5 @@ const labels = {
         @stop="active && conversation!.cancel(active.run.id)"
       />
     </section>
-    <aside v-if="inspectorOpen && !isNarrow" class="w-full shrink-0 xl:w-[310px] xl:border-l">
-      <RunInspector
-        :projection="projection"
-        @close="inspectorOpen = false"
-        @refresh="projection && conversation!.selectRun(projection.run.id)"
-      />
-    </aside>
-    <Sheet :open="inspectorOpen && isNarrow" @update:open="inspectorOpen = $event"
-      ><SheetContent class="w-[min(90vw,360px)] gap-0 p-0"
-        ><SheetHeader class="sr-only"
-          ><SheetTitle>执行详情</SheetTitle
-          ><SheetDescription>当前运行与工具调用的持久记录</SheetDescription></SheetHeader
-        ><RunInspector
-          :projection="projection"
-          @close="inspectorOpen = false"
-          @refresh="projection && conversation!.selectRun(projection.run.id)" /></SheetContent
-    ></Sheet>
   </div>
 </template>

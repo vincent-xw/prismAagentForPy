@@ -153,3 +153,18 @@ async def test_run_without_session_workspace_stays_unbound(
     run = await runs.create(session.id, input_text="hello", prompt_ref=None, metadata=None)
 
     assert run.workspace_id is None
+
+
+async def test_session_workspace_can_be_rebound(uow_factory: UnitOfWorkFactory) -> None:
+    from prism_agent_kit.core.workspace import Workspace
+
+    async with uow_factory() as uow:
+        workspace = await uow.workspaces.create(Workspace(root_path="/tmp/project-b"))
+        await uow.commit()
+    sessions = SessionService(uow_factory)
+    session = await sessions.create(title="demo")
+    assert session.workspace_id is None
+
+    updated = await sessions.set_workspace(session.id, workspace.id)
+
+    assert updated.workspace_id == workspace.id

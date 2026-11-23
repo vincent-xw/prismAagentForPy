@@ -14,6 +14,12 @@ class SessionCreate(BaseModel):
     title: str | None = Field(default=None, max_length=255)
 
 
+class SessionWorkspaceUpdate(BaseModel):
+    """会话绑定工作区请求；workspace_id 为空表示解绑。"""
+
+    workspace_id: str | None = None
+
+
 class SessionView(BaseModel):
     """对外返回的 Session 视图。"""
 
