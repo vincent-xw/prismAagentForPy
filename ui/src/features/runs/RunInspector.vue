@@ -130,7 +130,7 @@ function date(value: string | null) {
         <p class="font-mono">{{ projection.run.error_code }}</p>
         {{ projection.run.error_message }}
       </div>
-      <div v-if="projection.pendingApprovals.length" class="border-t pt-5">
+      <div v-if="projection.pendingApprovals.length" class="mt-6 border-t pt-6">
         <h3 class="text-xs font-medium">
           待确认写入
           <span class="ml-1 text-muted-foreground">{{ projection.pendingApprovals.length }}</span>
@@ -169,7 +169,7 @@ function date(value: string | null) {
           </div>
         </div>
       </div>
-      <h3 class="border-t pt-5 text-xs font-medium">
+      <h3 class="mt-6 border-t pt-6 text-xs font-medium">
         工具调用 <span class="ml-1 text-muted-foreground">{{ projection.tools.length }}</span>
       </h3>
       <p v-if="!projection.tools.length" class="mt-3 text-xs leading-6 text-muted-foreground">
