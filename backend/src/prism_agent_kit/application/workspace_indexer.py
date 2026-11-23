@@ -71,15 +71,11 @@ class WorkspaceIndexer:
         """完整重建一个工作区的索引。"""
         async with self._uow_factory() as uow:
             workspace = await uow.workspaces.get(workspace_id)
-            await uow.workspaces.update_index_state(
-                workspace_id, status=IndexStatus.INDEXING
-            )
+            await uow.workspaces.update_index_state(workspace_id, status=IndexStatus.INDEXING)
             await uow.commit()
         try:
-            documents, truncated = await asyncio.to_thread(
-                self._collect, Path(workspace.root_path)
-            )
-        except Exception as error:  # noqa: BLE001 - 遍历失败要落状态而不是抛给调用方
+            documents, truncated = await asyncio.to_thread(self._collect, Path(workspace.root_path))
+        except Exception as error:
             return await self._mark_failed(workspace_id, error)
 
         async with self._uow_factory() as uow:
@@ -106,7 +102,7 @@ class WorkspaceIndexer:
             document = await asyncio.to_thread(
                 self._read_document, Path(workspace.root_path), rel_path
             )
-        except Exception as error:  # noqa: BLE001
+        except Exception as error:
             return await self._mark_failed(workspace_id, error)
 
         async with self._uow_factory() as uow:

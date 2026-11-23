@@ -47,7 +47,7 @@ class WorkspaceService:
         self,
         *,
         uow_factory: UnitOfWorkFactory,
-        index_tasks: "WorkspaceIndexTaskManager | None" = None,
+        index_tasks: WorkspaceIndexTaskManager | None = None,
         max_file_bytes: int = 1_048_576,
         max_files: int = 20_000,
         data_dir: Path | None = None,
@@ -58,7 +58,7 @@ class WorkspaceService:
         self._max_files = max_files
         self._data_dir = data_dir.resolve() if data_dir is not None else None
 
-    async def list(self) -> list[Workspace]:
+    async def list_workspaces(self) -> list[Workspace]:
         """返回全部工作区。"""
         async with self._uow_factory() as uow:
             return await uow.workspaces.list_all()
@@ -75,6 +75,26 @@ class WorkspaceService:
 
     async def create(self, path: str, label: str | None = None) -> Workspace:
         """绑定并激活一个本地目录。"""
+        root = await asyncio.to_thread(self._resolve_root_path, path)
+        self._reject_data_dir_overlap(root)
+
+        async with self._uow_factory() as uow:
+            existing = await uow.workspaces.get_by_root(str(root))
+            if existing is not None:
+                activated = await uow.workspaces.activate(existing.id)
+                await uow.commit()
+                await self._submit_index(activated.id)
+                return activated
+            workspace = await uow.workspaces.create(
+                Workspace(root_path=str(root), label=label or root.name)
+            )
+            workspace = await uow.workspaces.activate(workspace.id)
+            await uow.commit()
+        await self._submit_index(workspace.id)
+        return workspace
+
+    def _resolve_root_path(self, path: str) -> Path:
+        """同步校验并规范化工作区根路径, 避免在事件循环里做阻塞 IO。"""
         candidate = Path(path).expanduser()
         if not candidate.is_absolute():
             raise AgentKitError(
@@ -97,23 +117,7 @@ class WorkspaceService:
                 http_status=400,
                 details={"path": path},
             )
-        root = candidate.resolve()
-        self._reject_data_dir_overlap(root)
-
-        async with self._uow_factory() as uow:
-            existing = await uow.workspaces.get_by_root(str(root))
-            if existing is not None:
-                activated = await uow.workspaces.activate(existing.id)
-                await uow.commit()
-                await self._submit_index(activated.id)
-                return activated
-            workspace = await uow.workspaces.create(
-                Workspace(root_path=str(root), label=label or root.name)
-            )
-            workspace = await uow.workspaces.activate(workspace.id)
-            await uow.commit()
-        await self._submit_index(workspace.id)
-        return workspace
+        return candidate.resolve()
 
     async def activate(self, workspace_id: str) -> Workspace:
         """切换活跃工作区并触发一次完整重建。"""

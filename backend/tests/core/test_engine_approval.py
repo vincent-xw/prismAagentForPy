@@ -118,9 +118,7 @@ def tool_response(*drafts: ToolCallDraft) -> ModelResponse:
     return ModelResponse(text="", reasoning=None, tool_calls=list(drafts))
 
 
-async def test_engine_suspends_for_approval(
-    uow_factory: UnitOfWorkFactory, tmp_path: Path
-) -> None:
+async def test_engine_suspends_for_approval(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> None:
     from prism_agent_kit.core.workspace import Workspace
 
     async with uow_factory() as uow:
@@ -128,7 +126,13 @@ async def test_engine_suspends_for_approval(
         await uow.commit()
     run = await seed_running_run(uow_factory, workspace.id)
     provider = ScriptedModelProvider(
-        [tool_response(ToolCallDraft(call_id="c1", tool_name="file_write", input={"path": "a.md", "content": "hi"}))]
+        [
+            tool_response(
+                ToolCallDraft(
+                    call_id="c1", tool_name="file_write", input={"path": "a.md", "content": "hi"}
+                )
+            )
+        ]
     )
     publisher = RecordingEventPublisher()
     engine = make_engine(uow_factory, provider, publisher, FakeLocator(tmp_path))
@@ -162,7 +166,9 @@ async def test_mixed_turn_executes_normal_tool_first(
         [
             tool_response(
                 ToolCallDraft(call_id="c1", tool_name="echo", input={"text": "one"}),
-                ToolCallDraft(call_id="c2", tool_name="file_write", input={"path": "a.md", "content": "hi"}),
+                ToolCallDraft(
+                    call_id="c2", tool_name="file_write", input={"path": "a.md", "content": "hi"}
+                ),
             )
         ]
     )
@@ -188,12 +194,20 @@ async def test_approval_disabled_executes_inline(
     run = await seed_running_run(uow_factory, workspace.id)
     provider = ScriptedModelProvider(
         [
-            tool_response(ToolCallDraft(call_id="c1", tool_name="file_write", input={"path": "a.md", "content": "hi"})),
+            tool_response(
+                ToolCallDraft(
+                    call_id="c1", tool_name="file_write", input={"path": "a.md", "content": "hi"}
+                )
+            ),
             ModelResponse(text="done", reasoning=None, tool_calls=[]),
         ]
     )
     engine = make_engine(
-        uow_factory, provider, RecordingEventPublisher(), FakeLocator(tmp_path), require_approval=False
+        uow_factory,
+        provider,
+        RecordingEventPublisher(),
+        FakeLocator(tmp_path),
+        require_approval=False,
     )
 
     outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))

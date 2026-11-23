@@ -1,7 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -51,9 +50,7 @@ async def seed_waiting_approval(uow_factory: UnitOfWorkFactory, root: Path) -> d
                 )
             ]
         )
-        await uow.tool_calls.await_call(
-            run.id, "call-write", utc_now() + timedelta(seconds=600)
-        )
+        await uow.tool_calls.await_call(run.id, "call-write", utc_now() + timedelta(seconds=600))
         await uow.runs.transition(run.id, RunStatus.WAITING_FOR_APPROVAL)
         await uow.commit()
         return {"run_id": run.id, "call_id": "call-write"}
@@ -89,9 +86,7 @@ async def test_preview_endpoint(api_env, tmp_path: Path) -> None:
     else:
         seeded = await seed_waiting_approval(uow_factory, tmp_path)
 
-    response = client.get(
-        f"/api/v1/runs/{seeded['run_id']}/tool-calls/{seeded['call_id']}/preview"
-    )
+    response = client.get(f"/api/v1/runs/{seeded['run_id']}/tool-calls/{seeded['call_id']}/preview")
 
     assert response.status_code == 200
     assert response.json()["exists"] is True

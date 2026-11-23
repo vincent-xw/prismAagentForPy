@@ -158,9 +158,7 @@ async def test_terminal_run_does_not_block_new_active_run(
 
 def test_workspace_schema_applied(migrated_database_path: Path) -> None:
     with sqlite3.connect(migrated_database_path) as connection:
-        workspace_cols = {
-            row[1] for row in connection.execute("PRAGMA table_info(workspaces)")
-        }
+        workspace_cols = {row[1] for row in connection.execute("PRAGMA table_info(workspaces)")}
         assert {
             "id",
             "root_path",

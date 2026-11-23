@@ -3,11 +3,11 @@ from datetime import UTC, datetime
 from prism_agent_kit.core.enums import (
     EventType,
     ExecutionMode,
+    IndexStatus,
     MessageRole,
     RunStatus,
     ToolCallStatus,
 )
-from prism_agent_kit.core.enums import IndexStatus
 from prism_agent_kit.core.models import Message, Run, RunEvent, Session, ToolCall
 from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.db.models import (

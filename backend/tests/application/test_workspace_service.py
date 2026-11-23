@@ -13,7 +13,9 @@ class RecordingIndexTasks:
     def __init__(self) -> None:
         self.calls: list[tuple[str, str]] = []
 
-    async def submit(self, workspace_id: str, *, mode: str = "full", rel_path: str | None = None) -> None:
+    async def submit(
+        self, workspace_id: str, *, mode: str = "full", rel_path: str | None = None
+    ) -> None:
         self.calls.append((mode, workspace_id))
 
 
@@ -23,7 +25,9 @@ def index_tasks() -> RecordingIndexTasks:
 
 
 @pytest.fixture
-def service(uow_factory: UnitOfWorkFactory, index_tasks: RecordingIndexTasks, tmp_path: Path) -> WorkspaceService:
+def service(
+    uow_factory: UnitOfWorkFactory, index_tasks: RecordingIndexTasks, tmp_path: Path
+) -> WorkspaceService:
     return WorkspaceService(
         uow_factory=uow_factory,
         index_tasks=index_tasks,
@@ -31,7 +35,9 @@ def service(uow_factory: UnitOfWorkFactory, index_tasks: RecordingIndexTasks, tm
     )
 
 
-async def test_create_workspace_normalizes_and_activates(service: WorkspaceService, tmp_path: Path) -> None:
+async def test_create_workspace_normalizes_and_activates(
+    service: WorkspaceService, tmp_path: Path
+) -> None:
     root = tmp_path / "proj"
     root.mkdir()
 
@@ -73,10 +79,12 @@ async def test_create_is_idempotent_for_same_root(
     second = await service.create(str(root))
 
     assert first.id == second.id
-    assert [entry.id for entry in await service.list()] == [first.id]
+    assert [entry.id for entry in await service.list_workspaces()] == [first.id]
 
 
-async def test_activate_switches_and_triggers_index(service: WorkspaceService, index_tasks: RecordingIndexTasks, tmp_path: Path) -> None:
+async def test_activate_switches_and_triggers_index(
+    service: WorkspaceService, index_tasks: RecordingIndexTasks, tmp_path: Path
+) -> None:
     (tmp_path / "a").mkdir()
     (tmp_path / "b").mkdir()
     first = await service.create(str(tmp_path / "a"))
@@ -90,7 +98,9 @@ async def test_activate_switches_and_triggers_index(service: WorkspaceService, i
     assert second.is_active is True
 
 
-async def test_tree_excludes_git_and_reads_truncated(service: WorkspaceService, tmp_path: Path) -> None:
+async def test_tree_excludes_git_and_reads_truncated(
+    service: WorkspaceService, tmp_path: Path
+) -> None:
     root = tmp_path / "proj"
     (root / ".git").mkdir(parents=True)
     (root / "docs").mkdir()
@@ -127,7 +137,9 @@ async def test_read_missing_file_raises(service: WorkspaceService, tmp_path: Pat
     assert error.value.code is ErrorCode.WORKSPACE_FILE_NOT_FOUND
 
 
-async def test_search_delegates_to_index(service: WorkspaceService, uow_factory: UnitOfWorkFactory, tmp_path: Path) -> None:
+async def test_search_delegates_to_index(
+    service: WorkspaceService, uow_factory: UnitOfWorkFactory, tmp_path: Path
+) -> None:
     from prism_agent_kit.db.repositories.workspace_documents import IndexedDocument
 
     root = tmp_path / "proj"

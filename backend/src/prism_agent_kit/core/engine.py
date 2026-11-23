@@ -1,11 +1,13 @@
 import asyncio
 import logging
 from datetime import timedelta
+from pathlib import Path
 from typing import Literal, Protocol, cast
 
 from pydantic import BaseModel, ConfigDict, JsonValue, ValidationError
 from sqlalchemy.exc import IntegrityError
 
+from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.core.context import ContextAssembler, ContextAssembly
 from prism_agent_kit.core.digests import canonical_json_digest
 from prism_agent_kit.core.enums import (
@@ -16,7 +18,6 @@ from prism_agent_kit.core.enums import (
 )
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, RunEvent, ToolCall, utc_now
-from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.core.ports import (
     EventEnvelope,
     EventPublisher,
@@ -547,7 +548,7 @@ class SimpleAgentEngine:
         call_id: str,
         cancel: asyncio.Event,
         workspace_id: str | None,
-        workspace_root: object,
+        workspace_root: Path | None,
     ) -> ToolExecutionContext:
         """构造工具上下文，并按需注入工作区根与检索回调。"""
         search = None
@@ -555,9 +556,7 @@ class SimpleAgentEngine:
 
             async def search(query: str, limit: int) -> list[object]:
                 assert self._workspace_locator is not None
-                return await self._workspace_locator.search(
-                    workspace_id, query, limit=limit
-                )
+                return await self._workspace_locator.search(workspace_id, query, limit=limit)
 
         return ToolExecutionContext(
             run_id=run_id,
@@ -605,9 +604,7 @@ class SimpleAgentEngine:
                         },
                     )
                 )
-            new_events = await uow.events.list_after(
-                run_id, after_id=previous_event_id
-            )
+            new_events = await uow.events.list_after(run_id, after_id=previous_event_id)
             await uow.commit()
         await self._publish_events(new_events)
         return EngineOutcome(kind="waiting_for_approval")

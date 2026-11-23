@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 from typing import Literal
+
+from sqlalchemy.exc import OperationalError
 
 from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
 from prism_agent_kit.core.enums import IndexStatus
-from sqlalchemy.exc import OperationalError
-
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 
 
@@ -55,7 +54,7 @@ class WorkspaceIndexTaskManager:
                 await self._indexer.index_file(workspace_id, rel_path)
             else:
                 await self._indexer.rebuild(workspace_id)
-        except Exception:  # noqa: BLE001 - 索引器已把失败写回状态
+        except Exception:
             return
 
     async def drain(self) -> None:

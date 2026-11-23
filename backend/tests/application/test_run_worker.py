@@ -133,7 +133,7 @@ async def seed_awaiting_approval_run(
     from datetime import timedelta
 
     from prism_agent_kit.core.digests import canonical_json_digest
-    from prism_agent_kit.core.enums import ExecutionMode, RunStatus, ToolCallStatus
+    from prism_agent_kit.core.enums import ExecutionMode, RunStatus
     from prism_agent_kit.core.models import ToolCall, utc_now
 
     async with uow_factory() as uow:

@@ -44,9 +44,7 @@ class WorkspaceRepository:
 
     async def get_active(self) -> Workspace | None:
         """返回当前唯一活跃工作区。"""
-        row = await self._session.scalar(
-            select(WorkspaceRow).where(WorkspaceRow.is_active == 1)
-        )
+        row = await self._session.scalar(select(WorkspaceRow).where(WorkspaceRow.is_active == 1))
         return None if row is None else workspace_to_domain(row)
 
     async def list_all(self) -> list[Workspace]:

@@ -15,9 +15,7 @@ down_revision: str | None = "20261122_0002"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-_ACTIVE_RUN_WHERE = (
-    "status IN ('queued', 'running', 'waiting_for_tool', 'waiting_for_approval')"
-)
+_ACTIVE_RUN_WHERE = "status IN ('queued', 'running', 'waiting_for_tool', 'waiting_for_approval')"
 _OLD_ACTIVE_RUN_WHERE = "status IN ('queued', 'running', 'waiting_for_tool')"
 
 

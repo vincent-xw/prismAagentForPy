@@ -14,7 +14,6 @@ from prism_agent_kit.core.workspace_paths import resolve_in_workspace
 from prism_agent_kit.tools.contracts import (
     ToolDefinition,
     ToolExecutionContext,
-    ToolExecutionResult,
 )
 
 type SearchCallback = Callable[[str, int], Awaitable[list[object]]]
@@ -227,10 +226,7 @@ def build_workspace_tools() -> list[ToolDefinition]:
             matches = await context.search(raw.query, raw.limit)
         except AgentKitError:
             raise
-        hits = [
-            FileSearchHit(path=str(getattr(item, "path")), snippet=str(getattr(item, "snippet")))
-            for item in matches
-        ]
+        hits = [FileSearchHit(path=str(item.path), snippet=str(item.snippet)) for item in matches]
         if raw.path_prefix:
             hits = [hit for hit in hits if hit.path.startswith(raw.path_prefix)]
         return FileSearchOutput(hits=hits)
@@ -238,7 +234,7 @@ def build_workspace_tools() -> list[ToolDefinition]:
     async def file_write(raw: FileWriteInput, context: ToolExecutionContext) -> FileWriteOutput:
         root = _root(context)
         target = resolve_in_workspace(root, raw.path)
-        if ".git" in target.relative_to(Path(root).resolve()).parts:
+        if ".git" in target.relative_to(root).parts:
             raise AgentKitError(
                 ErrorCode.WORKSPACE_PATH_INVALID,
                 "不允许写入 .git 目录",
@@ -295,8 +291,7 @@ def build_workspace_tools() -> list[ToolDefinition]:
         ),
         definition(
             "file_write",
-            "把文本写入工作区内文件（overwrite/append/create）。"
-            "写入需要用户在界面审批后才会执行。",
+            "把文本写入工作区内文件（overwrite/append/create）。写入需要用户在界面审批后才会执行。",
             FileWriteInput,
             FileWriteOutput,
             file_write,

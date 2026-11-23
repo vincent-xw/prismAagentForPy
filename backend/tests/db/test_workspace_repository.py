@@ -45,7 +45,9 @@ async def test_activate_keeps_single_active(uow_factory: UnitOfWorkFactory, tmp_
         assert refreshed_first.is_active is False
 
 
-async def test_delete_active_workspace_rejected(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> None:
+async def test_delete_active_workspace_rejected(
+    uow_factory: UnitOfWorkFactory, tmp_path: Path
+) -> None:
     async with uow_factory() as uow:
         workspace = await uow.workspaces.create(Workspace(root_path=str(tmp_path / "a")))
         await uow.workspaces.activate(workspace.id)

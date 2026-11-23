@@ -13,9 +13,9 @@ from prism_agent_kit.api.request_context import RequestIdMiddleware
 from prism_agent_kit.api.router import create_api_router
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import RunEventBus
+from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
-from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
@@ -104,9 +104,7 @@ def build_api_application(
     tool_registry.register(wait_for_host_tool())
     for workspace_tool in build_workspace_tools():
         tool_registry.register(workspace_tool)
-    tool_result_recorder = ToolResultRecorder(
-        uow_factory=uow_factory, event_publisher=event_bus
-    )
+    tool_result_recorder = ToolResultRecorder(uow_factory=uow_factory, event_publisher=event_bus)
     indexer = WorkspaceIndexer(uow_factory=uow_factory)
     index_tasks = WorkspaceIndexTaskManager(indexer=indexer, uow_factory=uow_factory)
     workspace_service = WorkspaceService(

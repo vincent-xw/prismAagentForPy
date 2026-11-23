@@ -1,16 +1,16 @@
-import asyncio
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from tests.fakes import RecordingEventPublisher
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.digests import canonical_json_digest
-from prism_agent_kit.core.enums import EventType, ExecutionMode, MessageRole, RunStatus, ToolCallStatus
+from prism_agent_kit.core.enums import ExecutionMode, MessageRole, RunStatus, ToolCallStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, ToolCall, utc_now
 from prism_agent_kit.core.workspace import Workspace
@@ -19,7 +19,6 @@ from prism_agent_kit.tools.executor import LocalToolExecutor
 from prism_agent_kit.tools.registry import ToolRegistry
 from prism_agent_kit.tools.testing import wait_for_host_tool
 from prism_agent_kit.tools.workspace_tools import build_workspace_tools
-from tests.fakes import RecordingEventPublisher
 
 
 @dataclass
@@ -34,7 +33,9 @@ class RecordingIndexTasks:
     def __init__(self) -> None:
         self.calls: list[tuple[str, str, str | None]] = []
 
-    async def submit(self, workspace_id: str, *, mode: str = "full", rel_path: str | None = None) -> None:
+    async def submit(
+        self, workspace_id: str, *, mode: str = "full", rel_path: str | None = None
+    ) -> None:
         self.calls.append((mode, workspace_id, rel_path))
 
 
@@ -53,9 +54,7 @@ def build_service(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> ToolApprova
         uow_factory=uow_factory,
         tool_registry=registry,
         tool_executor=LocalToolExecutor(),
-        tool_result_recorder=ToolResultRecorder(
-            uow_factory=uow_factory, event_publisher=publisher
-        ),
+        tool_result_recorder=ToolResultRecorder(uow_factory=uow_factory, event_publisher=publisher),
         workspace_service=workspace_service,
         index_tasks=RecordingIndexTasks(),
         event_publisher=publisher,
@@ -158,9 +157,7 @@ async def test_approve_executes_write_and_requeues(
     assert (root / "notes.md").read_text(encoding="utf-8") == "hello"
 
 
-async def test_reject_marks_tool_rejected(
-    uow_factory: UnitOfWorkFactory, tmp_path: Path
-) -> None:
+async def test_reject_marks_tool_rejected(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> None:
     root = tmp_path / "ws"
     root.mkdir()
     workspace = await seed_workspace(uow_factory, root)
@@ -243,9 +240,7 @@ async def test_partial_approvals_keep_waiting(
     assert run.status is RunStatus.WAITING_FOR_APPROVAL
 
 
-async def test_preview_contains_diff(
-    uow_factory: UnitOfWorkFactory, tmp_path: Path
-) -> None:
+async def test_preview_contains_diff(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> None:
     root = tmp_path / "ws"
     root.mkdir()
     (root / "notes.md").write_text("old line", encoding="utf-8")
@@ -261,9 +256,7 @@ async def test_preview_contains_diff(
     assert "+new line" in preview.diff
 
 
-async def test_expired_approval_rejected(
-    uow_factory: UnitOfWorkFactory, tmp_path: Path
-) -> None:
+async def test_expired_approval_rejected(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> None:
     root = tmp_path / "ws"
     root.mkdir()
     workspace = await seed_workspace(uow_factory, root)

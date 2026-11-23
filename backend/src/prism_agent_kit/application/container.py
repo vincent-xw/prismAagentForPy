@@ -5,9 +5,9 @@ from filelock import FileLock, Timeout
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import ReplayLoader, RunEventBus
+from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.run_worker import RunWorker
-from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder

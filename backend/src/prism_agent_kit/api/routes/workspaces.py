@@ -20,7 +20,7 @@ def create_workspaces_router() -> APIRouter:
 
     @router.get("/workspaces", response_model=WorkspaceListResponse, summary="列出工作区")
     async def list_workspaces(service: WorkspaceServiceDependency) -> WorkspaceListResponse:
-        items = await service.list()
+        items = await service.list_workspaces()
         active = next((item for item in items if item.is_active), None)
         return WorkspaceListResponse(
             items=[WorkspaceView.from_domain(item) for item in items],
@@ -129,9 +129,7 @@ def create_workspaces_router() -> APIRouter:
         limit: int = 20,
         path_prefix: str | None = None,
     ) -> SearchResponse:
-        hits = await service.search(
-            workspace_id, q, limit=limit, path_prefix=path_prefix
-        )
+        hits = await service.search(workspace_id, q, limit=limit, path_prefix=path_prefix)
         return SearchResponse(
             items=[SearchHitView(path=hit.path, snippet=hit.snippet) for hit in hits]
         )

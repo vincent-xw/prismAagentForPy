@@ -8,8 +8,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
-from pydantic import JsonValue
-
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.core.enums import EventType, ExecutionMode, RunStatus, ToolCallStatus
@@ -18,7 +16,7 @@ from prism_agent_kit.core.models import RunEvent, ToolCall, utc_now
 from prism_agent_kit.core.ports import EventEnvelope, EventPublisher
 from prism_agent_kit.core.workspace_paths import resolve_in_workspace
 from prism_agent_kit.db.uow import UnitOfWorkFactory
-from prism_agent_kit.tools.contracts import ToolExecutionContext, ToolExecutionResult
+from prism_agent_kit.tools.contracts import ToolExecutionContext
 from prism_agent_kit.tools.executor import LocalToolExecutor
 from prism_agent_kit.tools.registry import ToolRegistry
 
@@ -114,9 +112,7 @@ class ToolApprovalService:
                 http_status=409,
             )
         target = resolve_in_workspace(root, rel_path)
-        return await asyncio.to_thread(
-            self._build_preview, target, rel_path, mode, text
-        )
+        return await asyncio.to_thread(self._build_preview, target, rel_path, mode, text)
 
     async def decide(
         self,
@@ -192,9 +188,7 @@ class ToolApprovalService:
                 "path"
             )
             if run.workspace_id is not None and isinstance(rel_path, str):
-                await self._index_tasks.submit(
-                    run.workspace_id, mode="file", rel_path=rel_path
-                )
+                await self._index_tasks.submit(run.workspace_id, mode="file", rel_path=rel_path)
         if result.error_code is ErrorCode.RUN_CANCELLED:
             await self._cancel_run(run_id)
             return await self._load(run_id, call_id)
@@ -207,7 +201,8 @@ class ToolApprovalService:
             return None
 
         async def search(query: str, limit: int) -> list[object]:
-            return await self._workspace_service.search(workspace_id, query, limit=limit)
+            results = await self._workspace_service.search(workspace_id, query, limit=limit)
+            return [item for item in results]
 
         return search
 
@@ -306,34 +301,34 @@ class ToolApprovalService:
                 and call.status in {ToolCallStatus.PENDING, ToolCallStatus.RUNNING}
                 for call in calls
             )
-            if pending_remote:
-                if run.status is RunStatus.WAITING_FOR_APPROVAL:
-                    await uow.runs.transition(run_id, RunStatus.WAITING_FOR_TOOL)
-                    await uow.events.append(
-                        RunEvent(
-                            run_id=run_id,
-                            event_type=EventType.RUN_WAITING_FOR_TOOL,
-                            payload={
-                                "call_ids": [
-                                    call.id
-                                    for call in calls
-                                    if call.execution_mode is ExecutionMode.REMOTE
-                                    and call.status
-                                    in {ToolCallStatus.PENDING, ToolCallStatus.RUNNING}
-                                ]
-                            },
-                        )
+            if pending_remote and run.status is RunStatus.WAITING_FOR_APPROVAL:
+                await uow.runs.transition(run_id, RunStatus.WAITING_FOR_TOOL)
+                await uow.events.append(
+                    RunEvent(
+                        run_id=run_id,
+                        event_type=EventType.RUN_WAITING_FOR_TOOL,
+                        payload={
+                            "call_ids": [
+                                call.id
+                                for call in calls
+                                if call.execution_mode is ExecutionMode.REMOTE
+                                and call.status in {ToolCallStatus.PENDING, ToolCallStatus.RUNNING}
+                            ]
+                        },
                     )
-            elif all(call.status in _TERMINAL_TOOL_STATUSES for call in calls):
-                if run.status is RunStatus.WAITING_FOR_APPROVAL:
-                    await uow.runs.transition(run_id, RunStatus.QUEUED)
-                    await uow.events.append(
-                        RunEvent(
-                            run_id=run_id,
-                            event_type=EventType.RUN_REQUEUED,
-                            payload={"call_ids": [call.id for call in calls]},
-                        )
+                )
+            elif (
+                all(call.status in _TERMINAL_TOOL_STATUSES for call in calls)
+                and run.status is RunStatus.WAITING_FOR_APPROVAL
+            ):
+                await uow.runs.transition(run_id, RunStatus.QUEUED)
+                await uow.events.append(
+                    RunEvent(
+                        run_id=run_id,
+                        event_type=EventType.RUN_REQUEUED,
+                        payload={"call_ids": [call.id for call in calls]},
                     )
+                )
             new_events = await uow.events.list_after(run_id, after_id=previous_event_id)
             await uow.commit()
         await self._publish(new_events)
@@ -341,9 +336,7 @@ class ToolApprovalService:
     async def _cancel_run(self, run_id: str) -> None:
         async with self._uow_factory() as uow:
             previous_event_id = await uow.events.last_id(run_id)
-            await uow.tool_calls.close_open_calls(
-                run_id, ErrorCode.RUN_CANCELLED, "Run 已取消"
-            )
+            await uow.tool_calls.close_open_calls(run_id, ErrorCode.RUN_CANCELLED, "Run 已取消")
             run = await uow.runs.get(run_id)
             if run.status is not RunStatus.CANCELLED:
                 await uow.runs.transition(run_id, RunStatus.CANCELLED)
@@ -371,7 +364,7 @@ class ToolApprovalService:
                     event_id=event.id,
                     run_id=event.run_id,
                     event_type=event.event_type,
-                    payload=cast(JsonValue, event.payload),
+                    payload=event.payload,
                     created_at=event.created_at,
                 )
             )

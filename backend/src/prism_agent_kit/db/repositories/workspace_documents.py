@@ -33,9 +33,7 @@ def ensure_fts_supported() -> bool:
     except sqlite3.Error:
         return False
     try:
-        connection.execute(
-            "CREATE VIRTUAL TABLE probe USING fts5(content, tokenize = 'trigram')"
-        )
+        connection.execute("CREATE VIRTUAL TABLE probe USING fts5(content, tokenize = 'trigram')")
         connection.execute("DROP TABLE probe")
     except sqlite3.Error:
         return False
@@ -124,9 +122,7 @@ class WorkspaceDocumentRepository:
     async def count(self, workspace_id: str) -> int:
         """返回某工作区已索引的文件数。"""
         result = await self._session.execute(
-            text(
-                "SELECT COUNT(*) FROM workspace_documents WHERE workspace_id = :workspace_id"
-            ),
+            text("SELECT COUNT(*) FROM workspace_documents WHERE workspace_id = :workspace_id"),
             {"workspace_id": workspace_id},
         )
         return int(result.scalar_one())

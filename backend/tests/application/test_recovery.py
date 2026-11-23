@@ -229,9 +229,7 @@ async def seed_waiting_for_approval_run(uow_factory: UnitOfWorkFactory) -> tuple
                 )
             ]
         )
-        await uow.tool_calls.await_call(
-            run.id, "call-approve", utc_now() + timedelta(seconds=600)
-        )
+        await uow.tool_calls.await_call(run.id, "call-approve", utc_now() + timedelta(seconds=600))
         await uow.runs.transition(run.id, RunStatus.WAITING_FOR_APPROVAL)
         await uow.commit()
         return run.id, "call-approve"

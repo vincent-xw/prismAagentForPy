@@ -7,10 +7,10 @@ from sse_starlette.event import ServerSentEvent
 from sse_starlette.sse import EventSourceResponse
 
 from prism_agent_kit.api.dependencies import (
-    ToolApprovalServiceDependency,
     EventBusDependency,
     RunServiceDependency,
     SettingsDependency,
+    ToolApprovalServiceDependency,
     ToolResultServiceDependency,
 )
 from prism_agent_kit.api.schemas import (
@@ -210,9 +210,7 @@ def create_runs_router() -> APIRouter:
         payload: ApprovalRequest,
         service: ToolApprovalServiceDependency,
     ) -> ApprovalResponse:
-        call, run = await service.decide(
-            run_id, call_id, payload.decision, payload.reason
-        )
+        call, run = await service.decide(run_id, call_id, payload.decision, payload.reason)
         return ApprovalResponse(
             call=ToolCallView.from_domain(call),
             run=RunView.from_domain(run),

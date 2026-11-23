@@ -14,7 +14,9 @@ async def test_search_hits_chinese_and_two_char_fallback(uow_factory: UnitOfWork
         await uow.workspace_documents.replace_all(
             "ws-1",
             [
-                IndexedDocument(path="docs/guide.md", content="这是一个关于工作区检索的中文测试文档"),
+                IndexedDocument(
+                    path="docs/guide.md", content="这是一个关于工作区检索的中文测试文档"
+                ),
                 IndexedDocument(path="docs/other.md", content="unrelated english text"),
             ],
         )
@@ -45,9 +47,7 @@ async def test_prefix_filter_and_delete_workspace(uow_factory: UnitOfWorkFactory
         await uow.commit()
 
     async with uow_factory() as uow:
-        hits = await uow.workspace_documents.search(
-            "ws-1", "alpha", limit=10, path_prefix="b/"
-        )
+        hits = await uow.workspace_documents.search("ws-1", "alpha", limit=10, path_prefix="b/")
         assert [hit.path for hit in hits] == ["b/y.md"]
         await uow.workspace_documents.delete_workspace("ws-1")
         await uow.commit()
