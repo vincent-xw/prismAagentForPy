@@ -31,6 +31,7 @@ class Run(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid4()))
     session_id: str
+    workspace_id: str | None = None
     status: RunStatus = RunStatus.QUEUED
     input_text: str
     prompt_name: str

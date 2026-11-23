@@ -110,6 +110,26 @@ class ToolCallRepository:
         await self._session.flush()
         return tool_call_to_domain(row)
 
+    async def await_call(
+        self,
+        run_id: str,
+        call_id: str,
+        expires_at: datetime,
+    ) -> ToolCall:
+        """把待执行工具调用标记为等待审批并写入截止时间。"""
+        row = await self._require_call(run_id, call_id)
+        if ToolCallStatus(row.status) is not ToolCallStatus.PENDING:
+            raise AgentKitError(
+                ErrorCode.TOOL_RESULT_CONFLICT,
+                "ToolCall 状态不允许进入待审批",
+                http_status=409,
+                details={"call_id": call_id},
+            )
+        row.status = ToolCallStatus.AWAITING_APPROVAL.value
+        row.expires_at = expires_at.astimezone(UTC).replace(tzinfo=None)
+        await self._session.flush()
+        return tool_call_to_domain(row)
+
     async def fail(
         self,
         run_id: str,

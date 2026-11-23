@@ -65,6 +65,7 @@ def run_to_row(run: Run) -> RunRow:
     return RunRow(
         id=run.id,
         session_id=run.session_id,
+        workspace_id=run.workspace_id,
         status=run.status.value,
         input_text=run.input_text,
         prompt_name=run.prompt_name,
@@ -87,6 +88,7 @@ def run_to_domain(row: RunRow) -> Run:
     return Run(
         id=row.id,
         session_id=row.session_id,
+        workspace_id=row.workspace_id,
         status=RunStatus(row.status),
         input_text=row.input_text,
         prompt_name=row.prompt_name,
