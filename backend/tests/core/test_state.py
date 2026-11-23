@@ -39,3 +39,23 @@ def test_invalid_run_transitions_raise(current: RunStatus, target: RunStatus) ->
 
     assert error.value.code is ErrorCode.INVALID_RUN_TRANSITION
     assert error.value.http_status == 409
+
+
+@pytest.mark.parametrize(
+    ("current", "target"),
+    [
+        (RunStatus.RUNNING, RunStatus.WAITING_FOR_APPROVAL),
+        (RunStatus.WAITING_FOR_APPROVAL, RunStatus.QUEUED),
+        (RunStatus.WAITING_FOR_APPROVAL, RunStatus.WAITING_FOR_TOOL),
+        (RunStatus.WAITING_FOR_APPROVAL, RunStatus.CANCELLED),
+    ],
+)
+def test_approval_transitions_allowed(current: RunStatus, target: RunStatus) -> None:
+    ensure_run_transition(current, target)
+
+
+def test_approval_cannot_go_back_to_running() -> None:
+    with pytest.raises(AgentKitError) as error:
+        ensure_run_transition(RunStatus.WAITING_FOR_APPROVAL, RunStatus.RUNNING)
+
+    assert error.value.code is ErrorCode.INVALID_RUN_TRANSITION
