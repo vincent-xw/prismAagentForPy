@@ -1,0 +1,28 @@
+ui/README.md
+  h_c3a612a540ca0b 34
+ui/package.json
+  h_c3a612a540ca0b 33-34
+ui/pnpm-lock.yaml
+  h_c3a612a540ca0b 29-34,513-515,717-719,804-806,820-823,1119-1121,1136-1142,1258-1261,1369-1371,1877-1879,2136-2137,2212-2215,2230-2231,2511-2514,2529-2539,2635-2636,2749-2750
+ui/src/components/markdown/MarkdownContent.vue
+  h_c3a612a540ca0b 1-108
+ui/src/features/sessions/MessageList.vue
+  h_c3a612a540ca0b 5,71-74,89-90
+ui/src/lib/markdown.ts
+  h_c3a612a540ca0b 1-19
+ui/tests/unit/markdown.test.ts
+  h_c3a612a540ca0b 1-42
+ui/tests/unit/message-list.test.ts
+  h_c3a612a540ca0b 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9af0cd9fd2e03e70731582aa1727d6f68a16a903",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
