@@ -1,0 +1,16 @@
+docs/superpowers/plans/2026-11-23-workspace-file-tools.md
+  h_c3a612a540ca0b 13-14
+docs/superpowers/specs/2026-11-23-workspace-file-tools-design.md
+  h_c3a612a540ca0b 3,12,24,86-87,175,177,179-184,208,324,349,429,431,434,436-444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "fef54ea953a67e238926a6f5eea5c06b6a4c98cc",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
