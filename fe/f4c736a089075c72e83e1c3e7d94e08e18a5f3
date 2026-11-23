@@ -1,0 +1,26 @@
+ui/src/app/AppShell.vue
+  h_c3a612a540ca0b 23,30-33,84-88,91
+ui/src/app/context.ts
+  h_c3a612a540ca0b 68
+ui/src/app/modules.ts
+  h_c3a612a540ca0b 4
+ui/src/app/router.ts
+  h_c3a612a540ca0b 4,12
+ui/src/features/workspace/WorkspacePage.vue
+  h_c3a612a540ca0b 1-182
+ui/src/features/workspace/workspace.ts
+  h_c3a612a540ca0b 1-171
+ui/tests/unit/workspace.test.ts
+  h_c3a612a540ca0b 1-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "fef4c736a089075c72e83e1c3e7d94e08e18a5f3",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
