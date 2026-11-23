@@ -1,0 +1,20 @@
+backend/src/prism_agent_kit/application/run_worker.py
+  h_c3a612a540ca0b 212-215,224,229-242,260-262
+backend/src/prism_agent_kit/db/repositories/tool_calls.py
+  h_c3a612a540ca0b 90-94,174-177,312-316,393
+backend/tests/application/test_recovery.py
+  h_c3a612a540ca0b 192-249
+backend/tests/application/test_run_worker.py
+  h_c3a612a540ca0b 125-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "fbfb0cdb4728f86f8c4a0ba5fecccdbb29a36f51",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
