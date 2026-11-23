@@ -1,0 +1,18 @@
+ui/src/features/runs/RunInspector.vue
+  h_c3a612a540ca0b 137,143
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 97-101
+ui/src/features/workspace/workspace.ts
+  h_c3a612a540ca0b 43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "7ad227b72d6f26e345ff0b0b53767215bc160af3",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
