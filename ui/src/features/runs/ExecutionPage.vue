@@ -38,7 +38,9 @@ async function load(): Promise<void> {
 }
 
 async function refresh(): Promise<void> {
-  if (projection.value !== null) await conversation.value!.selectRun(projection.value.run.id)
+  // 审批/状态变更后从会话主数据重建投影，避免残留已处理的审批卡片。
+  await conversation.value!.openSession(sessionId.value)
+  await load()
 }
 
 watch([() => route.params.sessionId, () => route.query.run], () => void load(), { immediate: true })

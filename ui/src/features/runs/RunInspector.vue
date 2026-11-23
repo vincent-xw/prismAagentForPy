@@ -66,7 +66,14 @@ function date(value: string | null) {
       /></Button>
     </div>
     <template v-if="projection"
-      ><div class="mb-5 flex items-start justify-between gap-2">
+      ><div
+        v-if="projection.pendingApprovals.length"
+        role="status"
+        class="mb-5 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary"
+      >
+        有 {{ projection.pendingApprovals.length }} 个写入等待你确认，处理后才继续执行。
+      </div>
+      <div class="mb-5 flex items-start justify-between gap-2">
         <div>
           <p class="text-[10px] tracking-widest text-muted-foreground">RUN STATUS</p>
           <p

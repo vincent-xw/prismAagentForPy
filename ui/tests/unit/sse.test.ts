@@ -36,10 +36,9 @@ test('流携带 Token 和整数游标，等待异步事件处理后终止', asyn
   expect(headers.get('Last-Event-ID')).toBe('41')
   expect(headers.get('Authorization')).toBe('Bearer test-token')
 })
-test('拒绝非 SSE 响应、非法游标与错误 run_id', async () => {
+test('拒绝非 SSE 响应与错误 run_id', async () => {
   for (const response of [
     Response.json({}),
-    streamResponse([frame('run.started', {}, 'evt_42')]),
     streamResponse([frame('run.started', { run_id: 'other' }, '1')]),
   ]) {
     await expect(
@@ -54,4 +53,23 @@ test('拒绝非 SSE 响应、非法游标与错误 run_id', async () => {
       }),
     ).rejects.toMatchObject({ kind: 'protocol' })
   }
+})
+
+test('非法游标事件被跳过而不是中断整个流', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+  const onEvent = vi.fn(async () => {})
+  const result = await openRunStream({
+    basePath: '/api/v1',
+    runId: 'r1',
+    getToken: () => null,
+    afterEventId: null,
+    onEvent,
+    signal: new AbortController().signal,
+    fetcher: vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(streamResponse([frame('run.started', {}, 'evt_42')])),
+  })
+  expect(result).toBe('interrupted')
+  expect(onEvent).not.toHaveBeenCalled()
+  expect(warn).toHaveBeenCalled()
 })

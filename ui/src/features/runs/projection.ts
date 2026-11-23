@@ -92,7 +92,7 @@ export function applyRunEvent(state: RunProjection, event: CoreEvent): RunProjec
         callId: event.call_id,
         name: event.tool_name,
         mode: event.execution_mode,
-        input: event.input,
+        input: event.input ?? null,
         status: 'requested',
         outcome: null,
         messageId: null,

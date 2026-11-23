@@ -77,3 +77,18 @@ test('解析审批相关事件', () => {
 test('会话 DTO 携带工作区绑定', () => {
   expect(sessionSchema.parse({ ...sessionDto(), workspace_id: 'w1' }).workspace_id).toBe('w1')
 })
+
+test('接受正文已脱敏的 tool.requested 事件', () => {
+  const event = parseCoreEvent('tool.requested', '9', {
+    type: 'tool.requested',
+    run_id: 'r1',
+    call_id: 'c1',
+    tool_name: 'file_write',
+    execution_mode: 'local',
+    path: 'a.md',
+    mode: 'create',
+    bytes: 12,
+    input_digest: 'sha256:x',
+  })
+  expect(event).toMatchObject({ type: 'tool.requested', path: 'a.md', bytes: 12 })
+})

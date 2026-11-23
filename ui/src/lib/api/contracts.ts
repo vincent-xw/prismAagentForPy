@@ -159,7 +159,11 @@ const eventSchema = z.discriminatedUnion('type', [
     call_id: id,
     tool_name: id,
     execution_mode: z.enum(['local', 'remote']),
-    input: z.json(),
+    // 需审批工具的正文不入事件，payload 只带 path/mode/bytes 摘要。
+    input: z.json().optional(),
+    path: z.string().optional(),
+    mode: z.string().optional(),
+    bytes: z.number().int().nonnegative().optional(),
     input_digest: id,
   }),
   z.object({ ...toolResult, type: z.literal('tool.completed') }),

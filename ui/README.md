@@ -56,3 +56,5 @@ rtk pnpm test:e2e
 ## 扩展边界
 
 `src/app/` 装配应用与导航；`features/` 按会话、执行、连接和设置分工；`lib/api/` 集中维护 HTTP DTO 校验与 SSE。新增模块在具备真实 Backend 能力后注册路由和导航，不提前展示空白能力入口。主题统一维护在 `src/styles/tokens.css`，基础组件源码在 `src/components/ui/`，可自主维护变体与布局。
+
+SSE 客户端对单条无法解析的事件会跳过并在控制台记录细节，不再用协议错误打断整个会话视图。

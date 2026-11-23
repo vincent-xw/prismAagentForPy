@@ -97,8 +97,10 @@ export async function openRunStream(
       let event: CoreEvent
       try {
         event = parseCoreEvent(frame.event, frame.id, JSON.parse(frame.data))
-      } catch {
-        throw new CoreApiError('protocol', '运行事件不符合 Core 协议。')
+      } catch (reason) {
+        // 单条事件不兼容不应拖垮整个会话：跳过并保留控制台细节，界面不打扰用户。
+        console.warn('跳过无法解析的 SSE 事件', { event: frame.event, reason })
+        continue
       }
       if (event.run_id !== options.runId) throw new CoreApiError('protocol', '运行事件归属不一致。')
       // 等待投影和持久消息同步成功，调用方才能推进游标。
