@@ -267,11 +267,11 @@ ToolCall:   pending ──→ awaiting_approval ──→ running ──→ succ
 | 事件 | payload |
 |---|---|
 | `run.waiting_for_approval` | `{call_ids: [..]}` |
-| `tool.approval_required` | `{call_id, tool_name, path, mode, bytes, created: bool, preview}` |
+| `tool.approval_required` | `{call_id, tool_name, path, mode, bytes}` |
 | `tool.approved` | `{call_id}` |
 | `tool.rejected` | `{call_id, reason?}` |
 
-- `preview` 由后端在进入待审批时生成：文件不存在为 `null`；存在则为**行级统一 diff 的前 200 行**（超出标 `truncated`），总长上限 20 KB。diff 只用于展示，不参与执行。
+- **预览按需获取**：事件只携带路径/模式/字节数，不含文件内容。UI 渲染审批卡片时请求 `GET /runs/{run_id}/tool-calls/{call_id}/preview`，由审批服务在 `asyncio.to_thread` 里生成：文件不存在返回 `exists=false, diff=null`；存在则返回**行级统一 diff 的前 200 行**（超出标 `truncated`），总长上限 20 KB。diff 只用于展示，不参与执行；不让 `core/engine.py` 直接读盘。
 - **正文脱敏**：`file_write` 的正文不进入 `tool.requested` 事件——该事件对 `file_write` 的 `input` 脱敏为 `{path, mode, bytes, input_digest}`。正文仍保存在 `tool_calls.input` 与模型可见历史的 assistant 消息里（那是模型自己的输出，必须保留才能重建历史）；UI 的 `ToolCallCard` 对 `file_write` 只渲染路径/模式/字节数。
 
 ### 11.4 审批接口
@@ -312,6 +312,7 @@ ToolCall:   pending ──→ awaiting_approval ──→ running ──→ succ
 | GET | `/workspaces/{id}/tree?path=` | 目录项 |
 | GET | `/workspaces/{id}/file?path=` | 文本内容（`max_bytes` 可选） |
 | GET | `/workspaces/{id}/search?q=&limit=&path_prefix=` | 检索命中 |
+| GET | `/runs/{run_id}/tool-calls/{call_id}/preview` | 写入预览 `{path, mode, bytes, exists, diff, truncated}`（仅 `awaiting_approval` 可读） |
 | POST | `/runs/{run_id}/tool-calls/{call_id}/approval` | 审批写入 |
 
 响应新增 `WorkspaceView`：`{id, root_path, label, is_active, index_status, index_error, file_count, indexed_at}`。
@@ -337,7 +338,7 @@ ToolCall:   pending ──→ awaiting_approval ──→ running ──→ succ
 
 ### 13.3 写入审批（会话页）
 
-- `RunInspector` 增加"待审批"区：按 `tool.approval_required` 事件渲染卡片，显示 `path`、`mode`、`bytes`、是否新建、diff 预览；底部 `允许写入` / `拒绝` 两个按钮，提交期间禁用并显示处理中；响应里的 `call`、`run` 直接更新本地状态。
+- `RunInspector` 增加"待审批"区：按 `tool.approval_required` 事件渲染卡片，先显示 `path`、`mode`、`bytes`，卡片展开时请求 `.../preview` 拿 diff 与 `exists`；底部 `允许写入` / `拒绝` 两个按钮，提交期间禁用并显示处理中；响应里的 `call`、`run` 直接更新本地状态。
 - `SessionPage` 顶部横幅：当活跃 Run 为 `waiting_for_approval` 时显示"等待你确认写入（N）"，点击打开 Run 详情。
 - `ToolCallCard` 与状态标签补齐 `awaiting_approval`（待审批）、`TOOL_REJECTED`（已拒绝）文案；`file_write` 不渲染正文。
 - 刷新恢复：审批卡片完全由 `GET /runs/{id}` 的 `status` + SSE 事件重放（`tool.approval_required` / `tool.approved` / `tool.rejected`）重建；**不新增** `RunView.tool_calls` 字段。
