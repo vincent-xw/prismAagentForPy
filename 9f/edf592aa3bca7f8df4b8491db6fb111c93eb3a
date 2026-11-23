@@ -1,0 +1,46 @@
+backend/src/prism_agent_kit/api/routes/sessions.py
+  h_c3a612a540ca0b 10,26-38
+backend/src/prism_agent_kit/api/schemas.py
+  h_c3a612a540ca0b 17-22
+backend/src/prism_agent_kit/application/session_service.py
+  h_c3a612a540ca0b 31-39
+backend/src/prism_agent_kit/db/repositories/sessions.py
+  h_c3a612a540ca0b 30-45
+backend/src/prism_agent_kit/tools/executor.py
+  h_c3a612a540ca0b 80-82,84
+backend/tests/api/test_sessions.py
+  h_c3a612a540ca0b 72-95
+backend/tests/application/test_run_service.py
+  h_c3a612a540ca0b 156-170
+backend/tests/tools/test_executor.py
+  h_c3a612a540ca0b 143-169
+docs/superpowers/specs/2026-11-23-workspace-file-tools-design.md
+  h_c3a612a540ca0b 445
+ui/src/app/AppShell.vue
+  h_c3a612a540ca0b 15-16,18,29-53,80,147-178
+ui/src/app/router.ts
+  h_c3a612a540ca0b 5,13
+ui/src/features/runs/ExecutionPage.vue
+  h_c3a612a540ca0b 1-61
+ui/src/features/sessions/SessionMeta.vue
+  h_c3a612a540ca0b 1-76
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 3,10,63-65,79
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 114-121
+ui/tests/unit/execution-page.test.ts
+  h_c3a612a540ca0b 1-36
+ui/tests/unit/session-meta.test.ts
+  h_c3a612a540ca0b 1-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9fedf592aa3bca7f8df4b8491db6fb111c93eb3a",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
