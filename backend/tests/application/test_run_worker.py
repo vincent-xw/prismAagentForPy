@@ -196,3 +196,75 @@ async def test_sweep_expires_awaiting_approval(uow_factory: UnitOfWorkFactory) -
         assert call.error_code == ErrorCode.TOOL_APPROVAL_TIMEOUT.value
         run = await uow.runs.get(run_id)
         assert run.status is RunStatus.QUEUED
+
+
+async def test_sweep_expired_approval_with_pending_remote_moves_to_waiting_for_tool(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    """审批超时但同轮远端仍 pending 时, Run 必须转 waiting_for_tool 而不是卡住。"""
+    from datetime import timedelta
+
+    from prism_agent_kit.core.digests import canonical_json_digest
+    from prism_agent_kit.core.enums import ExecutionMode, RunStatus, ToolCallStatus
+    from prism_agent_kit.core.models import ToolCall, utc_now
+
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(
+            Run(
+                session_id=session.id,
+                input_text="hello",
+                prompt_name="default",
+                prompt_version="1",
+                system_prompt="system",
+                model="test-model",
+            )
+        )
+        await uow.messages.append(
+            Message(session_id=session.id, run_id=run.id, role=MessageRole.USER, content="hello")
+        )
+        await uow.commit()
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        assistant = await uow.messages.append(
+            Message(session_id=session.id, run_id=run.id, role=MessageRole.ASSISTANT, content="")
+        )
+        assert assistant.id is not None
+        write_payload = {"path": "a.md", "content": "hi", "mode": "overwrite"}
+        remote_payload = {"value": "one"}
+        await uow.tool_calls.create_many(
+            [
+                ToolCall(
+                    id="call-approve",
+                    run_id=run.id,
+                    assistant_message_id=assistant.id,
+                    tool_name="file_write",
+                    execution_mode=ExecutionMode.LOCAL,
+                    input=write_payload,
+                    input_digest=canonical_json_digest(write_payload),
+                ),
+                ToolCall(
+                    id="call-remote",
+                    run_id=run.id,
+                    assistant_message_id=assistant.id,
+                    tool_name="wait_for_host",
+                    execution_mode=ExecutionMode.REMOTE,
+                    input=remote_payload,
+                    input_digest=canonical_json_digest(remote_payload),
+                    expires_at=utc_now() + timedelta(minutes=5),
+                ),
+            ]
+        )
+        await uow.tool_calls.await_call(run.id, "call-approve", utc_now() - timedelta(seconds=5))
+        await uow.runs.transition(run.id, RunStatus.WAITING_FOR_APPROVAL)
+        await uow.commit()
+        run_id = run.id
+
+    worker, _, _ = make_worker(uow_factory, RecordingEngine())
+    await worker.sweep_expired_tool_calls()
+
+    async with uow_factory() as uow:
+        refreshed = await uow.runs.get(run_id)
+        assert refreshed.status is RunStatus.WAITING_FOR_TOOL
+        remote = await uow.tool_calls.get(run_id, "call-remote")
+        assert remote.status is ToolCallStatus.PENDING

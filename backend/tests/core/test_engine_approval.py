@@ -214,3 +214,43 @@ async def test_approval_disabled_executes_inline(
 
     assert outcome.kind == "completed"
     assert (tmp_path / "a.md").read_text(encoding="utf-8") == "hi"
+
+
+async def test_tool_requested_event_redacts_write_content(
+    uow_factory: UnitOfWorkFactory, tmp_path: Path
+) -> None:
+    """file_write 的正文不得进入持久 tool.requested 事件。"""
+    from prism_agent_kit.core.workspace import Workspace
+
+    async with uow_factory() as uow:
+        workspace = await uow.workspaces.create(Workspace(root_path=str(tmp_path)))
+        await uow.commit()
+    run = await seed_running_run(uow_factory, workspace.id)
+    provider = ScriptedModelProvider(
+        [
+            tool_response(
+                ToolCallDraft(
+                    call_id="c1",
+                    tool_name="file_write",
+                    input={"path": "a.md", "content": "secret-body"},
+                ),
+                ToolCallDraft(call_id="c2", tool_name="echo", input={"text": "one"}),
+            )
+        ]
+    )
+    engine = make_engine(uow_factory, provider, RecordingEventPublisher(), FakeLocator(tmp_path))
+
+    await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+
+    async with uow_factory() as uow:
+        events = await uow.events.list_after(run.id, after_id=0)
+    requested = [event for event in events if event.event_type is EventType.TOOL_REQUESTED]
+    write_payload = next(
+        payload for event in requested for payload in [event.payload] if payload["call_id"] == "c1"
+    )
+    assert "content" not in write_payload
+    assert write_payload["bytes"] == len("secret-body")
+    echo_payload = next(
+        payload for event in requested for payload in [event.payload] if payload["call_id"] == "c2"
+    )
+    assert echo_payload["input"] == {"text": "one"}

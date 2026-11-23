@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
+from prism_agent_kit.core.text_files import decode_utf8_prefix
 from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.core.workspace_paths import EXCLUDED_DIR_NAMES, resolve_in_workspace
 from prism_agent_kit.db.repositories.workspace_documents import SearchHit
@@ -333,7 +334,7 @@ class WorkspaceService:
             handle.seek(0)
             raw = handle.read(max_bytes)
         try:
-            content = raw.decode("utf-8")
+            content = decode_utf8_prefix(raw)
         except UnicodeDecodeError as error:
             raise AgentKitError(
                 ErrorCode.WORKSPACE_FILE_ENCODING,

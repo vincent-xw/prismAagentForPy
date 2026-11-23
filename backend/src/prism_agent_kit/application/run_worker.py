@@ -1,11 +1,9 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import cast
-
-from pydantic import JsonValue
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.run_resume import finalize_waiting_run
 from prism_agent_kit.core.engine import AgentEngine, EngineContext, EngineOutcome
 from prism_agent_kit.core.enums import (
     EventType,
@@ -245,24 +243,7 @@ class RunWorker:
                 if run_expired == 0:
                     continue
 
-                calls = await uow.tool_calls.list_for_run(run_id)
-                if all(call.status in _TERMINAL_TOOL_STATUSES for call in calls):
-                    await uow.runs.transition(run_id, RunStatus.QUEUED)
-                    await uow.events.append(
-                        RunEvent(
-                            run_id=run_id,
-                            event_type=EventType.RUN_REQUEUED,
-                            payload={
-                                "call_ids": cast(
-                                    JsonValue,
-                                    [call.id for call in calls],
-                                ),
-                                "reason": ErrorCode.TOOL_APPROVAL_TIMEOUT.value
-                                if run.status is RunStatus.WAITING_FOR_APPROVAL
-                                else ErrorCode.REMOTE_TOOL_TIMEOUT.value,
-                            },
-                        )
-                    )
+                await finalize_waiting_run(uow, run_id)
 
                 new_events = await uow.events.list_after(
                     run_id,

@@ -381,18 +381,35 @@ class SimpleAgentEngine:
                     )
                 )
                 for call in calls:
+                    if definitions[call.id].requires_approval:
+                        # 需审批工具的正文不进入持久事件, 只保留可展示的摘要。
+                        data = call.input if isinstance(call.input, dict) else {}
+                        content = data.get("content")
+                        payload: dict[str, JsonValue] = {
+                            "call_id": call.id,
+                            "tool_name": call.tool_name,
+                            "execution_mode": call.execution_mode.value,
+                            "path": str(data.get("path", "")),
+                            "mode": str(data.get("mode", "overwrite")),
+                            "bytes": len(content.encode("utf-8"))
+                            if isinstance(content, str)
+                            else 0,
+                            "input_digest": call.input_digest,
+                        }
+                    else:
+                        payload = {
+                            "call_id": call.id,
+                            "tool_name": call.tool_name,
+                            "execution_mode": call.execution_mode.value,
+                            "input": call.input,
+                            "input_digest": call.input_digest,
+                        }
                     persisted_events.append(
                         await uow.events.append(
                             RunEvent(
                                 run_id=run_id,
                                 event_type=EventType.TOOL_REQUESTED,
-                                payload={
-                                    "call_id": call.id,
-                                    "tool_name": call.tool_name,
-                                    "execution_mode": call.execution_mode.value,
-                                    "input": call.input,
-                                    "input_digest": call.input_digest,
-                                },
+                                payload=payload,
                             )
                         )
                     )

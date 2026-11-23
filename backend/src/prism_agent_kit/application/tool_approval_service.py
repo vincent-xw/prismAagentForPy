@@ -9,8 +9,9 @@ from pathlib import Path
 from typing import Any, cast
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.run_resume import finalize_waiting_run
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
-from prism_agent_kit.core.enums import EventType, ExecutionMode, RunStatus, ToolCallStatus
+from prism_agent_kit.core.enums import EventType, RunStatus, ToolCallStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import RunEvent, ToolCall, utc_now
 from prism_agent_kit.core.ports import EventEnvelope, EventPublisher
@@ -291,44 +292,7 @@ class ToolApprovalService:
         """根据全部调用状态决定 Run 的去向。"""
         async with self._uow_factory() as uow:
             previous_event_id = await uow.events.last_id(run_id)
-            run = await uow.runs.get(run_id)
-            calls = await uow.tool_calls.list_for_run(run_id)
-            if any(call.status is ToolCallStatus.AWAITING_APPROVAL for call in calls):
-                await uow.commit()
-                return
-            pending_remote = any(
-                call.execution_mode is ExecutionMode.REMOTE
-                and call.status in {ToolCallStatus.PENDING, ToolCallStatus.RUNNING}
-                for call in calls
-            )
-            if pending_remote and run.status is RunStatus.WAITING_FOR_APPROVAL:
-                await uow.runs.transition(run_id, RunStatus.WAITING_FOR_TOOL)
-                await uow.events.append(
-                    RunEvent(
-                        run_id=run_id,
-                        event_type=EventType.RUN_WAITING_FOR_TOOL,
-                        payload={
-                            "call_ids": [
-                                call.id
-                                for call in calls
-                                if call.execution_mode is ExecutionMode.REMOTE
-                                and call.status in {ToolCallStatus.PENDING, ToolCallStatus.RUNNING}
-                            ]
-                        },
-                    )
-                )
-            elif (
-                all(call.status in _TERMINAL_TOOL_STATUSES for call in calls)
-                and run.status is RunStatus.WAITING_FOR_APPROVAL
-            ):
-                await uow.runs.transition(run_id, RunStatus.QUEUED)
-                await uow.events.append(
-                    RunEvent(
-                        run_id=run_id,
-                        event_type=EventType.RUN_REQUEUED,
-                        payload={"call_ids": [call.id for call in calls]},
-                    )
-                )
+            await finalize_waiting_run(uow, run_id)
             new_events = await uow.events.list_after(run_id, after_id=previous_event_id)
             await uow.commit()
         await self._publish(new_events)

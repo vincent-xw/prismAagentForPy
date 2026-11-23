@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from prism_agent_kit.core.enums import ExecutionMode
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
+from prism_agent_kit.core.text_files import decode_utf8_prefix
 from prism_agent_kit.core.workspace_paths import resolve_in_workspace
 from prism_agent_kit.tools.contracts import (
     ToolDefinition,
@@ -163,7 +164,7 @@ def _read_file(target: Path, max_bytes: int) -> FileReadOutput:
         handle.seek(0)
         raw = handle.read(max_bytes)
     try:
-        content = raw.decode("utf-8")
+        content = decode_utf8_prefix(raw)
     except UnicodeDecodeError as error:
         raise AgentKitError(
             ErrorCode.WORKSPACE_FILE_ENCODING,

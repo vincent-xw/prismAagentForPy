@@ -157,3 +157,18 @@ async def test_search_delegates_to_index(
 
 async def test_root_for_returns_none_when_unbound(service: WorkspaceService) -> None:
     assert await service.root_for(None) is None
+
+
+async def test_read_multibyte_file_truncates_on_char_boundary(
+    service: WorkspaceService, tmp_path: Path
+) -> None:
+    root = tmp_path / "proj"
+    root.mkdir()
+    (root / "cn.txt").write_text("测试" * 40_000, encoding="utf-8")
+    workspace = await service.create(str(root))
+
+    content = await service.read_file(workspace.id, "cn.txt", max_bytes=65_536)
+
+    assert content.truncated is True
+    assert content.content.startswith("测试")
+    assert len(content.content.encode("utf-8")) <= 65_536

@@ -42,6 +42,11 @@ def ensure_fts_supported() -> bool:
     return True
 
 
+def _fts_phrase(query: str) -> str:
+    """把查询包成 FTS5 短语字面量, 中和 + - . ( ) OR AND 等操作符。"""
+    return '"' + query.replace('"', '""') + '"'
+
+
 def _build_snippet(content: str, query: str, *, radius: int = 40) -> str:
     """为短查询回退路径构造命中片段。"""
     index = content.find(query)
@@ -146,7 +151,7 @@ class WorkspaceDocumentRepository:
             params["path_prefix"] = f"{path_prefix}%"
 
         if len(keyword) >= 3:
-            params["query"] = keyword
+            params["query"] = _fts_phrase(keyword)
             result = await self._session.execute(
                 text(
                     "SELECT rel_path, "
