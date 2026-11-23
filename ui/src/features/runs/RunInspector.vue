@@ -134,16 +134,13 @@ function date(value: string | null) {
           class="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-4"
         >
           <p class="break-all text-sm font-medium">{{ item.path }}</p>
-          <p class="mt-1 text-xs text-muted-foreground">
-            {{ item.mode }} · {{ item.bytes }} 字节
-          </p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ item.mode }} · {{ item.bytes }} 字节</p>
           <details class="mt-2 text-xs" @toggle="loadPreview(item.callId)">
             <summary class="cursor-pointer text-muted-foreground">查看改动预览</summary>
             <pre
               v-if="previews[item.callId]?.diff"
               class="mt-2 max-h-56 overflow-auto rounded-lg bg-secondary p-3"
-              >{{ previews[item.callId]?.diff }}</pre
-            >
+              >{{ previews[item.callId]?.diff }}</pre>
             <p v-else class="mt-2 text-muted-foreground">
               {{ previews[item.callId]?.exists === false ? '将新建文件。' : '加载中或无差异。' }}
             </p>

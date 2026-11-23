@@ -40,11 +40,7 @@ export interface WorkspaceController {
 }
 
 // 控制器只保留界面需要的观察状态，不复制后端事实。
-export function createWorkspaceController({
-  client,
-}: {
-  client: CoreClient
-}): WorkspaceController {
+export function createWorkspaceController({ client }: { client: CoreClient }): WorkspaceController {
   const state = reactive<WorkspaceState>({
     workspaces: [],
     active: null,
