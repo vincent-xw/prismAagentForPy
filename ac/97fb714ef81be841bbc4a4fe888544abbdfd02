@@ -1,0 +1,18 @@
+backend/src/prism_agent_kit/tools/contracts.py
+  h_c3a612a540ca0b 4,26-28,66
+backend/src/prism_agent_kit/tools/workspace_tools.py
+  h_c3a612a540ca0b 1-306
+backend/tests/tools/test_workspace_tools.py
+  h_c3a612a540ca0b 1-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ac97fb714ef81be841bbc4a4fe888544abbdfd02",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
