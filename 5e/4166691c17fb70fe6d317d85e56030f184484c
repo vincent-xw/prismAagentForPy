@@ -1,0 +1,16 @@
+backend/src/prism_agent_kit/core/workspace_paths.py
+  h_c3a612a540ca0b 1-36
+backend/tests/core/test_workspace_paths.py
+  h_c3a612a540ca0b 1-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5e4166691c17fb70fe6d317d85e56030f184484c",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
