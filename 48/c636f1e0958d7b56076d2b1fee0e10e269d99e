@@ -1,0 +1,32 @@
+ui/README.md
+  h_c3a612a540ca0b 59-60
+ui/src/features/runs/ExecutionPage.vue
+  h_c3a612a540ca0b 41-43
+ui/src/features/runs/RunInspector.vue
+  h_c3a612a540ca0b 69-76
+ui/src/features/runs/projection.ts
+  h_c3a612a540ca0b 95
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 162-166
+ui/src/lib/api/sse.ts
+  h_c3a612a540ca0b 100-103
+ui/tests/unit/contracts.test.ts
+  h_c3a612a540ca0b 80-94
+ui/tests/unit/run-projection.test.ts
+  h_c3a612a540ca0b 120-150
+ui/tests/unit/sse-tolerance.test.ts
+  h_c3a612a540ca0b 1-31
+ui/tests/unit/sse.test.ts
+  h_c3a612a540ca0b 39,57-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "48c636f1e0958d7b56076d2b1fee0e10e269d99e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
