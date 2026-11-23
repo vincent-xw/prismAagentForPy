@@ -1,0 +1,24 @@
+ui/src/features/runs/RunInspector.vue
+  h_c3a612a540ca0b 14
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 53
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 3-4,6,10,14-17,129-198
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 16-25,58-121,168-184,212-218
+ui/tests/support/fixtures.ts
+  h_c3a612a540ca0b 13
+ui/tests/unit/contracts.test.ts
+  h_c3a612a540ca0b 2-8,36-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "721df961a325b9eb2561b7cbd06e86c7f304862e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
