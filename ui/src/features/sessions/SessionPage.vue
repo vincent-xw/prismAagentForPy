@@ -88,6 +88,15 @@ const labels = {
           >重新读取会话</Button
         >
       </div>
+      <button
+        v-if="(active ?? projection)?.run.status === 'waiting_for_approval'"
+        type="button"
+        class="flex w-full items-center justify-between gap-2 border-b bg-primary/5 px-5 py-2 text-left text-xs"
+        @click="inspect((active ?? projection)!.run.id)"
+      >
+        <span>等待你确认写入{{ (active ?? projection)!.run.status === 'waiting_for_approval' ? '' : '' }}</span>
+        <span class="font-medium text-primary">去处理</span>
+      </button>
       <MessageList
         :messages="messages"
         :projection="active ?? projection"

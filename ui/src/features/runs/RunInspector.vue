@@ -1,11 +1,48 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RotateCw, X } from '@lucide/vue'
+import { useAppContext } from '@/app/context'
 import { Button } from '@/components/ui/button'
 import type { RunProjection } from './projection'
 import type { RunDto } from '@/lib/api/contracts'
 import ToolCallCard from './ToolCallCard.vue'
-defineProps<{ projection: RunProjection | null }>()
+const props = defineProps<{ projection: RunProjection | null }>()
 const emit = defineEmits<{ close: []; refresh: [] }>()
+const { client } = useAppContext()
+interface PreviewState {
+  exists: boolean
+  diff: string | null
+  truncated: boolean
+}
+const previews = ref<Record<string, PreviewState>>({})
+const busyCallId = ref<string | null>(null)
+
+async function loadPreview(callId: string): Promise<void> {
+  if (props.projection === null || previews.value[callId] !== undefined) return
+  try {
+    const preview = await client.getApprovalPreview(props.projection.run.id, callId)
+    previews.value = {
+      ...previews.value,
+      [callId]: { exists: preview.exists, diff: preview.diff, truncated: preview.truncated },
+    }
+  } catch {
+    previews.value = {
+      ...previews.value,
+      [callId]: { exists: false, diff: null, truncated: false },
+    }
+  }
+}
+
+async function decide(callId: string, decision: 'approve' | 'reject'): Promise<void> {
+  if (props.projection === null) return
+  busyCallId.value = callId
+  try {
+    await client.decideApproval(props.projection.run.id, callId, decision, null)
+    emit('refresh')
+  } finally {
+    busyCallId.value = null
+  }
+}
 export type RunLabels = Record<RunDto['status'], string>
 const labels: RunLabels = {
   queued: '排队中',
@@ -85,6 +122,48 @@ function date(value: string | null) {
       >
         <p class="font-mono">{{ projection.run.error_code }}</p>
         {{ projection.run.error_message }}
+      </div>
+      <div v-if="projection.pendingApprovals.length" class="border-t pt-5">
+        <h3 class="text-xs font-medium">
+          待确认写入
+          <span class="ml-1 text-muted-foreground">{{ projection.pendingApprovals.length }}</span>
+        </h3>
+        <div
+          v-for="item in projection.pendingApprovals"
+          :key="item.callId"
+          class="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-4"
+        >
+          <p class="break-all text-sm font-medium">{{ item.path }}</p>
+          <p class="mt-1 text-xs text-muted-foreground">
+            {{ item.mode }} · {{ item.bytes }} 字节
+          </p>
+          <details class="mt-2 text-xs" @toggle="loadPreview(item.callId)">
+            <summary class="cursor-pointer text-muted-foreground">查看改动预览</summary>
+            <pre
+              v-if="previews[item.callId]?.diff"
+              class="mt-2 max-h-56 overflow-auto rounded-lg bg-secondary p-3"
+              >{{ previews[item.callId]?.diff }}</pre
+            >
+            <p v-else class="mt-2 text-muted-foreground">
+              {{ previews[item.callId]?.exists === false ? '将新建文件。' : '加载中或无差异。' }}
+            </p>
+          </details>
+          <div class="mt-3 flex gap-2">
+            <Button
+              size="sm"
+              :disabled="busyCallId === item.callId"
+              @click="decide(item.callId, 'approve')"
+              >允许写入</Button
+            >
+            <Button
+              variant="outline"
+              size="sm"
+              :disabled="busyCallId === item.callId"
+              @click="decide(item.callId, 'reject')"
+              >拒绝</Button
+            >
+          </div>
+        </div>
       </div>
       <h3 class="border-t pt-5 text-xs font-medium">
         工具调用 <span class="ml-1 text-muted-foreground">{{ projection.tools.length }}</span>

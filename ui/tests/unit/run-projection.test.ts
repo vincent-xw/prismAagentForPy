@@ -90,3 +90,30 @@ test.each([
   reconcileRunMessages(restored, messages)
   expect(restored.tools).toEqual(state.tools)
 })
+
+import { createRunProjection as _createRunProjection } from '@/features/runs/projection'
+import { runDto as _runDto } from '../support/fixtures'
+
+test('从事件投影出待审批调用并在批准后移除', () => {
+  const state = _createRunProjection(_runDto())
+  const required = applyRunEvent(state, {
+    id: '1',
+    type: 'tool.approval_required',
+    run_id: 'r1',
+    call_id: 'c1',
+    tool_name: 'file_write',
+    path: 'a.md',
+    mode: 'overwrite',
+    bytes: 3,
+  } as never)
+  expect(required.pendingApprovals).toEqual([
+    { callId: 'c1', toolName: 'file_write', path: 'a.md', mode: 'overwrite', bytes: 3 },
+  ])
+  const approved = applyRunEvent(state, {
+    id: '2',
+    type: 'tool.approved',
+    run_id: 'r1',
+    call_id: 'c1',
+  } as never)
+  expect(approved.pendingApprovals).toEqual([])
+})
