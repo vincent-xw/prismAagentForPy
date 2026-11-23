@@ -25,6 +25,7 @@ def make_settings(database_path: Path, **overrides: object) -> Settings:
     values: dict[str, object] = {
         "database_path": database_path,
         "environment": "test",
+        "api_token": None,
         "model_name": "test-model",
         "model_base_url": "https://example.test/v1",
         "model_api_key": SecretStr("test-key"),
@@ -232,3 +233,50 @@ async def test_container_secures_new_database_directory_before_file_lock(
         assert stat.S_IMODE(database_path.stat().st_mode) == 0o600
     finally:
         await container.stop()
+
+
+def test_e2e_write_requires_approval_then_completes(
+    migrated_database_path: Path,
+    tmp_path: Path,
+) -> None:
+    """完整链路：模型请求写文件 → Run 等审批 → 批准 → 文件落盘且 Run 完成。"""
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                text="",
+                reasoning=None,
+                tool_calls=[
+                    ToolCallDraft(
+                        call_id="c1",
+                        tool_name="file_write",
+                        input={"path": "notes.md", "content": "hello", "mode": "overwrite"},
+                    )
+                ],
+            ),
+            ModelResponse(text="done", reasoning=None, tool_calls=[]),
+        ]
+    )
+    settings = make_settings(migrated_database_path, api_token=None)
+    container = ApplicationContainer(settings, model_provider=provider)
+    application = create_app(settings, container_factory=lambda _: container)
+    workspace_root = tmp_path / "ws"
+    workspace_root.mkdir()
+
+    with TestClient(application) as client:
+        created = client.post("/api/v1/workspaces", json={"path": str(workspace_root)})
+        assert created.status_code == 200
+        session = client.post("/api/v1/sessions", json={"title": "demo"}).json()
+        run = client.post(
+            f"/api/v1/sessions/{session['id']}/runs",
+            json={"input": "write notes"},
+        ).json()
+
+        wait_for_run_status(client, run["id"], {"waiting_for_approval"})
+        approval = client.post(
+            f"/api/v1/runs/{run['id']}/tool-calls/c1/approval",
+            json={"decision": "approve"},
+        )
+        assert approval.status_code == 200, approval.text
+        wait_for_run_status(client, run["id"], {"succeeded"})
+
+    assert (workspace_root / "notes.md").read_text(encoding="utf-8") == "hello"

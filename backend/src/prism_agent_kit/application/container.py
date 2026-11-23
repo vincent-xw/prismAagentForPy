@@ -159,8 +159,10 @@ class ApplicationContainer:
             )
             event_bus = RunEventBus(self._make_replay_loader(uow_factory))
             tool_registry = self._provided_tool_registry or ToolRegistry()
+            existing_tool_names = {item.name for item in tool_registry.list_tools()}
             for workspace_tool in build_workspace_tools():
-                tool_registry.register(workspace_tool)
+                if workspace_tool.name not in existing_tool_names:
+                    tool_registry.register(workspace_tool)
             cancellation_registry = RunCancellationRegistry()
             tool_result_recorder = ToolResultRecorder(
                 uow_factory=uow_factory,

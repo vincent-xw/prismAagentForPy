@@ -26,6 +26,8 @@
 - Session / Run / Message / ToolCall / RunEvent 领域与 API。
 - 自研 `SimpleAgentEngine`，支持 OpenAI-compatible 流式模型调用。
 - 进程内本地工具、外部宿主回填的远端工具、多工具循环。
+- 本地工作区绑定、FTS5 全文检索、`file_list`/`file_read`/`file_search`/`file_write` 工具。
+- 写入审批：`file_write` 需用户在界面确认后才落盘，审批超时自动回收。
 - SSE 持久事件重放与临时增量、取消、超时、进程恢复。
 
 **Vue UI**
@@ -34,8 +36,10 @@
 - 设置页服务连接、API Token 会话级保存、只读工具目录。
 - 浅色 / 深色 / 跟随系统主题与响应式侧边说明面板。
 - 基于真实 HTTP 契约与 SSE 事件，不以 Mock 冒充后端能力。
+- 工作区页：选择/切换目录、文件树、文本预览、内容检索与索引状态。
+- 会话页写入审批卡片与等待确认提示。
 
-当前**不包含**：MCP Client、Workspace、RAG、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
+当前**不包含**：MCP Client、向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
 ## 快速开始
 
@@ -98,4 +102,5 @@ pnpm dev
 - [x] 前后端分目录的 Monorepo 结构
 - [x] Core 与 UI 技术设计、实施计划及验证记录
 - [ ] 补充 Node.js 原版仓库链接
-- [ ] 后续按明确范围迁移 MCP、Workspace 等能力
+- [x] 第二部分：工作区、文件工具与写入审批
+- [ ] 后续按明确范围迁移 MCP 等能力

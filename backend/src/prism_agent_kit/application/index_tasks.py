@@ -8,6 +8,8 @@ from typing import Literal
 
 from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
 from prism_agent_kit.core.enums import IndexStatus
+from sqlalchemy.exc import OperationalError
+
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 
 
@@ -73,13 +75,17 @@ class WorkspaceIndexTaskManager:
 
     async def reset_interrupted(self) -> int:
         """把上次进程遗留的 indexing 状态复位为 failed。"""
-        async with self._uow_factory() as uow:
-            workspaces = await uow.workspaces.list_with_status(IndexStatus.INDEXING)
-            for workspace in workspaces:
-                await uow.workspaces.update_index_state(
-                    workspace.id,
-                    status=IndexStatus.FAILED,
-                    error="process_interrupted",
-                )
-            await uow.commit()
+        try:
+            async with self._uow_factory() as uow:
+                workspaces = await uow.workspaces.list_with_status(IndexStatus.INDEXING)
+                for workspace in workspaces:
+                    await uow.workspaces.update_index_state(
+                        workspace.id,
+                        status=IndexStatus.FAILED,
+                        error="process_interrupted",
+                    )
+                await uow.commit()
+        except OperationalError:
+            # 数据库尚未迁移（例如容器首次启动前）时没有索引状态可复位。
+            return 0
         return len(workspaces)
