@@ -1,12 +1,20 @@
 import type { z } from 'zod'
 import {
+  approvalPreviewSchema,
+  approvalResponseSchema,
   errorSchema,
+  fileResponseSchema,
   healthSchema,
   messagesSchema,
   runSchema,
+  searchResponseSchema,
   sessionSchema,
   sessionsSchema,
   toolsSchema,
+  treeResponseSchema,
+  workspaceListSchema,
+  workspacePickSchema,
+  workspaceSchema,
 } from './contracts'
 
 export class CoreApiError extends Error {
@@ -118,6 +126,76 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
     cancelRun: (id: string, signal?: AbortSignal) =>
       request(`/runs/${encodeURIComponent(id)}/cancel`, runSchema, 'POST', undefined, signal),
     listTools: (signal?: AbortSignal) => request('/tools', toolsSchema, 'GET', undefined, signal),
+    listWorkspaces: (signal?: AbortSignal) =>
+      request('/workspaces', workspaceListSchema, 'GET', undefined, signal),
+    pickWorkspace: (signal?: AbortSignal) =>
+      request('/workspaces/pick', workspacePickSchema, 'POST', undefined, signal),
+    createWorkspace: (path: string, label: string | null, signal?: AbortSignal) =>
+      request('/workspaces', workspaceSchema, 'POST', { path, label }, signal),
+    getWorkspace: (id: string, signal?: AbortSignal) =>
+      request(`/workspaces/${encodeURIComponent(id)}`, workspaceSchema, 'GET', undefined, signal),
+    activateWorkspace: (id: string, signal?: AbortSignal) =>
+      request(
+        `/workspaces/${encodeURIComponent(id)}/activate`,
+        workspaceSchema,
+        'POST',
+        undefined,
+        signal,
+      ),
+    reindexWorkspace: (id: string, signal?: AbortSignal) =>
+      request(
+        `/workspaces/${encodeURIComponent(id)}/reindex`,
+        workspaceSchema,
+        'POST',
+        undefined,
+        signal,
+      ),
+    getTree: (id: string, path: string, signal?: AbortSignal) =>
+      request(
+        `/workspaces/${encodeURIComponent(id)}/tree?path=${encodeURIComponent(path)}`,
+        treeResponseSchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    getFile: (id: string, path: string, signal?: AbortSignal) =>
+      request(
+        `/workspaces/${encodeURIComponent(id)}/file?path=${encodeURIComponent(path)}`,
+        fileResponseSchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    searchWorkspace: (id: string, query: string, signal?: AbortSignal) =>
+      request(
+        `/workspaces/${encodeURIComponent(id)}/search?q=${encodeURIComponent(query)}`,
+        searchResponseSchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    getApprovalPreview: (runId: string, callId: string, signal?: AbortSignal) =>
+      request(
+        `/runs/${encodeURIComponent(runId)}/tool-calls/${encodeURIComponent(callId)}/preview`,
+        approvalPreviewSchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    decideApproval: (
+      runId: string,
+      callId: string,
+      decision: 'approve' | 'reject',
+      reason: string | null,
+      signal?: AbortSignal,
+    ) =>
+      request(
+        `/runs/${encodeURIComponent(runId)}/tool-calls/${encodeURIComponent(callId)}/approval`,
+        approvalResponseSchema,
+        'POST',
+        { decision, reason },
+        signal,
+      ),
   }
 }
 export type CoreClient = ReturnType<typeof createCoreClient>

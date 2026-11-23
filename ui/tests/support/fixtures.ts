@@ -10,6 +10,7 @@ export function runDto(overrides: Partial<RunDto> = {}): RunDto {
     id: 'r1',
     session_id: 's1',
     status: 'running',
+    workspace_id: null,
     input: '你好',
     prompt_ref: 'default',
     model: 'test-model',

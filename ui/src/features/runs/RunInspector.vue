@@ -11,6 +11,7 @@ const labels: RunLabels = {
   queued: '排队中',
   running: '运行中',
   waiting_for_tool: '等待外部工具结果',
+  waiting_for_approval: '等待确认写入',
   succeeded: '已完成',
   failed: '执行失败',
   cancelled: '已停止',
