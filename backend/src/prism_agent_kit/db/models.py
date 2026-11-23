@@ -42,6 +42,10 @@ class SessionRow(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     title: Mapped[str | None] = mapped_column(String(255))
+    workspace_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("workspaces.id", ondelete="SET NULL"),
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 

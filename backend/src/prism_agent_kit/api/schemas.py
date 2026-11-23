@@ -19,6 +19,7 @@ class SessionView(BaseModel):
 
     id: str
     title: str | None
+    workspace_id: str | None
     created_at: datetime
     updated_at: datetime
 
@@ -27,6 +28,7 @@ class SessionView(BaseModel):
         return cls(
             id=session.id,
             title=session.title,
+            workspace_id=session.workspace_id,
             created_at=session.created_at,
             updated_at=session.updated_at,
         )

@@ -184,3 +184,61 @@ def test_workspace_schema_applied(migrated_database_path: Path) -> None:
             "SELECT sql FROM sqlite_master WHERE name = 'workspace_documents'"
         ).fetchone()[0]
         assert "trigram" in fts_sql
+
+
+def test_session_workspace_backfilled_from_first_run(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database_path = tmp_path / "backfill.db"
+    monkeypatch.setenv("PRISM_AGENT_KIT_DATABASE_PATH", str(database_path))
+    get_settings.cache_clear()
+    config = Config("alembic.ini")
+    try:
+        command.upgrade(config, "20261123_0003")
+        with sqlite3.connect(database_path) as connection:
+            connection.execute(
+                "INSERT INTO workspaces (id, root_path, label, is_active, "
+                "index_status, file_count, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    "ws-1",
+                    "/tmp/project-a",
+                    "project-a",
+                    0,
+                    "idle",
+                    0,
+                    "2026-11-23 00:00:00",
+                    "2026-11-23 00:00:00",
+                ),
+            )
+            connection.execute(
+                "INSERT INTO sessions (id, title, created_at, updated_at) VALUES (?, ?, ?, ?)",
+                ("session-1", "demo", "2026-11-23 00:00:00", "2026-11-23 00:00:00"),
+            )
+            connection.execute(
+                "INSERT INTO runs (id, session_id, workspace_id, status, input_text, "
+                "prompt_name, prompt_version, system_prompt, model, step_count, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    "run-1",
+                    "session-1",
+                    "ws-1",
+                    "succeeded",
+                    "hi",
+                    "default",
+                    "1",
+                    "system",
+                    "m",
+                    1,
+                    "2026-11-23 00:00:01",
+                ),
+            )
+        command.upgrade(config, "head")
+        with sqlite3.connect(database_path) as connection:
+            row = connection.execute(
+                "SELECT workspace_id FROM sessions WHERE id = 'session-1'"
+            ).fetchone()
+        assert row is not None and row[0] == "ws-1"
+    finally:
+        get_settings.cache_clear()

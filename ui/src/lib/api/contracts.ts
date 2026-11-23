@@ -7,6 +7,7 @@ const jsonObject = z.record(z.string(), z.json())
 export const sessionSchema = z.object({
   id,
   title: z.string().nullable(),
+  workspace_id: id.nullable(),
   created_at: date,
   updated_at: date,
 })

@@ -73,3 +73,7 @@ test('解析审批相关事件', () => {
   })
   expect(waiting.type).toBe('run.waiting_for_approval')
 })
+
+test('会话 DTO 携带工作区绑定', () => {
+  expect(sessionSchema.parse({ ...sessionDto(), workspace_id: 'w1' }).workspace_id).toBe('w1')
+})

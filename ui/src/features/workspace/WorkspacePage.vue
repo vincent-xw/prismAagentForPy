@@ -73,7 +73,9 @@ onUnmounted(stopPolling)
     <section class="rounded-xl border p-4">
       <div class="flex flex-wrap items-center gap-3">
         <div class="min-w-0 flex-1">
-          <p class="text-xs text-muted-foreground">当前工作区</p>
+          <p class="text-xs text-muted-foreground">
+            当前工作区<span class="ml-1">（用于新建会话，已有会话保持原绑定）</span>
+          </p>
           <p class="truncate text-sm font-medium">
             {{ state.active?.root_path ?? '尚未选择目录' }}
           </p>

@@ -26,7 +26,7 @@
 - Session / Run / Message / ToolCall / RunEvent 领域与 API。
 - 自研 `SimpleAgentEngine`，支持 OpenAI-compatible 流式模型调用。
 - 进程内本地工具、外部宿主回填的远端工具、多工具循环。
-- 本地工作区绑定、FTS5 全文检索、`file_list`/`file_read`/`file_search`/`file_write` 工具。
+- 会话绑定工作区（新建会话取当前活跃工作区，Run 继承会话绑定）、FTS5 全文检索、`file_list`/`file_read`/`file_search`/`file_write` 工具。
 - 写入审批：`file_write` 需用户在界面确认后才落盘，审批超时自动回收。
 - SSE 持久事件重放与临时增量、取消、超时、进程恢复。
 

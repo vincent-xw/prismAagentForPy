@@ -9,13 +9,22 @@ from prism_agent_kit.db.uow import UnitOfWorkFactory
 class SessionService:
     """管理 Session 与消息查询的应用服务。"""
 
-    def __init__(self, uow_factory: UnitOfWorkFactory) -> None:
+    def __init__(
+        self,
+        uow_factory: UnitOfWorkFactory,
+        workspace_service: object | None = None,
+    ) -> None:
         self._uow_factory = uow_factory
+        self._workspace_service = workspace_service
 
     async def create(self, title: str | None = None) -> Session:
-        """创建并提交一个 Session。"""
+        """创建并提交一个 Session，并绑定创建时的活跃工作区。"""
+        workspace_id = None
+        if self._workspace_service is not None:
+            active = await self._workspace_service.active()  # type: ignore[attr-defined]
+            workspace_id = active.id if active is not None else None
         async with self._uow_factory() as uow:
-            session = await uow.sessions.create(title=title)
+            session = await uow.sessions.create(title=title, workspace_id=workspace_id)
             await uow.commit()
         return session
 

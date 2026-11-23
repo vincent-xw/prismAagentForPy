@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useAppContext } from '@/app/context'
 import { isTerminal } from '@/lib/api/contracts'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,7 @@ import {
 import MessageList from './MessageList.vue'
 import MessageComposer from './MessageComposer.vue'
 import RunInspector from '@/features/runs/RunInspector.vue'
-const { conversation, connection } = useAppContext()
+const { conversation, connection, client } = useAppContext()
 const inspectorOpen = ref(false)
 const isNarrow = ref(window.matchMedia('(max-width: 767px)').matches)
 const media = window.matchMedia('(max-width: 767px)')
@@ -24,6 +24,38 @@ const onMedia = () => {
 onMounted(() => media.addEventListener('change', onMedia))
 onUnmounted(() => media.removeEventListener('change', onMedia))
 const state = computed(() => conversation.value!.state)
+const workspaceLabel = ref<string | null>(null)
+
+// 只用于展示当前会话绑定的工作区，加载失败不打断主流程。
+async function loadWorkspaceLabel(): Promise<void> {
+  const sessionId = state.value.selectedSessionId
+  if (!sessionId || client === undefined) {
+    workspaceLabel.value = null
+    return
+  }
+  const session = state.value.sessions.find((item) => item.id === sessionId)
+  if (!session?.workspace_id) {
+    workspaceLabel.value = null
+    return
+  }
+  try {
+    const list = await client.listWorkspaces()
+    const workspace = list.items.find((item) => item.id === session.workspace_id)
+    workspaceLabel.value =
+      workspace === undefined
+        ? null
+        : (workspace.label ??
+          workspace.root_path.split('/').filter(Boolean).pop() ??
+          workspace.root_path)
+  } catch {
+    workspaceLabel.value = null
+  }
+}
+watch(
+  () => state.value.selectedSessionId,
+  () => void loadWorkspaceLabel(),
+  { immediate: true },
+)
 const projection = computed(() =>
   state.value.selectedRunId ? (state.value.runs[state.value.selectedRunId] ?? null) : null,
 )
@@ -112,7 +144,9 @@ const labels = {
         role="status"
         class="mx-auto flex w-full max-w-3xl items-center gap-2 px-7 text-xs text-muted-foreground"
       >
-        <span class="size-1.5 animate-pulse rounded-full bg-primary" />{{
+        <span v-if="workspaceLabel" class="truncate text-muted-foreground"
+          >工作区：{{ workspaceLabel }} ·</span
+        ><span class="size-1.5 animate-pulse rounded-full bg-primary" />{{
           active
             ? active.run.cancel_requested_at
               ? '等待停止确认'

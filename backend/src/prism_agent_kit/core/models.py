@@ -22,6 +22,7 @@ class Session(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid4()))
     title: str | None = None
+    workspace_id: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

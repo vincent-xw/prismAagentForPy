@@ -45,6 +45,7 @@ def session_to_row(session: Session) -> SessionRow:
     return SessionRow(
         id=session.id,
         title=session.title,
+        workspace_id=session.workspace_id,
         created_at=_to_storage(session.created_at),
         updated_at=_to_storage(session.updated_at),
     )
@@ -55,6 +56,7 @@ def session_to_domain(row: SessionRow) -> Session:
     return Session(
         id=row.id,
         title=row.title,
+        workspace_id=row.workspace_id,
         created_at=_from_storage(row.created_at),
         updated_at=_from_storage(row.updated_at),
     )

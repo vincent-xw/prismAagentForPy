@@ -15,9 +15,14 @@ class SessionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def create(self, *, title: str | None = None) -> Session:
+    async def create(
+        self,
+        *,
+        title: str | None = None,
+        workspace_id: str | None = None,
+    ) -> Session:
         """创建并暂存一个 Session。由调用方决定是否提交。"""
-        domain = Session(title=title)
+        domain = Session(title=title, workspace_id=workspace_id)
         self._session.add(session_to_row(domain))
         await self._session.flush()
         return domain

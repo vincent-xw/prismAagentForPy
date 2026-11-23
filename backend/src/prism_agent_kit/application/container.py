@@ -243,7 +243,10 @@ class ApplicationContainer:
                     self.settings.workspace_tool_approval_timeout_seconds
                 ),
             )
-            session_service = SessionService(uow_factory)
+            session_service = SessionService(
+                uow_factory,
+                workspace_service=workspace_service,
+            )
             run_service = RunService(
                 uow_factory=uow_factory,
                 prompt_registry=prompts,
@@ -254,7 +257,6 @@ class ApplicationContainer:
                 default_prompt_ref=self.settings.default_prompt_ref,
                 event_publisher=event_bus,
                 cancellation_registry=cancellation_registry,
-                workspace_service=workspace_service,
             )
             tool_result_service = ToolResultService(
                 uow_factory=uow_factory,
