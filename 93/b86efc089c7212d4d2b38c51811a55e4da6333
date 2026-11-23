@@ -1,0 +1,22 @@
+ui/src/features/runs/RunInspector.vue
+  h_c3a612a540ca0b 2,4,9,11-45,126-167
+ui/src/features/runs/ToolCallCard.vue
+  h_c3a612a540ca0b 7,36
+ui/src/features/runs/projection.ts
+  h_c3a612a540ca0b 10-24,45,56,104-123,127-129
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 91-99
+ui/tests/unit/run-projection.test.ts
+  h_c3a612a540ca0b 93-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "93b86efc089c7212d4d2b38c51811a55e4da6333",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
