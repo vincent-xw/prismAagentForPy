@@ -16,6 +16,7 @@ from prism_agent_kit.core.enums import (
 )
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, RunEvent, ToolCall, utc_now
+from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.core.ports import (
     EventEnvelope,
     EventPublisher,
@@ -98,6 +99,7 @@ class SimpleAgentEngine:
         max_output_tokens: int | None,
         remote_tool_timeout_seconds: float,
         tool_timeout_seconds: float | None = None,
+        tool_result_recorder: ToolResultRecorder | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._model_provider = model_provider
@@ -109,6 +111,10 @@ class SimpleAgentEngine:
         self._max_output_tokens = max_output_tokens
         self._remote_tool_timeout_seconds = remote_tool_timeout_seconds
         self._tool_timeout_seconds = tool_timeout_seconds
+        self._tool_result_recorder = tool_result_recorder or ToolResultRecorder(
+            uow_factory=uow_factory,
+            event_publisher=event_publisher,
+        )
 
     async def execute(self, context: EngineContext) -> EngineOutcome:
         """执行一次已 claim 的 Run。"""
@@ -438,30 +444,8 @@ class SimpleAgentEngine:
         call_id: str,
         result: ToolExecutionResult,
     ) -> None:
-        """把单次本地工具结果与其事件提交到数据库。"""
-        async with self._uow_factory() as uow:
-            previous_event_id = await uow.events.last_id(run_id)
-            if result.ok:
-                await uow.tool_calls.complete(run_id, call_id, result.output)
-            else:
-                if result.error_code is None:
-                    raise AgentKitError(
-                        ErrorCode.INTERNAL_ERROR,
-                        "工具失败结果缺少错误码",
-                        http_status=500,
-                    )
-                await uow.tool_calls.fail(
-                    run_id,
-                    call_id,
-                    result.error_code,
-                    result.error_message or "工具执行失败",
-                )
-            new_events = await uow.events.list_after(
-                run_id,
-                after_id=previous_event_id,
-            )
-            await uow.commit()
-        await self._publish_events(new_events)
+        """把单次本地工具结果委托给共享记录器，保持事件与历史写法一致。"""
+        await self._tool_result_recorder.record(run_id, call_id, result)
 
     async def _fail_after_contract(
         self,
