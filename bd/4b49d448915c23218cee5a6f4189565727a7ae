@@ -1,0 +1,22 @@
+backend/src/prism_agent_kit/core/workspace.py
+  h_c3a612a540ca0b 1-22
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 10,12,19,199-230
+backend/src/prism_agent_kit/db/repositories/workspaces.py
+  h_c3a612a540ca0b 1-129
+backend/src/prism_agent_kit/db/uow.py
+  h_c3a612a540ca0b 11,25,35
+backend/tests/db/test_workspace_repository.py
+  h_c3a612a540ca0b 1-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "bd4b49d448915c23218cee5a6f4189565727a7ae",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
