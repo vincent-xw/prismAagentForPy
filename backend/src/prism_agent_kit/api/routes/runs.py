@@ -7,12 +7,16 @@ from sse_starlette.event import ServerSentEvent
 from sse_starlette.sse import EventSourceResponse
 
 from prism_agent_kit.api.dependencies import (
+    ToolApprovalServiceDependency,
     EventBusDependency,
     RunServiceDependency,
     SettingsDependency,
     ToolResultServiceDependency,
 )
 from prism_agent_kit.api.schemas import (
+    ApprovalPreviewView,
+    ApprovalRequest,
+    ApprovalResponse,
     RunCreate,
     RunView,
     ToolCallView,
@@ -174,6 +178,45 @@ def create_runs_router() -> APIRouter:
             ),
         )
         return ToolCallView.from_domain(call)
+
+    @router.get(
+        "/runs/{run_id}/tool-calls/{call_id}/preview",
+        response_model=ApprovalPreviewView,
+        summary="获取写入预览",
+    )
+    async def preview_tool_call(
+        run_id: str,
+        call_id: str,
+        service: ToolApprovalServiceDependency,
+    ) -> ApprovalPreviewView:
+        preview = await service.preview(run_id, call_id)
+        return ApprovalPreviewView(
+            path=preview.path,
+            mode=preview.mode,
+            bytes=preview.bytes,
+            exists=preview.exists,
+            diff=preview.diff,
+            truncated=preview.truncated,
+        )
+
+    @router.post(
+        "/runs/{run_id}/tool-calls/{call_id}/approval",
+        response_model=ApprovalResponse,
+        summary="审批写入",
+    )
+    async def decide_approval(
+        run_id: str,
+        call_id: str,
+        payload: ApprovalRequest,
+        service: ToolApprovalServiceDependency,
+    ) -> ApprovalResponse:
+        call, run = await service.decide(
+            run_id, call_id, payload.decision, payload.reason
+        )
+        return ApprovalResponse(
+            call=ToolCallView.from_domain(call),
+            run=RunView.from_domain(run),
+        )
 
     @router.get("/runs/{run_id}/events", summary="订阅 Run 事件流")
     async def stream_run_events(

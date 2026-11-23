@@ -15,14 +15,21 @@ from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
+from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
+from prism_agent_kit.application.tool_approval_service import ToolApprovalService
+from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
+from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
+from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.ports import EventEnvelope
 from prism_agent_kit.core.prompts import PromptRegistry
 from prism_agent_kit.db.database import Database
 from prism_agent_kit.db.uow import UnitOfWorkFactory
+from prism_agent_kit.tools.executor import LocalToolExecutor
 from prism_agent_kit.tools.registry import ToolRegistry
 from prism_agent_kit.tools.testing import echo_tool, wait_for_host_tool
+from prism_agent_kit.tools.workspace_tools import build_workspace_tools
 
 
 @dataclass(frozen=True)
@@ -46,6 +53,9 @@ class ApiTestContainer:
     session_service: SessionService
     run_service: RunService
     tool_result_service: ToolResultService
+    workspace_service: WorkspaceService
+    tool_approval_service: ToolApprovalService
+    workspace_fts_supported: bool = True
 
 
 def build_api_application(
@@ -92,6 +102,28 @@ def build_api_application(
     tool_registry = ToolRegistry()
     tool_registry.register(echo_tool())
     tool_registry.register(wait_for_host_tool())
+    for workspace_tool in build_workspace_tools():
+        tool_registry.register(workspace_tool)
+    tool_result_recorder = ToolResultRecorder(
+        uow_factory=uow_factory, event_publisher=event_bus
+    )
+    indexer = WorkspaceIndexer(uow_factory=uow_factory)
+    index_tasks = WorkspaceIndexTaskManager(indexer=indexer, uow_factory=uow_factory)
+    workspace_service = WorkspaceService(
+        uow_factory=uow_factory,
+        index_tasks=index_tasks,
+        data_dir=database_path.parent,
+    )
+    tool_approval_service = ToolApprovalService(
+        uow_factory=uow_factory,
+        tool_registry=tool_registry,
+        tool_executor=LocalToolExecutor(),
+        tool_result_recorder=tool_result_recorder,
+        workspace_service=workspace_service,
+        index_tasks=index_tasks,
+        event_publisher=event_bus,
+        cancellation_registry=cancellation_registry,
+    )
     run_service = RunService(
         uow_factory=uow_factory,
         prompt_registry=prompts,
@@ -122,6 +154,8 @@ def build_api_application(
         session_service=session_service,
         run_service=run_service,
         tool_result_service=tool_result_service,
+        workspace_service=workspace_service,
+        tool_approval_service=tool_approval_service,
     )
     application.add_middleware(RequestIdMiddleware)
     install_exception_handlers(application)
@@ -165,3 +199,11 @@ async def api_context(migrated_database_path: Path) -> AsyncIterator[ApiTestCont
             cancellation_registry=cancellation_registry,
             tool_registry=tool_registry,
         )
+
+
+@pytest.fixture
+def api_env(migrated_database_path: Path) -> Iterator[tuple[TestClient, UnitOfWorkFactory]]:
+    """提供客户端与其绑定的工作单元工厂，便于在测试里造数。"""
+    application, uow_factory, _, _, _ = build_api_application(migrated_database_path)
+    with TestClient(application) as client:
+        yield client, uow_factory

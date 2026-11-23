@@ -263,7 +263,7 @@ class WorkspaceService:
                 http_status=400,
                 details={"path": str(root)},
             )
-        if self._data_dir in root.parents or root in self._data_dir.parents:
+        if root in self._data_dir.parents:
             raise AgentKitError(
                 ErrorCode.WORKSPACE_PATH_INVALID,
                 "工作区与应用数据目录不能重叠",

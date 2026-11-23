@@ -31,6 +31,7 @@ class RunService:
         default_prompt_ref: str,
         event_publisher: EventPublisher,
         cancellation_registry: RunCancellationRegistry,
+        workspace_service: object | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._prompt_registry = prompt_registry
@@ -38,6 +39,7 @@ class RunService:
         self._default_prompt_ref = default_prompt_ref
         self._event_publisher = event_publisher
         self._cancellation_registry = cancellation_registry
+        self._workspace_service = workspace_service
 
     async def create(
         self,
@@ -49,11 +51,16 @@ class RunService:
     ) -> Run:
         """在单个事务中创建 user Message、Run 和排队事件。"""
         prompt = self._resolve_prompt(prompt_ref)
+        workspace_id = None
+        if self._workspace_service is not None:
+            active = await self._workspace_service.active()  # type: ignore[attr-defined]
+            workspace_id = active.id if active is not None else None
         async with self._uow_factory() as uow:
             await uow.sessions.touch(session_id)
             run = await uow.runs.create(
                 Run(
                     session_id=session_id,
+                    workspace_id=workspace_id,
                     input_text=input_text,
                     prompt_name=prompt.name,
                     prompt_version=prompt.version,
