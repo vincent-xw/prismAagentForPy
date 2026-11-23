@@ -20,14 +20,17 @@ const navigationOpen = ref(false)
 const collapsed = ref(false)
 const state = computed(() => conversation.value!.state)
 const settings = computed(() => route.path === '/settings')
+const workspace = computed(() => route.path === '/workspace')
 const lastSessionPath = computed(() =>
   state.value.selectedSessionId ? `/sessions/${state.value.selectedSessionId}` : '/',
 )
 const title = computed(() =>
   settings.value
     ? '连接与外观'
-    : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
-      '新的会话'),
+    : workspace.value
+      ? '工作区'
+      : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
+        '新的会话'),
 )
 async function create() {
   navigationOpen.value = false
@@ -79,8 +82,13 @@ onMounted(() => {
         @select="select"
       />
       <RouterLink
+        to="/workspace"
+        class="mx-4 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+        ><PanelsLeftBottom class="size-4" />工作区</RouterLink
+      >
+      <RouterLink
         to="/settings"
-        class="mx-4 mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+        class="mx-4 mb-4 mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
         ><Settings class="size-4" />设置</RouterLink
       >
     </aside>

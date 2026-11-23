@@ -65,7 +65,7 @@ export function createAppContext() {
     conversation.value?.dispose()
     theme.dispose()
   }
-  return { basePath, theme, connection, conversation, initialize, dispose }
+  return { basePath, theme, connection, conversation, client, initialize, dispose }
 }
 export type AppContext = ReturnType<typeof createAppContext>
 export const appContextKey: InjectionKey<AppContext> = Symbol('PrismAppContext')
