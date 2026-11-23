@@ -2,6 +2,7 @@
 import { nextTick, ref, watch } from 'vue'
 import { ChevronRight, Sparkles } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
+import MarkdownContent from '@/components/markdown/MarkdownContent.vue'
 import type { MessageDto } from '@/lib/api/contracts'
 import type { RunProjection } from '@/features/runs/projection'
 const props = defineProps<{
@@ -67,9 +68,10 @@ function content(message: MessageDto) {
           >
             <Sparkles class="size-3.5" />PRISM
           </p>
-          <div class="whitespace-pre-wrap break-words text-sm leading-8">
-            {{ content(message) }}
-          </div>
+          <MarkdownContent v-if="typeof message.content === 'string'" :source="content(message)" />
+          <pre v-else class="overflow-x-auto rounded-lg bg-secondary p-3 text-xs leading-6">{{
+            content(message)
+          }}</pre>
           <details v-if="message.reasoning" class="mt-4 text-xs text-muted-foreground">
             <summary class="cursor-pointer">思考过程</summary>
             <p class="mt-2 whitespace-pre-wrap leading-7">{{ message.reasoning }}</p>
@@ -84,12 +86,8 @@ function content(message: MessageDto) {
         </article>
       </template>
       <template v-if="projection">
-        <div
-          v-for="segment in projection.pendingSegments"
-          :key="segment.messageId"
-          class="mb-8 whitespace-pre-wrap text-sm leading-8"
-        >
-          {{ segment.text }}
+        <div v-for="segment in projection.pendingSegments" :key="segment.messageId" class="mb-8">
+          <MarkdownContent :source="segment.text" />
           <p class="text-xs text-muted-foreground">正在同步持久消息…</p>
         </div>
         <article v-if="projection.transientText || projection.transientReasoning" class="mb-6">
