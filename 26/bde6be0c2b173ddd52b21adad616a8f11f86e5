@@ -1,0 +1,16 @@
+backend/src/prism_agent_kit/tools/registry.py
+  h_c3a612a540ca0b 26-32
+backend/tests/tools/test_registry.py
+  h_c3a612a540ca0b 103-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "26bde6be0c2b173ddd52b21adad616a8f11f86e5",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
