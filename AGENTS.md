@@ -21,8 +21,9 @@
 - 当前已确认并实现的首个迁移范围是本地 **Python Agent Core**：FastAPI BFF、SQLite 持久化、自研 Agent 循环、工具回填、SSE、取消与恢复。
 - UI 已具备首期会话工作台、连接引导、主题和测试体系；除非用户明确要求，不主动扩展新的 UI 业务模块。
 - 除非用户明确指定某个新的 Node.js 功能并要求开始迁移，否则只维护当前 Core、基础设施、现有 UI 和文档，不主动扩展上游业务功能。
-- 完成用户当前指定的范围后立即停止，不自行进入 MCP、Workspace、多 Agent 或其他迁移阶段。
-- 当前不引入 LangChain、LangGraph、LangSmith、PydanticAI 或 MCP SDK 运行时依赖；未来能力需通过既有接口或单独设计接入。
+- 完成用户当前指定的范围后立即停止，不自行进入未获明确授权的迁移阶段（如多 Agent、Workflow 等）。
+- 不引入 LangChain、LangGraph、LangSmith、PydanticAI。
+- MCP 官方 Python SDK（`mcp`）自 V1.2 起允许使用，但**仅限 MCP Client 与 `tools` 能力**（与上游 Node 版对齐）；扩展到 `resources`/`prompts` 或 Server 端需另立设计。
 
 ## 当前架构约束
 

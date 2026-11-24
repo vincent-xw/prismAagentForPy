@@ -46,3 +46,11 @@ def test_workspace_defaults() -> None:
     assert settings.workspace_index_max_files == 20_000
     assert settings.workspace_tool_approval_timeout_seconds == 1_800
     assert settings.workspace_require_write_approval is True
+
+
+def test_mcp_defaults() -> None:
+    settings = Settings()
+
+    assert settings.mcp_connect_timeout_seconds == 10.0
+    assert settings.mcp_tool_timeout_seconds == 30.0
+    assert settings.mcp_max_result_bytes == 204_800
