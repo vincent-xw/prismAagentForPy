@@ -23,6 +23,13 @@ class ToolRegistry:
         self._tools[definition.name] = definition
         return definition
 
+    def unregister_by_prefix(self, prefix: str) -> list[str]:
+        """注销名字以 prefix 开头的全部工具，返回被移除的名称。"""
+        removed = [name for name in list(self._tools) if name.startswith(prefix)]
+        for name in removed:
+            del self._tools[name]
+        return removed
+
     def get(self, name: str) -> ToolDefinition:
         """按名称读取工具定义。"""
         definition = self._tools.get(name)

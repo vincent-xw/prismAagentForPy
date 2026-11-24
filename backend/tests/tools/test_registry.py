@@ -100,3 +100,31 @@ def test_input_schema_override_wins() -> None:
     parameters = definition.to_model_schema()["function"]["parameters"]
     assert parameters["$defs"] == {"X": {}}
     assert "q" in parameters["properties"]
+
+
+def test_unregister_by_prefix() -> None:
+    from prism_agent_kit.core.enums import ExecutionMode
+    from prism_agent_kit.tools.contracts import ToolDefinition
+
+    class In(BaseModel):
+        text: str
+
+    def make(name: str) -> ToolDefinition:
+        return ToolDefinition(
+            name=name,
+            description="d",
+            input_model=In,
+            output_model=None,
+            execution_mode=ExecutionMode.LOCAL,
+            timeout_seconds=5,
+        )
+
+    registry = ToolRegistry()
+    registry.register(make("mcp__a__x"))
+    registry.register(make("mcp__a__y"))
+    registry.register(make("echo"))
+
+    removed = registry.unregister_by_prefix("mcp__a__")
+
+    assert sorted(removed) == ["mcp__a__x", "mcp__a__y"]
+    assert [tool.name for tool in registry.list_tools()] == ["echo"]
