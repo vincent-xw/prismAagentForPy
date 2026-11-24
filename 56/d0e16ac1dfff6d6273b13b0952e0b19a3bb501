@@ -1,0 +1,20 @@
+backend/src/prism_agent_kit/application/mcp/adapter.py
+  h_c3a612a540ca0b 1-100
+backend/src/prism_agent_kit/application/mcp/naming.py
+  h_c3a612a540ca0b 1-19
+backend/tests/application/mcp/test_adapter.py
+  h_c3a612a540ca0b 1-68
+backend/tests/application/mcp/test_naming.py
+  h_c3a612a540ca0b 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "56d0e16ac1dfff6d6273b13b0952e0b19a3bb501",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
