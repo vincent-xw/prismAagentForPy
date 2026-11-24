@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from datetime import timedelta
 from pathlib import Path
@@ -109,7 +110,6 @@ class SimpleAgentEngine:
         tool_timeout_seconds: float | None = None,
         tool_result_recorder: ToolResultRecorder | None = None,
         workspace_locator: WorkspaceLocator | None = None,
-        require_write_approval: bool = True,
         approval_timeout_seconds: float = 1800,
     ) -> None:
         self._uow_factory = uow_factory
@@ -123,7 +123,6 @@ class SimpleAgentEngine:
         self._remote_tool_timeout_seconds = remote_tool_timeout_seconds
         self._tool_timeout_seconds = tool_timeout_seconds
         self._workspace_locator = workspace_locator
-        self._require_write_approval = require_write_approval
         self._approval_timeout_seconds = approval_timeout_seconds
         self._tool_result_recorder = tool_result_recorder or ToolResultRecorder(
             uow_factory=uow_factory,
@@ -255,7 +254,7 @@ class SimpleAgentEngine:
             ):
                 if definition.execution_mode is ExecutionMode.REMOTE:
                     continue
-                if definition.requires_approval and self._require_write_approval:
+                if definition.requires_approval:
                     approval_calls.append(call)
                     continue
                 if context.cancel.is_set():
@@ -382,20 +381,7 @@ class SimpleAgentEngine:
                 )
                 for call in calls:
                     if definitions[call.id].requires_approval:
-                        # 需审批工具的正文不进入持久事件, 只保留可展示的摘要。
-                        data = call.input if isinstance(call.input, dict) else {}
-                        content = data.get("content")
-                        payload: dict[str, JsonValue] = {
-                            "call_id": call.id,
-                            "tool_name": call.tool_name,
-                            "execution_mode": call.execution_mode.value,
-                            "path": str(data.get("path", "")),
-                            "mode": str(data.get("mode", "overwrite")),
-                            "bytes": len(content.encode("utf-8"))
-                            if isinstance(content, str)
-                            else 0,
-                            "input_digest": call.input_digest,
-                        }
+                        payload = self._approval_summary(call)
                     else:
                         payload = {
                             "call_id": call.id,
@@ -557,6 +543,32 @@ class SimpleAgentEngine:
         await self._publish_events(new_events)
         return EngineOutcome(kind="waiting_for_tools")
 
+    @staticmethod
+    def _approval_summary(call: ToolCall) -> dict[str, JsonValue]:
+        """生成需审批调用的安全摘要：文件类保留路径信息，其他工具只给输入预览。"""
+        data = call.input if isinstance(call.input, dict) else {}
+        if call.tool_name.startswith("file_"):
+            content = data.get("content")
+            return {
+                "call_id": call.id,
+                "tool_name": call.tool_name,
+                "execution_mode": call.execution_mode.value,
+                "kind": "file",
+                "path": str(data.get("path", "")),
+                "mode": str(data.get("mode", "overwrite")),
+                "bytes": len(content.encode("utf-8")) if isinstance(content, str) else 0,
+                "input_digest": call.input_digest,
+            }
+        preview = json.dumps(call.input, ensure_ascii=False)[:4096]
+        return {
+            "call_id": call.id,
+            "tool_name": call.tool_name,
+            "execution_mode": call.execution_mode.value,
+            "kind": "generic",
+            "input_preview": preview,
+            "input_digest": call.input_digest,
+        }
+
     def _make_tool_context(
         self,
         *,
@@ -605,20 +617,11 @@ class SimpleAgentEngine:
                 )
             )
             for call in calls:
-                data = call.input if isinstance(call.input, dict) else {}
-                content = data.get("content")
-                bytes_count = len(content.encode("utf-8")) if isinstance(content, str) else 0
                 await uow.events.append(
                     RunEvent(
                         run_id=run_id,
                         event_type=EventType.TOOL_APPROVAL_REQUIRED,
-                        payload={
-                            "call_id": call.id,
-                            "tool_name": call.tool_name,
-                            "path": str(data.get("path", "")),
-                            "mode": str(data.get("mode", "overwrite")),
-                            "bytes": bytes_count,
-                        },
+                        payload=self._approval_summary(call),
                     )
                 )
             new_events = await uow.events.list_after(run_id, after_id=previous_event_id)

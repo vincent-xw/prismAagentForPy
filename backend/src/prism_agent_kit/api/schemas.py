@@ -300,14 +300,16 @@ class ApprovalRequest(BaseModel):
 
 
 class ApprovalPreviewView(BaseModel):
-    """审批预览视图。"""
+    """审批预览视图：文件类给 diff，其他工具给输入预览。"""
 
+    kind: str
     path: str
     mode: str
     bytes: int
     exists: bool
     diff: str | None
     truncated: bool
+    input_preview: str | None = None
 
 
 class ApprovalResponse(BaseModel):

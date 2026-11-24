@@ -3,6 +3,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytest
+from pydantic import BaseModel
 from tests.fakes import RecordingEventPublisher
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
@@ -15,6 +16,7 @@ from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, ToolCall, utc_now
 from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.db.uow import UnitOfWorkFactory
+from prism_agent_kit.tools.contracts import ToolDefinition
 from prism_agent_kit.tools.executor import LocalToolExecutor
 from prism_agent_kit.tools.registry import ToolRegistry
 from prism_agent_kit.tools.testing import wait_for_host_tool
@@ -39,11 +41,33 @@ class RecordingIndexTasks:
         self.calls.append((mode, workspace_id, rel_path))
 
 
+class GenericInput(BaseModel):
+    query: str
+
+
+async def _generic_handler(raw: GenericInput, _context: object) -> dict[str, object]:
+    return {"echo": raw.query}
+
+
+def _generic_tool() -> ToolDefinition:
+    return ToolDefinition(
+        name="mcp__demo__search",
+        description="generic mcp tool",
+        input_model=GenericInput,
+        output_model=None,
+        execution_mode=ExecutionMode.LOCAL,
+        timeout_seconds=5,
+        requires_approval=True,
+        handler=_generic_handler,
+    )
+
+
 def build_service(uow_factory: UnitOfWorkFactory, tmp_path: Path) -> ToolApprovalService:
     registry = ToolRegistry()
     for tool in build_workspace_tools():
         registry.register(tool)
     registry.register(wait_for_host_tool())
+    registry.register(_generic_tool())
     publisher = RecordingEventPublisher()
     workspace_service = WorkspaceService(
         uow_factory=uow_factory,
@@ -266,3 +290,69 @@ async def test_expired_approval_rejected(uow_factory: UnitOfWorkFactory, tmp_pat
     with pytest.raises(AgentKitError) as error:
         await service.decide(run_id, call_id, "approve")
     assert error.value.code is ErrorCode.TOOL_CALL_EXPIRED
+
+
+async def seed_generic_approval(
+    uow_factory: UnitOfWorkFactory, workspace: Workspace
+) -> tuple[str, str]:
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        run = await uow.runs.create(
+            Run(
+                session_id=session.id,
+                input_text="hello",
+                prompt_name="default",
+                prompt_version="1",
+                system_prompt="system",
+                model="test-model",
+                workspace_id=workspace.id,
+            )
+        )
+        await uow.messages.append(
+            Message(session_id=session.id, run_id=run.id, role=MessageRole.USER, content="hello")
+        )
+        await uow.commit()
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        assistant = await uow.messages.append(
+            Message(session_id=session.id, run_id=run.id, role=MessageRole.ASSISTANT, content="")
+        )
+        assert assistant.id is not None
+        payload = {"query": "订单 123"}
+        await uow.tool_calls.create_many(
+            [
+                ToolCall(
+                    id="call-generic",
+                    run_id=run.id,
+                    assistant_message_id=assistant.id,
+                    tool_name="mcp__demo__search",
+                    execution_mode=ExecutionMode.LOCAL,
+                    input=payload,
+                    input_digest=canonical_json_digest(payload),
+                )
+            ]
+        )
+        await uow.tool_calls.await_call(run.id, "call-generic", utc_now() + timedelta(seconds=600))
+        await uow.runs.transition(run.id, RunStatus.WAITING_FOR_APPROVAL)
+        await uow.commit()
+        return run.id, "call-generic"
+
+
+async def test_generic_tool_approval_has_no_file_fields(
+    uow_factory: UnitOfWorkFactory, tmp_path: Path
+) -> None:
+    root = tmp_path / "ws"
+    root.mkdir()
+    workspace = await seed_workspace(uow_factory, root)
+    service = build_service(uow_factory, tmp_path)
+    run_id, call_id = await seed_generic_approval(uow_factory, workspace)
+
+    preview = await service.preview(run_id, call_id)
+    assert preview.kind == "generic"
+    assert preview.diff is None
+    assert preview.input_preview is not None and "订单 123" in preview.input_preview
+
+    call, run = await service.decide(run_id, call_id, "approve")
+    assert call.status is ToolCallStatus.SUCCEEDED
+    assert call.output == {"echo": "订单 123"}
+    assert run.status is RunStatus.QUEUED

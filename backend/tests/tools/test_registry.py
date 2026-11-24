@@ -75,3 +75,28 @@ def test_missing_tool_raises_not_found() -> None:
 
     assert error.value.code is ErrorCode.TOOL_NOT_FOUND
     assert error.value.http_status == 404
+
+
+def test_input_schema_override_wins() -> None:
+    from pydantic import BaseModel
+
+    from prism_agent_kit.core.enums import ExecutionMode
+    from prism_agent_kit.tools.contracts import ToolDefinition
+
+    class In(BaseModel):
+        text: str
+
+    override = {"type": "object", "properties": {"q": {"type": "string"}}, "$defs": {"X": {}}}
+    definition = ToolDefinition(
+        name="mcp__demo__search",
+        description="d",
+        input_model=In,
+        output_model=None,
+        execution_mode=ExecutionMode.LOCAL,
+        timeout_seconds=5,
+        input_schema_override=override,
+    )
+
+    parameters = definition.to_model_schema()["function"]["parameters"]
+    assert parameters["$defs"] == {"X": {}}
+    assert "q" in parameters["properties"]

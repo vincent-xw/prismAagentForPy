@@ -202,7 +202,7 @@ def _write_file(target: Path, content: str, mode: str) -> FileWriteOutput:
     )
 
 
-def build_workspace_tools() -> list[ToolDefinition]:
+def build_workspace_tools(*, require_approval: bool = True) -> list[ToolDefinition]:
     """构造四个工作区工具定义。"""
 
     async def file_list(raw: FileListInput, context: ToolExecutionContext) -> FileListOutput:

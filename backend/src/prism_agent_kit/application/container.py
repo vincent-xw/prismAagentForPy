@@ -160,7 +160,9 @@ class ApplicationContainer:
             event_bus = RunEventBus(self._make_replay_loader(uow_factory))
             tool_registry = self._provided_tool_registry or ToolRegistry()
             existing_tool_names = {item.name for item in tool_registry.list_tools()}
-            for workspace_tool in build_workspace_tools():
+            for workspace_tool in build_workspace_tools(
+                require_approval=self.settings.workspace_require_write_approval
+            ):
                 if workspace_tool.name not in existing_tool_names:
                     tool_registry.register(workspace_tool)
             cancellation_registry = RunCancellationRegistry()
@@ -238,7 +240,6 @@ class ApplicationContainer:
                 tool_timeout_seconds=self.settings.tool_timeout_seconds,
                 tool_result_recorder=tool_result_recorder,
                 workspace_locator=workspace_service,
-                require_write_approval=self.settings.workspace_require_write_approval,
                 approval_timeout_seconds=float(
                     self.settings.workspace_tool_approval_timeout_seconds
                 ),

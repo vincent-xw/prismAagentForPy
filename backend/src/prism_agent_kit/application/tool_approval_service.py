@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import difflib
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -33,14 +34,16 @@ _TERMINAL_TOOL_STATUSES = frozenset(
 
 @dataclass(frozen=True)
 class ApprovalPreview:
-    """写入审批的展示信息。"""
+    """审批的展示信息：文件类给 diff，其他工具给输入预览。"""
 
+    kind: str
     path: str
     mode: str
     bytes: int
     exists: bool
     diff: str | None
     truncated: bool
+    input_preview: str | None = None
 
 
 def _diff_text(old: str, new: str, *, path: str) -> tuple[str, bool]:
@@ -101,6 +104,18 @@ class ToolApprovalService:
                 details={"call_id": call_id, "status": call.status.value},
             )
         data = call.input if isinstance(call.input, dict) else {}
+        if not call.tool_name.startswith("file_"):
+            preview = json.dumps(call.input, ensure_ascii=False)[:4096]
+            return ApprovalPreview(
+                kind="generic",
+                path="",
+                mode="",
+                bytes=0,
+                exists=False,
+                diff=None,
+                truncated=False,
+                input_preview=preview,
+            )
         rel_path = str(data.get("path", ""))
         mode = str(data.get("mode", "overwrite"))
         content = data.get("content")
@@ -157,11 +172,14 @@ class ToolApprovalService:
                 return await self._load(run_id, call_id)
 
             definition = self._tool_registry.get(call.tool_name)
-            workspace_root = await self._workspace_service.root_for(run.workspace_id)
-            if workspace_root is None:
-                await self._reject(run_id, call_id, "Run 绑定的工作区不存在")
-                await self._finalize(run_id)
-                return await self._load(run_id, call_id)
+            is_file_tool = call.tool_name.startswith("file_")
+            workspace_root = None
+            if is_file_tool:
+                workspace_root = await self._workspace_service.root_for(run.workspace_id)
+                if workspace_root is None:
+                    await self._reject(run_id, call_id, "Run 绑定的工作区不存在")
+                    await self._finalize(run_id)
+                    return await self._load(run_id, call_id)
             await self._mark_running(run_id, call_id)
 
         cancel = self._cancellation_registry.register(run_id)
@@ -176,7 +194,7 @@ class ToolApprovalService:
                     cancel=cancel,
                     workspace_root=workspace_root,
                     workspace_id=run.workspace_id,
-                    search=self._search_callback(run.workspace_id),
+                    search=self._search_callback(run.workspace_id) if is_file_tool else None,
                 ),
             )
         finally:
@@ -184,7 +202,7 @@ class ToolApprovalService:
 
         await self._recorder.record(run_id, call_id, result)
 
-        if result.ok:
+        if result.ok and is_file_tool:
             rel_path = cast(dict[str, Any], call.input if isinstance(call.input, dict) else {}).get(
                 "path"
             )
@@ -217,6 +235,7 @@ class ToolApprovalService:
         exists = target.is_file()
         if not exists or mode == "append":
             return ApprovalPreview(
+                kind="file",
                 path=rel_path,
                 mode=mode,
                 bytes=len(content.encode("utf-8")),
@@ -227,6 +246,7 @@ class ToolApprovalService:
         old = target.read_text(encoding="utf-8", errors="replace")
         diff, truncated = _diff_text(old, content, path=rel_path)
         return ApprovalPreview(
+            kind="file",
             path=rel_path,
             mode=mode,
             bytes=len(content.encode("utf-8")),

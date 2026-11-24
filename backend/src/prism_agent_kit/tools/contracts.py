@@ -64,6 +64,7 @@ class ToolDefinition(BaseModel):
     execution_mode: ExecutionMode
     timeout_seconds: float = Field(gt=0)
     requires_approval: bool = False
+    input_schema_override: dict[str, JsonValue] | None = None
     handler: LocalToolHandler | None = None
 
     def to_model_schema(self) -> dict[str, JsonValue]:
@@ -85,7 +86,7 @@ class ToolDefinition(BaseModel):
                 http_status=400,
                 details={"tool_name": self.name},
             )
-        input_schema = self.input_model.model_json_schema()
+        input_schema = self.input_schema_override or self.input_model.model_json_schema()
         if input_schema.get("type") != "object":
             raise AgentKitError(
                 ErrorCode.INVALID_TOOL_DEFINITION,

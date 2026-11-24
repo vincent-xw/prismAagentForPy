@@ -40,7 +40,7 @@ class FakeLocator:
         return []
 
 
-def write_tool(root: Path) -> ToolDefinition:
+def write_tool(root: Path, *, requires_approval: bool = True) -> ToolDefinition:
     async def handler(raw: WriteInput, _context: object) -> dict[str, object]:
         (root / raw.path).write_text(raw.content, encoding="utf-8")
         return {"path": raw.path}
@@ -52,7 +52,7 @@ def write_tool(root: Path) -> ToolDefinition:
         output_model=None,
         execution_mode=ExecutionMode.LOCAL,
         timeout_seconds=5,
-        requires_approval=True,
+        requires_approval=requires_approval,
         handler=handler,
     )
 
@@ -67,7 +67,7 @@ def make_engine(
 ) -> SimpleAgentEngine:
     registry = ToolRegistry()
     registry.register(echo_tool())
-    registry.register(write_tool(locator.root or Path("/tmp")))
+    registry.register(write_tool(locator.root or Path("/tmp"), requires_approval=require_approval))
     return SimpleAgentEngine(
         uow_factory=uow_factory,
         model_provider=provider,
@@ -84,7 +84,6 @@ def make_engine(
         max_output_tokens=100,
         remote_tool_timeout_seconds=300,
         workspace_locator=locator,
-        require_write_approval=require_approval,
         approval_timeout_seconds=1800,
     )
 

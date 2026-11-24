@@ -191,6 +191,8 @@ def create_runs_router() -> APIRouter:
     ) -> ApprovalPreviewView:
         preview = await service.preview(run_id, call_id)
         return ApprovalPreviewView(
+            kind=preview.kind,
+            input_preview=preview.input_preview,
             path=preview.path,
             mode=preview.mode,
             bytes=preview.bytes,
