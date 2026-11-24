@@ -297,6 +297,6 @@ def build_workspace_tools(*, require_approval: bool = True) -> list[ToolDefiniti
             FileWriteOutput,
             file_write,
             30,
-            requires_approval=True,
+            requires_approval=require_approval,
         ),
     ]

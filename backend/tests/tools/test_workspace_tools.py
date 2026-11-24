@@ -139,3 +139,14 @@ async def test_file_search_without_workspace_rejected() -> None:
             FileSearchInput(query="anything"), context(None)
         )
     assert error.value.code is ErrorCode.WORKSPACE_NOT_BOUND
+
+
+def test_workspace_write_approval_can_be_disabled() -> None:
+    from prism_agent_kit.tools.workspace_tools import build_workspace_tools
+
+    tools = {tool.name: tool for tool in build_workspace_tools(require_approval=False)}
+    assert tools["file_write"].requires_approval is False
+    assert {tool.name for tool in build_workspace_tools()} == set(tools)
+    assert {tool.name: tool for tool in build_workspace_tools()}[
+        "file_write"
+    ].requires_approval is True

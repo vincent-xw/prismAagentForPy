@@ -105,7 +105,8 @@ class ToolApprovalService:
             )
         data = call.input if isinstance(call.input, dict) else {}
         if not call.tool_name.startswith("file_"):
-            preview = json.dumps(call.input, ensure_ascii=False)[:4096]
+            full = json.dumps(call.input, ensure_ascii=False)
+            preview = full[:4096]
             return ApprovalPreview(
                 kind="generic",
                 path="",
@@ -113,7 +114,7 @@ class ToolApprovalService:
                 bytes=0,
                 exists=False,
                 diff=None,
-                truncated=False,
+                truncated=len(full) > 4096,
                 input_preview=preview,
             )
         rel_path = str(data.get("path", ""))

@@ -66,3 +66,13 @@ def test_normalize_result_structured_and_error() -> None:
     with pytest.raises(AgentKitError) as error:
         normalize_result(bad, 1000)
     assert error.value.code is ErrorCode.MCP_TOOL_ERROR
+
+
+def test_normalize_result_truncates_structured() -> None:
+    result = CallToolResult(
+        content=[TextContent(type="text", text="ok")],
+        structured_content={"blob": "y" * 300_000},
+        is_error=False,
+    )
+    value = normalize_result(result, 204_800)
+    assert value["structured"] == {"truncated": True}

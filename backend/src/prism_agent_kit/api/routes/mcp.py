@@ -59,14 +59,17 @@ async def update_server(
     manager: McpManagerDependency,
 ) -> McpServerView:
     """更新 MCP 服务配置。"""
-    server = await config.update(server_id, _to_input(payload))
+    server = await manager.update_server(server_id, _to_input(payload))
     return _to_view(server, len(manager.tool_definitions_for(server_id)))
 
 
 @router.delete("/servers/{server_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_server(server_id: str, config: McpConfigServiceDependency) -> None:
-    """删除 MCP 服务。"""
-    await config.delete(server_id)
+async def delete_server(
+    server_id: str,
+    manager: McpManagerDependency,
+) -> None:
+    """删除 MCP 服务：先断开连接并释放工具。"""
+    await manager.remove_server(server_id)
 
 
 @router.post("/servers/{server_id}/enable", response_model=McpServerView)

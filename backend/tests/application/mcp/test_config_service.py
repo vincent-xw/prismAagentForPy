@@ -92,3 +92,18 @@ async def test_enable_and_list(uow_factory: UnitOfWorkFactory) -> None:
     updated = await service.set_enabled(server.id, True)
     assert updated.enabled is True
     assert [item.id for item in await service.list_servers()] == [server.id]
+
+
+async def test_resolved_secret_rejected(uow_factory: UnitOfWorkFactory) -> None:
+    service = make_service(uow_factory, {"MY_TOKEN": "sk-abcdefghijklmnopqrstuvwxyz"})
+    server = await service.create(
+        McpServerInput(
+            name="web",
+            transport="http",
+            url="https://e/mcp",
+            headers={"Authorization": "Bearer ${MY_TOKEN}"},
+        )
+    )
+    with pytest.raises(AgentKitError) as error:
+        await service.build_connection(server)
+    assert error.value.code is ErrorCode.MCP_CONFIG_INVALID

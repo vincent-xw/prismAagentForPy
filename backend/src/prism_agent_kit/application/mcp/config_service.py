@@ -110,7 +110,9 @@ class McpConfigService:
         """把配置解析为可用的连接参数。"""
         if server.transport == "stdio":
             env = self._build_env(server.env)
-            self._reject_secrets({k: v for k, v in env.items() if k in server.env})
+            self._reject_secrets(
+                {k: v for k, v in env.items() if k in server.env}, allow_placeholders=False
+            )
             if server.command is None:
                 raise _invalid("stdio 服务缺少 command")
             return McpConnection(
@@ -122,7 +124,7 @@ class McpConfigService:
                 ),
             )
         headers = self.resolve_placeholders(server.headers)
-        self._reject_secrets(headers)
+        self._reject_secrets(headers, allow_placeholders=False)
         if server.url is None:
             raise _invalid("http 服务缺少 url")
         return McpConnection(
@@ -153,8 +155,8 @@ class McpConfigService:
             raise _invalid("stdio 服务必须提供 command")
         if payload.transport == "http" and not payload.url:
             raise _invalid("http 服务必须提供 url")
-        self._reject_secrets(payload.env)
-        self._reject_secrets(payload.headers)
+        self._reject_secrets(payload.env, allow_placeholders=True)
+        self._reject_secrets(payload.headers, allow_placeholders=True)
         return {
             "name": payload.name,
             "transport": payload.transport,
@@ -167,10 +169,10 @@ class McpConfigService:
         }
 
     @staticmethod
-    def _reject_secrets(mapping: Mapping[str, str]) -> None:
+    def _reject_secrets(mapping: Mapping[str, str], *, allow_placeholders: bool) -> None:
         for key, value in mapping.items():
-            if "${" in value:
-                # 含占位符的值在连接时解析后再校验，避免误判 "Bearer ${TOKEN}"。
+            if allow_placeholders and _PLACEHOLDER.search(value) is not None:
+                # 连接前允许含占位符；解析后会以 allow_placeholders=False 重新校验。
                 continue
             if any(pattern.fullmatch(value) for pattern in _SECRET_PATTERNS):
                 raise _invalid(f"{key} 疑似明文密钥，请改用 ${{VAR}} 引用环境变量")

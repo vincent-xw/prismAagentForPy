@@ -17,7 +17,11 @@ from prism_agent_kit.application.mcp.adapter import (
     normalize_result,
     to_tool_definition,
 )
-from prism_agent_kit.application.mcp.config_service import McpConfigService, McpConnection
+from prism_agent_kit.application.mcp.config_service import (
+    McpConfigService,
+    McpConnection,
+    McpServerInput,
+)
 from prism_agent_kit.core.enums import RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.mcp import McpServer, McpStatus
@@ -96,7 +100,7 @@ class McpWorker:
         self._task: asyncio.Task[None] | None = None
         self._startup_error: BaseException | None = None
         self._original: dict[str, str] = {}
-        self._started_tools = False
+        self._closed = False
 
     async def start(self) -> None:
         self._task = asyncio.create_task(self._run(), name=f"mcp-{self._server.id}")
@@ -151,7 +155,8 @@ class McpWorker:
             self._startup_error = error
             self._ready.set()
         finally:
-            if self._started_tools:
+            if not self._closed:
+                self._closed = True
                 self._on_close()
 
     async def call_tool(self, full_name: str, arguments: dict[str, Any]) -> Any:
@@ -198,6 +203,7 @@ class McpServerManager:
         self._max_result_bytes = max_result_bytes
         self._workers: dict[str, McpWorker] = {}
         self._server_tools: dict[str, list[str]] = {}
+        self._background: set[asyncio.Task[Any]] = set()
 
     async def start_all(self) -> None:
         """连接所有已启用服务；单个失败只影响自身状态。"""
@@ -225,15 +231,22 @@ class McpServerManager:
             await self.disconnect(server_id)
         server = await self._config.get(server_id)
         connection = await self._config.build_connection(server)
+        holder: list[McpWorker] = []
+
+        def on_close() -> None:
+            if holder:
+                self._handle_worker_closed(server_id, holder[0], server.name)
+
         worker = McpWorker(
             server=server,
             connection=connection,
             client_factory=self._factory,
             on_tools=self._register_tools,
-            on_close=self._make_on_close(server.name),
+            on_close=on_close,
             timeout_seconds=self._tool_timeout,
             connect_timeout_seconds=self._connect_timeout,
         )
+        holder.append(worker)
         try:
             await worker.start()
         except AgentKitError as error:
@@ -279,6 +292,9 @@ class McpServerManager:
         self._workers.clear()
         self._server_tools.clear()
         await asyncio.gather(*(worker.stop() for worker in workers), return_exceptions=True)
+        for task in list(self._background):
+            task.cancel()
+        self._background.clear()
 
     def tool_definitions_for(self, server_id: str) -> list[ToolDefinition]:
         names = set(self._server_tools.get(server_id, []))
@@ -307,13 +323,52 @@ class McpServerManager:
             details={"tool_name": full_name},
         )
 
-    def _make_on_close(self, server_name: str) -> Callable[[], None]:
-        prefix = f"mcp__{server_name}__"
+    def _handle_worker_closed(self, server_id: str, worker: McpWorker, server_name: str) -> None:
+        """worker 意外退出时清理注册与状态。正常 stop 时字典已清空，不会走到这里。"""
+        was_active = self._workers.get(server_id) is worker
+        if was_active:
+            self._workers.pop(server_id, None)
+        self._server_tools.pop(server_id, None)
+        self._registry.unregister_by_prefix(f"mcp__{server_name}__")
+        if not was_active:
+            return
+        task = asyncio.create_task(
+            self._config.set_status(server_id, McpStatus.ERROR, "MCP 连接已断开")
+        )
+        self._background.add(task)
+        task.add_done_callback(self._background.discard)
 
-        def on_close() -> None:
-            self._registry.unregister_by_prefix(prefix)
+    async def remove_server(self, server_id: str) -> None:
+        """删除服务：先确认无活动 Run，再断开并删除。"""
+        await self._ensure_no_active_run()
+        if server_id in self._workers:
+            await self.disconnect(server_id)
+        await self._config.delete(server_id)
 
-        return on_close
+    async def update_server(self, server_id: str, payload: McpServerInput) -> McpServer:
+        """更新服务配置；连接参数变化且已启用时重连。"""
+        await self._ensure_no_active_run()
+        existing = await self._config.get(server_id)
+        updated = await self._config.update(server_id, payload)
+        connection_changed = (
+            existing.transport,
+            existing.command,
+            tuple(existing.args),
+            tuple(sorted(existing.env.items())),
+            existing.url,
+            tuple(sorted(existing.headers.items())),
+        ) != (
+            updated.transport,
+            updated.command,
+            tuple(updated.args),
+            tuple(sorted(updated.env.items())),
+            updated.url,
+            tuple(sorted(updated.headers.items())),
+        )
+        if updated.enabled and connection_changed:
+            await self.disconnect(server_id)
+            await self.connect(server_id)
+        return updated
 
     def _register_tools(
         self,
@@ -329,8 +384,13 @@ class McpServerManager:
             )
             for info in infos
         ]
-        for definition in definitions:
-            self._registry.register(definition)
+        try:
+            for definition in definitions:
+                self._registry.register(definition)
+        except Exception:
+            # 部分注册失败时回滚该服务已注册的工具，避免半套工具泄漏。
+            self._registry.unregister_by_prefix(f"mcp__{server.name}__")
+            raise
         self._server_tools[server.id] = [definition.name for definition in definitions]
         return definitions
 

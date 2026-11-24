@@ -153,3 +153,93 @@ async def test_stop_reclaims_workers(uow_factory: UnitOfWorkFactory) -> None:
 
     assert factory.closed == ["good"]
     assert all(not tool.name.startswith("mcp__") for tool in registry.list_tools())
+
+
+async def test_remove_server_disconnects_and_clears_tools(
+    uow_factory: UnitOfWorkFactory,
+) -> None:
+    registry = ToolRegistry()
+    factory = FakeFactory()
+    manager = make_manager(uow_factory, factory, registry)
+    server = await add_server(uow_factory, "good")
+    await manager.start_all()
+
+    await manager.remove_server(server.id)
+
+    assert factory.closed == ["good"]
+    assert all(not tool.name.startswith("mcp__") for tool in registry.list_tools())
+    service = McpConfigService(uow_factory)
+    with pytest.raises(AgentKitError) as error:
+        await service.get(server.id)
+    assert error.value.code is ErrorCode.MCP_SERVER_NOT_FOUND
+
+
+async def test_remove_blocked_while_run_active(uow_factory: UnitOfWorkFactory) -> None:
+    registry = ToolRegistry()
+    manager = make_manager(uow_factory, FakeFactory(), registry)
+    server = await add_server(uow_factory, "good")
+    await manager.start_all()
+    async with uow_factory() as uow:
+        session = await uow.sessions.create()
+        await uow.runs.create(
+            Run(
+                session_id=session.id,
+                input_text="x",
+                prompt_name="default",
+                prompt_version="1",
+                system_prompt="s",
+                model="m",
+            )
+        )
+        await uow.commit()
+    async with uow_factory() as uow:
+        await uow.runs.claim_next()
+        await uow.commit()
+
+    with pytest.raises(AgentKitError) as error:
+        await manager.remove_server(server.id)
+    assert error.value.code is ErrorCode.MCP_SERVER_BUSY
+    await manager.stop()
+
+
+async def test_duplicate_sanitized_tool_names_rollback(uow_factory: UnitOfWorkFactory) -> None:
+    class DuplicateFactory(FakeFactory):
+        def __call__(self, connection):
+            @asynccontextmanager
+            async def factory():
+                async def gen():
+                    yield SimpleNamespace(
+                        client=SimpleNamespace(
+                            list_tools=self._list,
+                            call_tool=self._call,
+                        )
+                    )
+
+                client = SimpleNamespace(
+                    list_tools=self._list,
+                    call_tool=self._call,
+                )
+                yield client
+
+            return factory()
+
+        async def _list(self):
+            return SimpleNamespace(
+                tools=[
+                    SimpleNamespace(name="a b", description="", input_schema={}),
+                    SimpleNamespace(name="a_b", description="", input_schema={}),
+                ]
+            )
+
+        async def _call(self, name, arguments):
+            return SimpleNamespace(content=[], structured_content=None, is_error=False)
+
+    registry = ToolRegistry()
+    manager = make_manager(uow_factory, DuplicateFactory(), registry)
+    server = await add_server(uow_factory, "dup")
+
+    await manager.start_all()
+
+    service = McpConfigService(uow_factory)
+    assert (await service.get(server.id)).status is McpStatus.ERROR
+    assert all(not tool.name.startswith("mcp__") for tool in registry.list_tools())

@@ -1,5 +1,6 @@
 """把 MCP 工具适配为现有 ToolDefinition，并规范化调用结果。"""
 
+import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, cast
@@ -92,7 +93,11 @@ def normalize_result(result: Any, max_bytes: int) -> JsonValue:
     }
     structured = getattr(result, "structured_content", None)
     if structured is not None:
-        output["structured"] = structured
+        raw = json.dumps(structured, ensure_ascii=False, default=str)
+        if len(raw.encode("utf-8")) > max_bytes:
+            output["structured"] = {"truncated": True}
+        else:
+            output["structured"] = structured
     if images:
         output["images"] = cast(JsonValue, images)
     if resources:
