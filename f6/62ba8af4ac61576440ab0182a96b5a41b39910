@@ -1,0 +1,28 @@
+backend/migrations/versions/20261124_0005_mcp_servers.py
+  h_c3a612a540ca0b 1-42
+backend/src/prism_agent_kit/core/mcp.py
+  h_c3a612a540ca0b 1-34
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 12,19,237-274
+backend/src/prism_agent_kit/db/models.py
+  h_c3a612a540ca0b 35-55
+backend/src/prism_agent_kit/db/repositories/mcp_servers.py
+  h_c3a612a540ca0b 1-121
+backend/src/prism_agent_kit/db/uow.py
+  h_c3a612a540ca0b 7,29,41
+backend/tests/db/test_mcp_servers_repository.py
+  h_c3a612a540ca0b 1-45
+backend/tests/db/test_migration.py
+  h_c3a612a540ca0b 245-269
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f662ba8af4ac61576440ab0182a96b5a41b39910",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
