@@ -16,6 +16,11 @@ def _to_input(payload: McpServerCreate) -> McpServerInput:
     return McpServerInput(**payload.model_dump())
 
 
+def _mask(values: dict[str, str]) -> dict[str, str]:
+    """占位符原样返回，字面量值统一掩码。"""
+    return {key: value if "${" in value else "***" for key, value in values.items()}
+
+
 def _to_view(server: McpServer, tool_count: int) -> McpServerView:
     return McpServerView(
         id=server.id,
@@ -27,6 +32,8 @@ def _to_view(server: McpServer, tool_count: int) -> McpServerView:
         tool_count=tool_count,
         env_keys=sorted(server.env),
         header_keys=sorted(server.headers),
+        env=_mask(server.env),
+        headers=_mask(server.headers),
     )
 
 

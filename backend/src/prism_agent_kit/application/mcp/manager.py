@@ -31,6 +31,14 @@ from prism_agent_kit.tools.registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
 
+
+def _restore_masked(incoming: dict[str, str], existing: dict[str, str]) -> dict[str, str]:
+    """把前端回传的 `***` 还原为已存值；其余按新值处理。"""
+    return {
+        key: existing.get(key, "") if value == "***" else value for key, value in incoming.items()
+    }
+
+
 _ACTIVE_RUN_STATUSES = (
     RunStatus.RUNNING,
     RunStatus.WAITING_FOR_TOOL,
@@ -349,6 +357,12 @@ class McpServerManager:
         """更新服务配置；连接参数变化且已启用时重连。"""
         await self._ensure_no_active_run()
         existing = await self._config.get(server_id)
+        payload = payload.model_copy(
+            update={
+                "env": _restore_masked(payload.env, existing.env),
+                "headers": _restore_masked(payload.headers, existing.headers),
+            }
+        )
         updated = await self._config.update(server_id, payload)
         connection_changed = (
             existing.transport,

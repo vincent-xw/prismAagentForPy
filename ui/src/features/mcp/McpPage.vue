@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, onUnmounted, reactive } from 'vue'
 
 import { useAppContext } from '@/app/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import type { McpServerDto } from '@/lib/api/contracts'
 import { createMcpController } from './mcp'
 
 const { client } = useAppContext()
 const controller = createMcpController({ client })
 const state = controller.state
-
-const canSubmit = computed(() => !state.loading && form.name !== '')
 
 const form = reactive({
   name: '',
@@ -21,6 +20,9 @@ const form = reactive({
   url: '',
   headers: '',
 })
+
+const canSubmit = computed(() => !state.loading && form.name !== '')
+const isEditing = computed(() => state.editingId !== null)
 
 function parsePairs(text: string): Record<string, string> {
   const result: Record<string, string> = {}
@@ -33,8 +35,40 @@ function parsePairs(text: string): Record<string, string> {
   return result
 }
 
+function pairsToText(pairs: Record<string, string>): string {
+  return Object.entries(pairs)
+    .map(([key, value]) => `${key}=${value}`)
+    .join('\n')
+}
+
+function resetForm(): void {
+  form.name = ''
+  form.transport = 'stdio'
+  form.command = ''
+  form.args = ''
+  form.env = ''
+  form.url = ''
+  form.headers = ''
+}
+
+function edit(server: McpServerDto): void {
+  controller.beginEdit(server)
+  form.name = server.name
+  form.transport = server.transport
+  form.command = ''
+  form.args = ''
+  form.env = pairsToText(server.env)
+  form.url = ''
+  form.headers = pairsToText(server.headers)
+}
+
+function cancelEdit(): void {
+  controller.cancelEdit()
+  resetForm()
+}
+
 async function submit(): Promise<void> {
-  await controller.create({
+  await controller.save({
     name: form.name,
     transport: form.transport,
     command: form.transport === 'stdio' ? form.command : null,
@@ -44,15 +78,22 @@ async function submit(): Promise<void> {
     headers: form.transport === 'http' ? parsePairs(form.headers) : {},
     enabled: false,
   })
-  form.name = ''
-  form.command = ''
-  form.args = ''
-  form.env = ''
-  form.url = ''
-  form.headers = ''
+  if (state.error === null) resetForm()
 }
 
-onMounted(() => void controller.load())
+async function remove(server: McpServerDto): Promise<void> {
+  if (!window.confirm(`删除 MCP 服务「${server.name}」？`)) return
+  await controller.remove(server)
+}
+
+let timer: number | null = null
+onMounted(() => {
+  void controller.load()
+  timer = window.setInterval(() => void controller.load(), 3000)
+})
+onUnmounted(() => {
+  if (timer !== null) window.clearInterval(timer)
+})
 </script>
 
 <template>
@@ -70,7 +111,12 @@ onMounted(() => void controller.load())
       <div v-for="server in state.servers" :key="server.id" class="rounded-xl border p-4">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm font-medium">{{ server.name }}</p>
+            <p class="text-sm font-medium">
+              {{ server.name }}
+              <span v-if="state.editingId === server.id" class="ml-2 text-xs text-primary"
+                >编辑中</span
+              >
+            </p>
             <p class="mt-1 text-xs text-muted-foreground">
               {{ server.transport }} · {{ server.status }} · {{ server.tool_count }} 个工具
             </p>
@@ -80,26 +126,42 @@ onMounted(() => void controller.load())
           </div>
           <div class="flex gap-2">
             <Button size="sm" variant="outline" @click="controller.openTools(server)">工具</Button>
+            <Button size="sm" variant="outline" @click="edit(server)">编辑</Button>
             <Button size="sm" variant="outline" @click="controller.reconnect(server)">重连</Button>
             <Button size="sm" variant="outline" @click="controller.toggle(server)">
               {{ server.enabled ? '停用' : '启用' }}
             </Button>
-            <Button size="sm" variant="outline" @click="controller.remove(server)">删除</Button>
+            <Button size="sm" variant="outline" @click="remove(server)">删除</Button>
           </div>
         </div>
         <div v-if="state.selectedId === server.id" class="mt-3 border-t pt-3">
           <p v-if="!state.tools.length" class="text-xs text-muted-foreground">暂无已注册工具</p>
-          <p v-for="tool in state.tools" :key="tool.name" class="text-xs">
-            <span class="font-medium">{{ tool.name }}</span>
-            <span class="ml-2 text-muted-foreground">{{ tool.description }}</span>
-          </p>
+          <details v-for="tool in state.tools" :key="tool.name" class="mt-2 text-xs">
+            <summary class="cursor-pointer">
+              <span class="font-medium">{{ tool.name }}</span>
+              <span class="ml-2 text-muted-foreground">{{ tool.description }}</span>
+            </summary>
+            <pre class="mt-2 max-h-56 overflow-auto rounded-lg bg-secondary p-3">{{
+              JSON.stringify(tool.input_schema, null, 2)
+            }}</pre>
+          </details>
         </div>
       </div>
       <p v-if="!state.servers.length" class="text-sm text-muted-foreground">尚未配置 MCP 服务。</p>
     </div>
 
     <form class="mt-8 space-y-3 rounded-xl border p-4" @submit.prevent="submit">
-      <h2 class="text-sm font-medium">添加服务</h2>
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-medium">{{ isEditing ? '编辑服务' : '添加服务' }}</h2>
+        <button
+          v-if="isEditing"
+          type="button"
+          class="text-xs text-muted-foreground"
+          @click="cancelEdit"
+        >
+          取消编辑
+        </button>
+      </div>
       <Input v-model="form.name" placeholder="名称（小写字母、数字、连字符）" />
       <select
         v-model="form.transport"
@@ -117,7 +179,7 @@ onMounted(() => void controller.load())
         />
         <textarea
           v-model="form.env"
-          placeholder="env，每行 KEY=VALUE，值可写 ${VAR}"
+          placeholder="env，每行 KEY=VALUE；value 为 *** 表示保持原值"
           class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
         />
       </template>
@@ -125,11 +187,13 @@ onMounted(() => void controller.load())
         <Input v-model="form.url" placeholder="https://example.com/mcp" />
         <textarea
           v-model="form.headers"
-          placeholder="headers，每行 KEY=VALUE，值可写 ${VAR}"
+          placeholder="headers，每行 KEY=VALUE；value 为 *** 表示保持原值"
           class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
         />
       </template>
-      <Button size="sm" type="submit" :disabled="canSubmit">保存</Button>
+      <Button size="sm" type="submit" :disabled="canSubmit === false">
+        {{ isEditing ? '保存修改' : '保存' }}
+      </Button>
     </form>
   </section>
 </template>

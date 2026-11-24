@@ -345,6 +345,8 @@ class McpServerView(BaseModel):
     tool_count: int
     env_keys: list[str]
     header_keys: list[str]
+    env: dict[str, str]
+    headers: dict[str, str]
 
 
 class McpToolView(BaseModel):

@@ -171,6 +171,9 @@ class McpConfigService:
     @staticmethod
     def _reject_secrets(mapping: Mapping[str, str], *, allow_placeholders: bool) -> None:
         for key, value in mapping.items():
+            if value == "***":
+                # 前端回传的未修改掩码，跳过校验（更新时会还原为原值）。
+                continue
             if allow_placeholders and _PLACEHOLDER.search(value) is not None:
                 # 连接前允许含占位符；解析后会以 allow_placeholders=False 重新校验。
                 continue

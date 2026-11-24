@@ -243,3 +243,20 @@ async def test_duplicate_sanitized_tool_names_rollback(uow_factory: UnitOfWorkFa
     service = McpConfigService(uow_factory)
     assert (await service.get(server.id)).status is McpStatus.ERROR
     assert all(not tool.name.startswith("mcp__") for tool in registry.list_tools())
+
+
+async def test_update_server_restores_masked_env(uow_factory: UnitOfWorkFactory) -> None:
+    registry = ToolRegistry()
+    manager = make_manager(uow_factory, FakeFactory(), registry)
+    service = McpConfigService(uow_factory, parent_env={"PATH": "/usr/bin"})
+    server = await service.create(
+        McpServerInput(name="demo", transport="stdio", command="python", env={"PLAIN": "value"})
+    )
+
+    await manager.update_server(
+        server.id,
+        McpServerInput(name="demo", transport="stdio", command="python", env={"PLAIN": "***"}),
+    )
+
+    stored = await service.get(server.id)
+    assert stored.env == {"PLAIN": "value"}

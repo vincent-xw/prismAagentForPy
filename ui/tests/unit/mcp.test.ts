@@ -13,6 +13,8 @@ const server = {
   tool_count: 1,
   env_keys: [],
   header_keys: [],
+  env: {},
+  headers: {},
 }
 
 test('加载服务列表', async () => {
@@ -36,4 +38,31 @@ test('启用/停用后刷新列表', async () => {
 
   expect(client.setMcpEnabled).toHaveBeenCalledWith('s1', false)
   expect(controller.state.servers[0]?.enabled).toBe(false)
+})
+
+test('编辑时调用 update 并退出编辑态', async () => {
+  const client = {
+    updateMcpServer: vi.fn().mockResolvedValue(server),
+    listMcpServers: vi.fn().mockResolvedValue([server]),
+  } as unknown as CoreClient
+  const controller = createMcpController({ client })
+
+  controller.beginEdit(server)
+  expect(controller.state.editingId).toBe('s1')
+  await controller.save({
+    name: 'demo',
+    transport: 'stdio',
+    command: 'python',
+    args: [],
+    env: { PLAIN: '***' },
+    url: null,
+    headers: {},
+    enabled: true,
+  })
+
+  expect(client.updateMcpServer).toHaveBeenCalledWith(
+    's1',
+    expect.objectContaining({ name: 'demo' }),
+  )
+  expect(controller.state.editingId).toBeNull()
 })

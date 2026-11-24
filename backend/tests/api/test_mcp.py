@@ -59,3 +59,27 @@ def test_mcp_missing_server_404(api_client) -> None:
     response = api_client.get("/api/v1/mcp/servers/missing/tools")
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "MCP_SERVER_NOT_FOUND"
+
+
+def test_mcp_view_masks_literals_and_update_keeps_masked(api_client) -> None:
+    created = api_client.post(
+        "/api/v1/mcp/servers",
+        json={
+            "name": "demo",
+            "transport": "stdio",
+            "command": "python",
+            "env": {"PLAIN": "value", "REF": "${TOKEN}"},
+        },
+    ).json()
+    assert created["env"] == {"PLAIN": "***", "REF": "${TOKEN}"}
+
+    patched = api_client.patch(
+        f"/api/v1/mcp/servers/{created['id']}",
+        json={
+            "name": "demo",
+            "transport": "stdio",
+            "command": "python",
+            "env": {"PLAIN": "***", "REF": "${TOKEN}"},
+        },
+    )
+    assert patched.status_code == 200, patched.text

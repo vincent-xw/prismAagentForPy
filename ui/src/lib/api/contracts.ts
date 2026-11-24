@@ -236,6 +236,8 @@ export const mcpServerSchema = z.object({
   tool_count: z.number().int().nonnegative(),
   env_keys: z.array(z.string()),
   header_keys: z.array(z.string()),
+  env: z.record(z.string(), z.string()),
+  headers: z.record(z.string(), z.string()),
 })
 export const mcpServersSchema = z.array(mcpServerSchema)
 export const mcpToolSchema = z.object({

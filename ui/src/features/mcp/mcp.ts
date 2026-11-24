@@ -7,6 +7,7 @@ export interface McpState {
   servers: McpServerDto[]
   tools: McpToolDto[]
   selectedId: string | null
+  editingId: string | null
   loading: boolean
   error: string | null
 }
@@ -14,7 +15,9 @@ export interface McpState {
 export interface McpController {
   state: McpState
   load: () => Promise<void>
-  create: (payload: McpServerPayload) => Promise<void>
+  save: (payload: McpServerPayload) => Promise<void>
+  beginEdit: (server: McpServerDto) => void
+  cancelEdit: () => void
   toggle: (server: McpServerDto) => Promise<void>
   reconnect: (server: McpServerDto) => Promise<void>
   remove: (server: McpServerDto) => Promise<void>
@@ -26,6 +29,7 @@ export function createMcpController({ client }: { client: CoreClient }): McpCont
     servers: [],
     tools: [],
     selectedId: null,
+    editingId: null,
     loading: false,
     error: null,
   })
@@ -48,11 +52,24 @@ export function createMcpController({ client }: { client: CoreClient }): McpCont
     })
   }
 
-  async function create(payload: McpServerPayload): Promise<void> {
+  async function save(payload: McpServerPayload): Promise<void> {
     await guard(async () => {
-      await client.createMcpServer(payload)
+      if (state.editingId === null) {
+        await client.createMcpServer(payload)
+      } else {
+        await client.updateMcpServer(state.editingId, payload)
+        state.editingId = null
+      }
       state.servers = await client.listMcpServers()
     })
+  }
+
+  function beginEdit(server: McpServerDto): void {
+    state.editingId = server.id
+  }
+
+  function cancelEdit(): void {
+    state.editingId = null
   }
 
   async function toggle(server: McpServerDto): Promise<void> {
@@ -85,5 +102,5 @@ export function createMcpController({ client }: { client: CoreClient }): McpCont
     })
   }
 
-  return { state, load, create, toggle, reconnect, remove, openTools }
+  return { state, load, save, beginEdit, cancelEdit, toggle, reconnect, remove, openTools }
 }
