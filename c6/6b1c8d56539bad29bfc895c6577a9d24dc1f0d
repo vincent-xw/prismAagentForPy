@@ -1,0 +1,24 @@
+backend/tests/core/test_engine_approval.py
+  h_c3a612a540ca0b 67,72-73,259-315
+backend/tests/application/mcp/test_lifecycle.py
+  h_c3a612a540ca0b 1-53
+backend/tests/support/mcp_http_server.py
+  h_c3a612a540ca0b 1-17
+backend/tests/support/mcp_stdio_server.py
+  h_c3a612a540ca0b 1-30
+backend/tests/application/mcp/test_http_integration.py
+  h_c3a612a540ca0b 1-89
+backend/tests/application/mcp/test_stdio_integration.py
+  h_c3a612a540ca0b 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "c66b1c8d56539bad29bfc895c6577a9d24dc1f0d",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
