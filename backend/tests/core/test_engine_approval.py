@@ -64,10 +64,13 @@ def make_engine(
     locator: FakeLocator,
     *,
     require_approval: bool = True,
+    extra_tools: list[ToolDefinition] | None = None,
 ) -> SimpleAgentEngine:
     registry = ToolRegistry()
     registry.register(echo_tool())
     registry.register(write_tool(locator.root or Path("/tmp"), requires_approval=require_approval))
+    for tool in extra_tools or []:
+        registry.register(tool)
     return SimpleAgentEngine(
         uow_factory=uow_factory,
         model_provider=provider,
@@ -253,3 +256,60 @@ async def test_tool_requested_event_redacts_write_content(
         payload for event in requested for payload in [event.payload] if payload["call_id"] == "c2"
     )
     assert echo_payload["input"] == {"text": "one"}
+
+
+async def test_mcp_tool_suspends_for_approval(
+    uow_factory: UnitOfWorkFactory,
+    tmp_path: Path,
+) -> None:
+    class McpInput(BaseModel):
+        text: str
+
+    async def mcp_handler(raw: McpInput, _context: object) -> dict[str, object]:
+        return {"echo": raw.text}
+
+    mcp_tool = ToolDefinition(
+        name="mcp__demo__echo",
+        description="mcp echo",
+        input_model=McpInput,
+        output_model=None,
+        execution_mode=ExecutionMode.LOCAL,
+        timeout_seconds=5,
+        requires_approval=True,
+        handler=mcp_handler,
+    )
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                text="",
+                reasoning=None,
+                tool_calls=[
+                    ToolCallDraft(call_id="c1", tool_name="mcp__demo__echo", input={"text": "hi"})
+                ],
+            )
+        ]
+    )
+    publisher = RecordingEventPublisher()
+    locator = FakeLocator(tmp_path)
+    from prism_agent_kit.core.workspace import Workspace
+
+    async with uow_factory() as uow:
+        workspace = await uow.workspaces.create(Workspace(root_path=str(tmp_path)))
+        await uow.commit()
+    engine = make_engine(
+        uow_factory,
+        provider,
+        publisher,
+        locator,
+        extra_tools=[mcp_tool],
+    )
+    run = await seed_running_run(uow_factory, workspace.id)
+
+    outcome = await engine.execute(EngineContext(run_id=run.id, cancel=asyncio.Event()))
+    assert outcome.kind == "waiting_for_approval"
+
+    async with uow_factory() as uow:
+        loaded = await uow.runs.get(run.id)
+        calls = await uow.tool_calls.list_for_run(run.id)
+    assert loaded.status is RunStatus.WAITING_FOR_APPROVAL
+    assert calls[0].status is ToolCallStatus.AWAITING_APPROVAL
