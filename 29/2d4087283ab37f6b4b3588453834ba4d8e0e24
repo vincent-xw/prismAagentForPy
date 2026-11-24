@@ -1,0 +1,32 @@
+backend/src/prism_agent_kit/api/routes/mcp.py
+  h_c3a612a540ca0b 62,67-72
+backend/src/prism_agent_kit/application/mcp/adapter.py
+  h_c3a612a540ca0b 3,96-100
+backend/src/prism_agent_kit/application/mcp/config_service.py
+  h_c3a612a540ca0b 113-115,127,158-159,172,174-175
+backend/src/prism_agent_kit/application/mcp/manager.py
+  h_c3a612a540ca0b 20-24,103,158-159,206,234-239,245,249,295-297,326-339,341-346,348-371,387-393
+backend/src/prism_agent_kit/application/tool_approval_service.py
+  h_c3a612a540ca0b 108-109,117
+backend/src/prism_agent_kit/tools/workspace_tools.py
+  h_c3a612a540ca0b 300
+backend/tests/application/mcp/test_adapter.py
+  h_c3a612a540ca0b 69-78
+backend/tests/application/mcp/test_config_service.py
+  h_c3a612a540ca0b 95-109
+backend/tests/application/mcp/test_manager.py
+  h_c3a612a540ca0b 156-245
+backend/tests/tools/test_workspace_tools.py
+  h_c3a612a540ca0b 142-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "292d4087283ab37f6b4b3588453834ba4d8e0e24",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
