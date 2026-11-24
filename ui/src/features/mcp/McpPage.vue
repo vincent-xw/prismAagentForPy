@@ -186,18 +186,18 @@ onUnmounted(() => {
         <option value="stdio">stdio</option>
         <option value="http">Streamable HTTP</option>
       </select>
-      <div class="min-h-[220px] space-y-3">
+      <div class="h-[176px] space-y-3">
         <template v-if="form.transport === 'stdio'">
           <Input v-model="form.command" placeholder="command，例如 python" />
           <textarea
             v-model="form.args"
             placeholder="args，每行一个"
-            class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
+            class="h-14 w-full rounded-lg border bg-background p-3 text-xs"
           />
           <textarea
             v-model="form.env"
             placeholder="env，每行 KEY=VALUE；value 为 *** 表示保持原值"
-            class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
+            class="h-14 w-full rounded-lg border bg-background p-3 text-xs"
           />
         </template>
         <template v-else>
@@ -205,7 +205,7 @@ onUnmounted(() => {
           <textarea
             v-model="form.headers"
             placeholder="headers，每行 KEY=VALUE；value 为 *** 表示保持原值"
-            class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
+            class="h-14 w-full rounded-lg border bg-background p-3 text-xs"
           />
         </template>
       </div>
