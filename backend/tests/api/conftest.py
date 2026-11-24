@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -14,6 +15,8 @@ from prism_agent_kit.api.router import create_api_router
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
+from prism_agent_kit.application.mcp.config_service import McpConfigService
+from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
@@ -55,7 +58,30 @@ class ApiTestContainer:
     tool_result_service: ToolResultService
     workspace_service: WorkspaceService
     tool_approval_service: ToolApprovalService
+    mcp_config_service: McpConfigService
+    mcp_manager: McpServerManager
     workspace_fts_supported: bool = True
+
+
+class _FakeMcpClient:
+    async def list_tools(self) -> object:
+        return SimpleNamespace(
+            tools=[
+                SimpleNamespace(
+                    name="echo",
+                    description="echo tool",
+                    input_schema={"type": "object", "properties": {"text": {"type": "string"}}},
+                )
+            ]
+        )
+
+    async def call_tool(self, name: str, arguments: dict[str, str]) -> object:
+        return SimpleNamespace(content=[], structured_content={"echo": arguments}, is_error=False)
+
+
+@asynccontextmanager
+async def _fake_mcp_factory(_connection: object) -> AsyncIterator[_FakeMcpClient]:
+    yield _FakeMcpClient()
 
 
 def build_api_application(
@@ -136,6 +162,14 @@ def build_api_application(
         event_publisher=event_bus,
     )
 
+    mcp_config_service = McpConfigService(uow_factory, parent_env={"PATH": "/usr/bin"})
+    mcp_manager = McpServerManager(
+        uow_factory=uow_factory,
+        config_service=mcp_config_service,
+        tool_registry=tool_registry,
+        client_factory=_fake_mcp_factory,
+    )
+
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         try:
@@ -154,6 +188,8 @@ def build_api_application(
         tool_result_service=tool_result_service,
         workspace_service=workspace_service,
         tool_approval_service=tool_approval_service,
+        mcp_config_service=mcp_config_service,
+        mcp_manager=mcp_manager,
     )
     application.add_middleware(RequestIdMiddleware)
     install_exception_handlers(application)

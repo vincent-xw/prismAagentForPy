@@ -6,6 +6,8 @@ from filelock import FileLock, Timeout
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import ReplayLoader, RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
+from prism_agent_kit.application.mcp.config_service import McpConfigService
+from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.run_worker import RunWorker
 from prism_agent_kit.application.session_service import SessionService
@@ -71,6 +73,8 @@ class ApplicationContainer:
         self._tool_approval_service: ToolApprovalService | None = None
         self._index_tasks: WorkspaceIndexTaskManager | None = None
         self._workspace_fts_supported = False
+        self._mcp_config_service: McpConfigService | None = None
+        self._mcp_manager: McpServerManager | None = None
 
     @property
     def database(self) -> Database:
@@ -133,6 +137,20 @@ class ApplicationContainer:
             raise RuntimeError("ApplicationContainer 尚未启动")
         return self._tool_result_service
 
+    @property
+    def mcp_config_service(self) -> McpConfigService:
+        """返回 MCP 配置服务。"""
+        if self._mcp_config_service is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._mcp_config_service
+
+    @property
+    def mcp_manager(self) -> McpServerManager:
+        """返回 MCP 连接管理器。"""
+        if self._mcp_manager is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._mcp_manager
+
     async def start(self) -> None:
         """获取进程锁并按依赖顺序启动数据库与 Worker。"""
         if self._started:
@@ -166,6 +184,15 @@ class ApplicationContainer:
                 if workspace_tool.name not in existing_tool_names:
                     tool_registry.register(workspace_tool)
             cancellation_registry = RunCancellationRegistry()
+            mcp_config_service = McpConfigService(uow_factory)
+            mcp_manager = McpServerManager(
+                uow_factory=uow_factory,
+                config_service=mcp_config_service,
+                tool_registry=tool_registry,
+                connect_timeout_seconds=self.settings.mcp_connect_timeout_seconds,
+                tool_timeout_seconds=self.settings.mcp_tool_timeout_seconds,
+                max_result_bytes=self.settings.mcp_max_result_bytes,
+            )
             tool_result_recorder = ToolResultRecorder(
                 uow_factory=uow_factory,
                 event_publisher=event_bus,
@@ -284,7 +311,10 @@ class ApplicationContainer:
             self._workspace_service = workspace_service
             self._tool_approval_service = tool_approval_service
             self._index_tasks = index_tasks
+            self._mcp_config_service = mcp_config_service
+            self._mcp_manager = mcp_manager
             self._started = True
+            await mcp_manager.start_all()
             logger.info(
                 "ApplicationContainer 已启动: database=%s model=%s tools=%s",
                 database.path,
@@ -311,6 +341,9 @@ class ApplicationContainer:
             return
         self._started = False
         try:
+            if self._mcp_manager is not None:
+                await self._mcp_manager.stop()
+                self._mcp_manager = None
             if self._index_tasks is not None:
                 await self._index_tasks.stop()
             if self._worker is not None:

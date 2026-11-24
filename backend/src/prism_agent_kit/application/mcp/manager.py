@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Any, Protocol
 
 from pydantic import JsonValue
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from prism_agent_kit.application.mcp.adapter import (
     McpToolInfo,
@@ -22,6 +24,8 @@ from prism_agent_kit.core.mcp import McpServer, McpStatus
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 from prism_agent_kit.tools.contracts import ToolDefinition
 from prism_agent_kit.tools.registry import ToolRegistry
+
+logger = logging.getLogger(__name__)
 
 _ACTIVE_RUN_STATUSES = (
     RunStatus.RUNNING,
@@ -197,7 +201,12 @@ class McpServerManager:
 
     async def start_all(self) -> None:
         """连接所有已启用服务；单个失败只影响自身状态。"""
-        servers = [item for item in await self._config.list_servers() if item.enabled]
+        try:
+            servers = [item for item in await self._config.list_servers() if item.enabled]
+        except (OperationalError, ProgrammingError):
+            # 迁移尚未执行（例如仅验证启动行为的测试）时跳过，不应阻断应用启动。
+            logger.warning("mcp_servers 表不存在，跳过 MCP 服务启动")
+            return
         if not servers:
             return
         await asyncio.gather(
@@ -270,6 +279,10 @@ class McpServerManager:
         self._workers.clear()
         self._server_tools.clear()
         await asyncio.gather(*(worker.stop() for worker in workers), return_exceptions=True)
+
+    def tool_definitions_for(self, server_id: str) -> list[ToolDefinition]:
+        names = set(self._server_tools.get(server_id, []))
+        return [tool for tool in self._registry.list_tools() if tool.name in names]
 
     def tool_definitions(self) -> list[ToolDefinition]:
         return [

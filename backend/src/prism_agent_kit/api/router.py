@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from prism_agent_kit.api.routes import health
+from prism_agent_kit.api.routes import mcp as mcp_routes
 from prism_agent_kit.api.routes.runs import create_runs_router
 from prism_agent_kit.api.routes.sessions import create_sessions_router
 from prism_agent_kit.api.routes.tools import create_tools_router
@@ -15,6 +16,7 @@ def create_api_router() -> APIRouter:
     router.include_router(create_runs_router())
     router.include_router(create_tools_router())
     router.include_router(create_workspaces_router())
+    router.include_router(mcp_routes.router)
     return router
 
 

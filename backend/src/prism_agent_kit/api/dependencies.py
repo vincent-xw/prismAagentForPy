@@ -4,6 +4,8 @@ from fastapi import Depends, Request
 
 from prism_agent_kit.application.container import ApplicationContainer
 from prism_agent_kit.application.event_bus import RunEventBus
+from prism_agent_kit.application.mcp.config_service import McpConfigService
+from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
@@ -58,6 +60,16 @@ def get_tool_registry(request: Request) -> ToolRegistry:
     return get_application_container(request).tool_registry
 
 
+def get_mcp_config_service(request: Request) -> McpConfigService:
+    """返回 MCP 配置服务。"""
+    return get_application_container(request).mcp_config_service
+
+
+def get_mcp_manager(request: Request) -> McpServerManager:
+    """返回 MCP 连接管理器。"""
+    return get_application_container(request).mcp_manager
+
+
 SessionServiceDependency = Annotated[SessionService, Depends(get_session_service)]
 RunServiceDependency = Annotated[RunService, Depends(get_run_service)]
 ToolResultServiceDependency = Annotated[
@@ -72,3 +84,5 @@ ToolApprovalServiceDependency = Annotated[
     Depends(get_tool_approval_service),
 ]
 SettingsDependency = Annotated[Settings, Depends(get_request_settings)]
+McpConfigServiceDependency = Annotated[McpConfigService, Depends(get_mcp_config_service)]
+McpManagerDependency = Annotated[McpServerManager, Depends(get_mcp_manager)]

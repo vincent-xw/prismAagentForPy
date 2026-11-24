@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, JsonValue, field_validator
 
@@ -317,3 +318,45 @@ class ApprovalResponse(BaseModel):
 
     call: ToolCallView
     run: RunView
+
+
+class McpServerCreate(BaseModel):
+    """新增或更新 MCP 服务的入参。"""
+
+    name: str
+    transport: Literal["stdio", "http"]
+    command: str | None = None
+    args: list[str] = Field(default_factory=list)
+    env: dict[str, str] = Field(default_factory=dict)
+    url: str | None = None
+    headers: dict[str, str] = Field(default_factory=dict)
+    enabled: bool = False
+
+
+class McpServerView(BaseModel):
+    """MCP 服务视图；密钥只暴露键名。"""
+
+    id: str
+    name: str
+    transport: Literal["stdio", "http"]
+    enabled: bool
+    status: str
+    last_error: str | None
+    tool_count: int
+    env_keys: list[str]
+    header_keys: list[str]
+
+
+class McpToolView(BaseModel):
+    """MCP 工具目录条目。"""
+
+    name: str
+    description: str
+    input_schema: dict[str, JsonValue]
+
+
+class McpToolsView(BaseModel):
+    """单个 MCP 服务的工具目录。"""
+
+    server_id: str
+    tools: list[McpToolView]
