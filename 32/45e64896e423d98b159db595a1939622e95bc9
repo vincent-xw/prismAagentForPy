@@ -1,0 +1,26 @@
+ui/src/app/modules.ts
+  h_c3a612a540ca0b 5
+ui/src/app/router.ts
+  h_c3a612a540ca0b 5,16
+ui/src/features/mcp/McpPage.vue
+  h_c3a612a540ca0b 1-135
+ui/src/features/mcp/mcp.ts
+  h_c3a612a540ca0b 1-89
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 8-10,22,74,109-127,208-245
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 228-261
+ui/tests/unit/mcp.test.ts
+  h_c3a612a540ca0b 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3245e64896e423d98b159db595a1939622e95bc9",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
