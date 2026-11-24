@@ -1,0 +1,30 @@
+README.md
+  h_c3a612a540ca0b 41,43,107-108
+backend/.env.example
+  h_c3a612a540ca0b 40-44
+backend/README.md
+  h_c3a612a540ca0b 23,27,205-206
+backend/pyproject.toml
+  h_c3a612a540ca0b 7
+backend/src/prism_agent_kit/__init__.py
+  h_c3a612a540ca0b 3
+backend/tests/test_agent_e2e.py
+  h_c3a612a540ca0b 9,283-345
+backend/uv.lock
+  h_c3a612a540ca0b 1291
+ui/README.md
+  h_c3a612a540ca0b 3
+ui/package.json
+  h_c3a612a540ca0b 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6793c921c459207c9abf5def520d2709d069225e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
