@@ -1,0 +1,32 @@
+backend/src/prism_agent_kit/api/routes/runs.py
+  h_c3a612a540ca0b 194-195
+backend/src/prism_agent_kit/api/schemas.py
+  h_c3a612a540ca0b 303,305,312
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 163-165
+backend/src/prism_agent_kit/application/tool_approval_service.py
+  h_c3a612a540ca0b 7,37,39,46,107-118,175-182,197,205,238,249
+backend/src/prism_agent_kit/core/engine.py
+  h_c3a612a540ca0b 2,257,384,546-571,624
+backend/src/prism_agent_kit/tools/contracts.py
+  h_c3a612a540ca0b 67,89
+backend/src/prism_agent_kit/tools/workspace_tools.py
+  h_c3a612a540ca0b 205
+backend/tests/application/test_tool_approval_service.py
+  h_c3a612a540ca0b 6,19,44-64,70,293-358
+backend/tests/core/test_engine_approval.py
+  h_c3a612a540ca0b 43,55,70
+backend/tests/tools/test_registry.py
+  h_c3a612a540ca0b 78-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3169fc02ab2ee5464ec4a211314fc2dfda0cc35e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
