@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Menu, Settings, PanelsLeftBottom, Hexagon } from '@lucide/vue'
+import { ArrowLeft, Menu, Settings, PanelsLeftBottom, Hexagon, Plug } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -23,6 +23,7 @@ const collapsed = ref(false)
 const state = computed(() => conversation.value!.state)
 const settings = computed(() => route.path === '/settings')
 const workspace = computed(() => route.path === '/workspace')
+const mcp = computed(() => route.path === '/mcp')
 const lastSessionPath = computed(() =>
   state.value.selectedSessionId ? `/sessions/${state.value.selectedSessionId}` : '/',
 )
@@ -56,8 +57,10 @@ const title = computed(() =>
     ? '连接与外观'
     : workspace.value
       ? '工作区'
-      : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
-        '新的会话'),
+      : mcp.value
+        ? 'MCP 服务'
+        : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
+          '新的会话'),
 )
 async function create() {
   navigationOpen.value = false
@@ -113,6 +116,12 @@ onMounted(() => {
         to="/workspace"
         class="mx-4 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
         ><PanelsLeftBottom class="size-4" />工作区</RouterLink
+      >
+      <RouterLink
+        to="/mcp"
+        class="mx-4 mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+        :class="mcp ? 'bg-secondary text-foreground' : ''"
+        ><Plug class="size-4" />MCP</RouterLink
       >
       <RouterLink
         to="/settings"
@@ -214,6 +223,11 @@ onMounted(() => {
           @create="create"
           @select="select"
         /><RouterLink
+          to="/mcp"
+          class="mx-4 mt-2 flex items-center gap-2 rounded-lg p-3 text-sm text-muted-foreground"
+          @click="navigationOpen = false"
+          ><Plug class="size-4" />MCP</RouterLink
+        ><RouterLink
           to="/settings"
           class="m-4 flex items-center gap-2 rounded-lg p-3 text-sm text-muted-foreground"
           @click="navigationOpen = false"
