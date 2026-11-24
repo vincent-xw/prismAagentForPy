@@ -140,9 +140,20 @@ function date(value: string | null) {
           :key="item.callId"
           class="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-4"
         >
-          <p class="break-all text-sm font-medium">{{ item.path }}</p>
-          <p class="mt-1 text-xs text-muted-foreground">{{ item.mode }} · {{ item.bytes }} 字节</p>
-          <details class="mt-2 text-xs" @toggle="loadPreview(item.callId)">
+          <p class="break-all text-sm font-medium">
+            {{ item.kind === 'generic' ? item.toolName : item.path }}
+          </p>
+          <p v-if="item.kind === 'file'" class="mt-1 text-xs text-muted-foreground">
+            {{ item.mode }} · {{ item.bytes }} 字节
+          </p>
+          <p v-else class="mt-1 text-xs text-muted-foreground">外部工具调用</p>
+          <details v-if="item.kind === 'generic'" class="mt-2 text-xs">
+            <summary class="cursor-pointer text-muted-foreground">查看调用参数</summary>
+            <pre class="mt-2 max-h-56 overflow-auto rounded-lg bg-secondary p-3">{{
+              item.inputPreview ?? '无参数'
+            }}</pre>
+          </details>
+          <details v-else class="mt-2 text-xs" @toggle="loadPreview(item.callId)">
             <summary class="cursor-pointer text-muted-foreground">查看改动预览</summary>
             <pre
               v-if="previews[item.callId]?.diff"
@@ -157,7 +168,7 @@ function date(value: string | null) {
               size="sm"
               :disabled="busyCallId === item.callId"
               @click="decide(item.callId, 'approve')"
-              >允许写入</Button
+              >{{ item.kind === 'generic' ? '允许执行' : '允许写入' }}</Button
             >
             <Button
               variant="outline"

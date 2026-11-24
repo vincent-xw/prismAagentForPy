@@ -18,9 +18,11 @@ export type ToolStatus =
 export interface PendingApproval {
   callId: string
   toolName: string
+  kind: 'file' | 'generic'
   path: string
   mode: string
   bytes: number
+  inputPreview: string | null
 }
 export interface ToolProjection {
   callId: string
@@ -108,9 +110,11 @@ export function applyRunEvent(state: RunProjection, event: CoreEvent): RunProjec
         state.pendingApprovals.push({
           callId: event.call_id,
           toolName: event.tool_name,
-          path: event.path,
-          mode: event.mode,
-          bytes: event.bytes,
+          kind: event.kind ?? (event.path ? 'file' : 'generic'),
+          path: event.path ?? '',
+          mode: event.mode ?? '',
+          bytes: event.bytes ?? 0,
+          inputPreview: event.input_preview ?? null,
         })
       }
       break

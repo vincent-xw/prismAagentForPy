@@ -107,7 +107,15 @@ test('从事件投影出待审批调用并在批准后移除', () => {
     bytes: 3,
   } as never)
   expect(required.pendingApprovals).toEqual([
-    { callId: 'c1', toolName: 'file_write', path: 'a.md', mode: 'overwrite', bytes: 3 },
+    {
+      callId: 'c1',
+      toolName: 'file_write',
+      kind: 'file',
+      path: 'a.md',
+      mode: 'overwrite',
+      bytes: 3,
+      inputPreview: null,
+    },
   ])
   const approved = applyRunEvent(state, {
     id: '2',
@@ -145,6 +153,14 @@ test('脱敏的 tool.requested 仍能驱动待审批卡片', () => {
 
   expect(state.tools).toHaveLength(1)
   expect(state.pendingApprovals).toEqual([
-    { callId: 'c1', toolName: 'file_write', path: '周报.md', mode: 'create', bytes: 669 },
+    {
+      callId: 'c1',
+      toolName: 'file_write',
+      kind: 'file',
+      path: '周报.md',
+      mode: 'create',
+      bytes: 669,
+      inputPreview: null,
+    },
   ])
 })

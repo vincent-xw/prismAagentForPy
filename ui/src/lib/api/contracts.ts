@@ -109,7 +109,9 @@ export const searchResponseSchema = z.object({
   items: z.array(z.object({ path: z.string(), snippet: z.string() })),
 })
 export const approvalPreviewSchema = z.object({
+  kind: z.enum(['file', 'generic']),
   path: z.string(),
+  input_preview: z.string().nullable(),
   mode: z.string(),
   bytes: z.number().int().nonnegative(),
   exists: z.boolean(),
@@ -176,9 +178,11 @@ const eventSchema = z.discriminatedUnion('type', [
     type: z.literal('tool.approval_required'),
     call_id: id,
     tool_name: id,
-    path: z.string(),
-    mode: z.string(),
-    bytes: z.number().int().nonnegative(),
+    kind: z.enum(['file', 'generic']).optional(),
+    path: z.string().optional(),
+    mode: z.string().optional(),
+    bytes: z.number().int().nonnegative().optional(),
+    input_preview: z.string().optional(),
   }),
   z.object({ ...base, type: z.literal('tool.approved'), call_id: id }),
   z.object({
