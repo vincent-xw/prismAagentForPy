@@ -13,7 +13,7 @@ from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.mcp import McpServer
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 
-_SLUG = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+_SLUG = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _PLACEHOLDER = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 _SECRET_PATTERNS = (
     re.compile(r"^sk-[A-Za-z0-9_-]{8,}$"),
@@ -150,7 +150,7 @@ class McpConfigService:
 
     def _validate(self, payload: McpServerInput) -> dict[str, Any]:
         if _SLUG.fullmatch(payload.name) is None:
-            raise _invalid("服务名只能是小写字母、数字与连字符")
+            raise _invalid("服务名只能是小写字母、数字、连字符或下划线")
         if payload.transport == "stdio" and not payload.command:
             raise _invalid("stdio 服务必须提供 command")
         if payload.transport == "http" and not payload.url:

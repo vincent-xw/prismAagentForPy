@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
 import { useAppContext } from '@/app/context'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,8 @@ import { createMcpController } from './mcp'
 const { client } = useAppContext()
 const controller = createMcpController({ client })
 const state = controller.state
+const formError = ref<string | null>(null)
+const NAME_PATTERN = /^[a-z0-9][a-z0-9_-]*$/
 
 const form = reactive({
   name: '',
@@ -65,9 +67,15 @@ function edit(server: McpServerDto): void {
 function cancelEdit(): void {
   controller.cancelEdit()
   resetForm()
+  formError.value = null
 }
 
 async function submit(): Promise<void> {
+  formError.value = null
+  if (!NAME_PATTERN.test(form.name)) {
+    formError.value = '服务名只能是小写字母、数字、连字符或下划线'
+    return
+  }
   await controller.save({
     name: form.name,
     transport: form.transport,
@@ -78,7 +86,13 @@ async function submit(): Promise<void> {
     headers: form.transport === 'http' ? parsePairs(form.headers) : {},
     enabled: false,
   })
-  if (state.error === null) resetForm()
+  if (state.error === null) {
+    resetForm()
+  } else {
+    // 提交失败时把错误固定显示在按钮下方，并清掉全局错误避免页面顶部跳动。
+    formError.value = state.error
+    state.error = null
+  }
 }
 
 async function remove(server: McpServerDto): Promise<void> {
@@ -103,9 +117,7 @@ onUnmounted(() => {
       <p class="text-xs text-muted-foreground">连接外部 MCP 服务并接入其工具</p>
     </header>
 
-    <p v-if="state.error" class="mt-4 rounded-lg bg-destructive/10 p-3 text-xs text-destructive">
-      {{ state.error }}
-    </p>
+    <p class="mt-2 min-h-4 text-xs text-destructive">{{ state.error ?? '' }}</p>
 
     <div class="mt-6 space-y-3">
       <div v-for="server in state.servers" :key="server.id" class="rounded-xl border p-4">
@@ -162,7 +174,10 @@ onUnmounted(() => {
           取消编辑
         </button>
       </div>
-      <Input v-model="form.name" placeholder="名称（小写字母、数字、连字符）" />
+      <div>
+        <Input v-model="form.name" placeholder="名称，例如 deep_wiki" />
+        <p class="mt-1 text-[11px] text-muted-foreground">小写字母、数字、连字符或下划线</p>
+      </div>
       <select
         v-model="form.transport"
         class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
@@ -194,6 +209,7 @@ onUnmounted(() => {
       <Button size="sm" type="submit" :disabled="canSubmit === false">
         {{ isEditing ? '保存修改' : '保存' }}
       </Button>
+      <p class="min-h-[18px] text-xs text-destructive">{{ formError ?? '' }}</p>
     </form>
   </section>
 </template>

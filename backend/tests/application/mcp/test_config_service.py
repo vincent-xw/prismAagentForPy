@@ -107,3 +107,11 @@ async def test_resolved_secret_rejected(uow_factory: UnitOfWorkFactory) -> None:
     with pytest.raises(AgentKitError) as error:
         await service.build_connection(server)
     assert error.value.code is ErrorCode.MCP_CONFIG_INVALID
+
+
+async def test_name_allows_underscore(uow_factory: UnitOfWorkFactory) -> None:
+    service = make_service(uow_factory)
+    server = await service.create(
+        McpServerInput(name="deep_wiki", transport="http", url="https://e/mcp")
+    )
+    assert server.name == "deep_wiki"
