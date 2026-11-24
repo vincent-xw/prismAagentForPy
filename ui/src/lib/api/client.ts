@@ -5,6 +5,9 @@ import {
   errorSchema,
   fileResponseSchema,
   healthSchema,
+  mcpServerSchema as mcpServerSchemaRef,
+  mcpServersSchema,
+  mcpToolsSchema,
   messagesSchema,
   runSchema,
   searchResponseSchema,
@@ -16,6 +19,7 @@ import {
   workspacePickSchema,
   workspaceSchema,
 } from './contracts'
+import type { McpServerPayload } from './contracts'
 
 export class CoreApiError extends Error {
   // 业务错误字段仅在服务实际返回时赋值，不补造 code 或 request_id。
@@ -67,7 +71,7 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
   async function request<T>(
     path: string,
     schema: z.ZodType<T>,
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
     body: unknown,
     signal?: AbortSignal,
     protectedRequest = true,
@@ -102,6 +106,25 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
       )
     }
   }
+  async function requestVoid(
+    path: string,
+    method: 'PATCH' | 'DELETE',
+    body: unknown,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const headers = new Headers({ Accept: 'application/json' })
+    const token = getToken()
+    if (token !== null) headers.set('Authorization', `Bearer ${token}`)
+    if (body !== undefined) headers.set('Content-Type', 'application/json')
+    const response = await fetcher(`${basePath}${path}`, {
+      method,
+      headers,
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      ...(signal ? { signal } : {}),
+    })
+    await assertResponse(response)
+  }
+
   return {
     health: (signal?: AbortSignal) =>
       request('/health', healthSchema, 'GET', undefined, signal, false),
@@ -178,6 +201,44 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
       request(
         `/workspaces/${encodeURIComponent(id)}/search?q=${encodeURIComponent(query)}`,
         searchResponseSchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    listMcpServers: (signal?: AbortSignal) =>
+      request('/mcp/servers', mcpServersSchema, 'GET', undefined, signal),
+    createMcpServer: (payload: McpServerPayload, signal?: AbortSignal) =>
+      request('/mcp/servers', mcpServerSchemaRef, 'POST', payload, signal),
+    updateMcpServer: (id: string, payload: McpServerPayload, signal?: AbortSignal) =>
+      request(
+        `/mcp/servers/${encodeURIComponent(id)}`,
+        mcpServerSchemaRef,
+        'PATCH',
+        payload,
+        signal,
+      ),
+    deleteMcpServer: (id: string, signal?: AbortSignal) =>
+      requestVoid(`/mcp/servers/${encodeURIComponent(id)}`, 'DELETE', undefined, signal),
+    setMcpEnabled: (id: string, enabled: boolean, signal?: AbortSignal) =>
+      request(
+        `/mcp/servers/${encodeURIComponent(id)}/${enabled ? 'enable' : 'disable'}`,
+        mcpServerSchemaRef,
+        'POST',
+        undefined,
+        signal,
+      ),
+    reconnectMcp: (id: string, signal?: AbortSignal) =>
+      request(
+        `/mcp/servers/${encodeURIComponent(id)}/reconnect`,
+        mcpServerSchemaRef,
+        'POST',
+        undefined,
+        signal,
+      ),
+    getMcpTools: (id: string, signal?: AbortSignal) =>
+      request(
+        `/mcp/servers/${encodeURIComponent(id)}/tools`,
+        mcpToolsSchema,
         'GET',
         undefined,
         signal,

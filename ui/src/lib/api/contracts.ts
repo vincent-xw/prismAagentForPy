@@ -225,3 +225,37 @@ export type TreeEntryDto = z.infer<typeof treeResponseSchema>['items'][number]
 export type FileDto = z.infer<typeof fileResponseSchema>
 export type SearchHitDto = z.infer<typeof searchResponseSchema>['items'][number]
 export type ApprovalPreviewDto = z.infer<typeof approvalPreviewSchema>
+
+export const mcpServerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  transport: z.enum(['stdio', 'http']),
+  enabled: z.boolean(),
+  status: z.string(),
+  last_error: z.string().nullable(),
+  tool_count: z.number().int().nonnegative(),
+  env_keys: z.array(z.string()),
+  header_keys: z.array(z.string()),
+})
+export const mcpServersSchema = z.array(mcpServerSchema)
+export const mcpToolSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  input_schema: z.record(z.string(), z.unknown()),
+})
+export const mcpToolsSchema = z.object({
+  server_id: z.string(),
+  tools: z.array(mcpToolSchema),
+})
+export type McpServerDto = z.infer<typeof mcpServerSchema>
+export type McpToolDto = z.infer<typeof mcpToolSchema>
+export interface McpServerPayload {
+  name: string
+  transport: 'stdio' | 'http'
+  command: string | null
+  args: string[]
+  env: Record<string, string>
+  url: string | null
+  headers: Record<string, string>
+  enabled: boolean
+}

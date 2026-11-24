@@ -2,5 +2,6 @@
 export const modules = [
   { id: 'sessions', label: '会话', path: '/' },
   { id: 'workspace', label: '工作区', path: '/workspace' },
+  { id: 'mcp', label: 'MCP', path: '/mcp' },
   { id: 'settings', label: '设置', path: '/settings' },
 ] as const
