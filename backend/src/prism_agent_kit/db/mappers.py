@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Literal, cast
 
 from prism_agent_kit.core.enums import (
     EventType,
@@ -8,9 +9,11 @@ from prism_agent_kit.core.enums import (
     RunStatus,
     ToolCallStatus,
 )
+from prism_agent_kit.core.mcp import McpServer, McpStatus
 from prism_agent_kit.core.models import Message, Run, RunEvent, Session, ToolCall
 from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.db.models import (
+    McpServerRow,
     MessageRow,
     RunEventRow,
     RunRow,
@@ -229,6 +232,44 @@ def workspace_to_domain(row: WorkspaceRow) -> Workspace:
         index_error=row.index_error,
         file_count=row.file_count,
         indexed_at=_optional_from_storage(row.indexed_at),
+        created_at=_from_storage(row.created_at),
+        updated_at=_from_storage(row.updated_at),
+    )
+
+
+def mcp_server_to_row(server: McpServer) -> McpServerRow:
+    """把 McpServer 领域模型转换为 ORM 行。"""
+    return McpServerRow(
+        id=server.id,
+        name=server.name,
+        transport=server.transport,
+        command=server.command,
+        args_json=server.args,
+        env_json=server.env,
+        url=server.url,
+        headers_json=server.headers,
+        enabled=1 if server.enabled else 0,
+        status=server.status.value,
+        last_error=server.last_error,
+        created_at=_to_storage(server.created_at),
+        updated_at=_to_storage(server.updated_at),
+    )
+
+
+def mcp_server_to_domain(row: McpServerRow) -> McpServer:
+    """把 McpServer ORM 行转换为领域模型。"""
+    return McpServer(
+        id=row.id,
+        name=row.name,
+        transport=cast(Literal["stdio", "http"], row.transport),
+        command=row.command,
+        args=list(row.args_json or []),
+        env=dict(row.env_json or {}),
+        url=row.url,
+        headers=dict(row.headers_json or {}),
+        enabled=row.enabled == 1,
+        status=McpStatus(row.status),
+        last_error=row.last_error,
         created_at=_from_storage(row.created_at),
         updated_at=_from_storage(row.updated_at),
     )

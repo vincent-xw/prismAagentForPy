@@ -4,6 +4,7 @@ from typing import Self
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from prism_agent_kit.db.repositories.events import EventRepository
+from prism_agent_kit.db.repositories.mcp_servers import McpServerRepository
 from prism_agent_kit.db.repositories.messages import MessageRepository
 from prism_agent_kit.db.repositories.runs import RunRepository
 from prism_agent_kit.db.repositories.sessions import SessionRepository
@@ -25,6 +26,7 @@ class UnitOfWork:
         self.events: EventRepository
         self.workspaces: WorkspaceRepository
         self.workspace_documents: WorkspaceDocumentRepository
+        self.mcp_servers: McpServerRepository
 
     async def __aenter__(self) -> Self:
         session = self._session_factory()
@@ -36,6 +38,7 @@ class UnitOfWork:
         self.events = EventRepository(session)
         self.workspaces = WorkspaceRepository(session)
         self.workspace_documents = WorkspaceDocumentRepository(session)
+        self.mcp_servers = McpServerRepository(session)
         return self
 
     async def __aexit__(

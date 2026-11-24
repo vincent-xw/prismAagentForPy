@@ -35,6 +35,27 @@ class WorkspaceRow(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class McpServerRow(Base):
+    """MCP 服务配置的 SQLite 持久化行。"""
+
+    __tablename__ = "mcp_servers"
+    __table_args__ = (Index("ux_mcp_servers_name", "name", unique=True),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    transport: Mapped[str] = mapped_column(String(16))
+    command: Mapped[str | None] = mapped_column(Text)
+    args_json: Mapped[Any | None] = mapped_column(JSON)
+    env_json: Mapped[Any | None] = mapped_column(JSON)
+    url: Mapped[str | None] = mapped_column(Text)
+    headers_json: Mapped[Any | None] = mapped_column(JSON)
+    enabled: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(16), default="disabled")
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class SessionRow(Base):
     """Session 的 SQLite 持久化行。"""
 

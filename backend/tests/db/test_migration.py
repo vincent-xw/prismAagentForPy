@@ -242,3 +242,28 @@ def test_session_workspace_backfilled_from_first_run(
         assert row is not None and row[0] == "ws-1"
     finally:
         get_settings.cache_clear()
+
+
+def test_mcp_servers_table_applied(migrated_database_path: Path) -> None:
+    with sqlite3.connect(migrated_database_path) as connection:
+        cols = {row[1] for row in connection.execute("PRAGMA table_info(mcp_servers)")}
+        index_sql = connection.execute(
+            "SELECT sql FROM sqlite_master WHERE name = 'ux_mcp_servers_name'"
+        ).fetchone()
+
+    assert {
+        "id",
+        "name",
+        "transport",
+        "command",
+        "args_json",
+        "env_json",
+        "url",
+        "headers_json",
+        "enabled",
+        "status",
+        "last_error",
+        "created_at",
+        "updated_at",
+    } <= cols
+    assert index_sql is not None
