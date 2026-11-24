@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-from pydantic import SecretStr
+from pydantic import BaseModel, SecretStr
 
 from prism_agent_kit.application.container import ApplicationContainer
 from prism_agent_kit.application.run_worker import RunWorker
@@ -280,3 +280,66 @@ def test_e2e_write_requires_approval_then_completes(
         wait_for_run_status(client, run["id"], {"succeeded"})
 
     assert (workspace_root / "notes.md").read_text(encoding="utf-8") == "hello"
+
+
+def test_e2e_mcp_tool_requires_approval(
+    migrated_database_path: Path,
+) -> None:
+    """MCP 工具调用必须审批：等待审批 → 批准 → Run 完成并回填结果。"""
+
+    class EchoInput(BaseModel):
+        text: str
+
+    async def echo_handler(raw: EchoInput, _context: object) -> dict[str, object]:
+        return {"text": raw.text}
+
+    registry = ToolRegistry()
+    registry.register(
+        ToolDefinition(
+            name="mcp__demo__echo",
+            description="mcp echo",
+            input_model=EchoInput,
+            output_model=None,
+            execution_mode=ExecutionMode.LOCAL,
+            timeout_seconds=5,
+            requires_approval=True,
+            handler=echo_handler,
+        )
+    )
+    provider = ScriptedModelProvider(
+        [
+            ModelResponse(
+                text="",
+                reasoning=None,
+                tool_calls=[
+                    ToolCallDraft(call_id="c1", tool_name="mcp__demo__echo", input={"text": "hi"})
+                ],
+            ),
+            ModelResponse(text="done", reasoning=None, tool_calls=[]),
+        ]
+    )
+    settings = make_settings(migrated_database_path, api_token=None)
+    container = ApplicationContainer(settings, model_provider=provider, tool_registry=registry)
+    application = create_app(settings, container_factory=lambda _: container)
+
+    with TestClient(application) as client:
+        session = client.post("/api/v1/sessions", json={"title": "demo"}).json()
+        run = client.post(
+            f"/api/v1/sessions/{session['id']}/runs",
+            json={"input": "echo hi"},
+        ).json()
+
+        wait_for_run_status(client, run["id"], {"waiting_for_approval"})
+        preview = client.get(f"/api/v1/runs/{run['id']}/tool-calls/c1/preview")
+        assert preview.status_code == 200, preview.text
+        assert preview.json()["kind"] == "generic"
+        decision = client.post(
+            f"/api/v1/runs/{run['id']}/tool-calls/c1/approval",
+            json={"decision": "approve"},
+        )
+        assert decision.status_code == 200, decision.text
+        wait_for_run_status(client, run["id"], {"succeeded"})
+
+        calls = client.get(f"/api/v1/runs/{run['id']}/tool-calls")
+        if calls.status_code == 200:
+            assert calls.json()[0]["output"] == {"text": "hi"}

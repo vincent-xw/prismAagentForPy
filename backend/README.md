@@ -20,10 +20,11 @@
 - 支持取消、远端工具超时、进程中断恢复和最大步数限制。
 - 会话绑定工作区（单活跃；新建会话取当前活跃工作区，Run 继承会话绑定）、FTS5 全文索引与检索。
 - `file_list`/`file_read`/`file_search`/`file_write` 工具；写入需用户审批。
+- MCP Client：官方 `mcp` SDK，支持 `stdio` 与 `Streamable HTTP`，工具接入统一 `ToolRegistry`，调用前一律审批。
 - 在完整 assistant/tool 消息组边界裁剪上下文，不删除 SQLite 历史。
 - 非测试环境强制 API Token；模型密钥不写入数据库、日志或 SSE。
 
-当前后端**不包含**：MCP Client、向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
+当前后端**不包含**：向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
 ## 技术栈
 
@@ -201,4 +202,5 @@ uv run alembic upgrade head
 - [x] SSE 实时输出、持久事件重放、API 鉴权和错误边界
 - [x] Python Agent Core 技术设计与实施计划
 - [ ] 补充 Node.js 原版仓库链接
-- [ ] 后续按明确范围迁移 UI、MCP、Workspace 等能力
+- [x] 第三部分：MCP Client（官方 `mcp` Python SDK）
+- [ ] 后续按明确范围迁移 Skills 等能力

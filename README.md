@@ -38,8 +38,9 @@
 - 基于真实 HTTP 契约与 SSE 事件，不以 Mock 冒充后端能力。
 - 工作区页：选择/切换目录、文件树、文本预览、内容检索与索引状态。
 - 会话页写入审批卡片与等待确认提示。
+- MCP 页：配置 `stdio` / `Streamable HTTP` 服务、启停重连、工具目录；MCP 工具调用前一律审批。
 
-当前**不包含**：MCP Client、向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
+当前**不包含**：向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
 ## 快速开始
 
@@ -103,4 +104,5 @@ pnpm dev
 - [x] Core 与 UI 技术设计、实施计划及验证记录
 - [ ] 补充 Node.js 原版仓库链接
 - [x] 第二部分：工作区、文件工具与写入审批
-- [ ] 后续按明确范围迁移 MCP 等能力
+- [x] 第三部分：MCP Client（官方 `mcp` Python SDK；工具调用一律审批）
+- [ ] 后续按明确范围迁移 Skills 等能力
