@@ -110,7 +110,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <section class="mx-auto max-w-4xl px-6 py-8">
+  <section class="mx-auto w-full max-w-4xl px-6 py-8">
     <header class="flex items-center justify-between">
       <h1 class="text-lg font-semibold">MCP 服务</h1>
       <p class="text-xs text-muted-foreground">连接外部 MCP 服务并接入其工具</p>
