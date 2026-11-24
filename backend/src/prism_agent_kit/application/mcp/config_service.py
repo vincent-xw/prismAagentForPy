@@ -9,6 +9,7 @@ from typing import Any, Literal
 from mcp import StdioServerParameters
 from pydantic import BaseModel, Field
 
+from prism_agent_kit.application.mcp.naming import slugify_name
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.mcp import McpServer
 from prism_agent_kit.db.uow import UnitOfWorkFactory
@@ -66,6 +67,7 @@ class McpConfigService:
 
     async def create(self, payload: McpServerInput) -> McpServer:
         fields = self._validate(payload)
+        await self._ensure_unique_slug(fields["name"], exclude_id=None)
         async with self._uow_factory() as uow:
             server = await uow.mcp_servers.create(McpServer(**fields))
             await uow.commit()
@@ -73,6 +75,7 @@ class McpConfigService:
 
     async def update(self, server_id: str, payload: McpServerInput) -> McpServer:
         fields = self._validate(payload)
+        await self._ensure_unique_slug(fields["name"], exclude_id=server_id)
         async with self._uow_factory() as uow:
             await uow.mcp_servers.get(server_id)
             updated = await uow.mcp_servers.update(
@@ -149,8 +152,9 @@ class McpConfigService:
         return resolved
 
     def _validate(self, payload: McpServerInput) -> dict[str, Any]:
-        if _SLUG.fullmatch(payload.name) is None:
-            raise _invalid("服务名只能是小写字母、数字、连字符或下划线")
+        name = payload.name.strip()
+        if not name or len(name) > 64:
+            raise _invalid("服务名不能为空，且不超过 64 个字符")
         if payload.transport == "stdio" and not payload.command:
             raise _invalid("stdio 服务必须提供 command")
         if payload.transport == "http" and not payload.url:
@@ -158,7 +162,7 @@ class McpConfigService:
         self._reject_secrets(payload.env, allow_placeholders=True)
         self._reject_secrets(payload.headers, allow_placeholders=True)
         return {
-            "name": payload.name,
+            "name": name,
             "transport": payload.transport,
             "command": payload.command,
             "args": list(payload.args),
@@ -167,6 +171,14 @@ class McpConfigService:
             "headers": dict(payload.headers),
             "enabled": payload.enabled,
         }
+
+    async def _ensure_unique_slug(self, name: str, *, exclude_id: str | None) -> None:
+        slug = slugify_name(name)
+        async with self._uow_factory() as uow:
+            existing = await uow.mcp_servers.list_all()
+        for server in existing:
+            if server.id != exclude_id and slugify_name(server.name) == slug:
+                raise _invalid(f"服务名与已有服务冲突（都会规范化为 {slug}）")
 
     @staticmethod
     def _reject_secrets(mapping: Mapping[str, str], *, allow_placeholders: bool) -> None:

@@ -5,11 +5,18 @@ import re
 
 MAX_TOOL_NAME = 64
 _INVALID = re.compile(r"[^A-Za-z0-9_-]")
+_INVALID_SLUG = re.compile(r"[^a-z0-9_-]+")
+
+
+def slugify_name(name: str) -> str:
+    """把用户填写的服务名规范化为工具前缀用的 slug。"""
+    slug = _INVALID_SLUG.sub("-", name.strip().lower()).strip("-_")
+    return slug or "server"
 
 
 def tool_name_for(server_name: str, tool_name: str) -> str:
     """生成 `mcp__<server>__<tool>` 形式且不超过 64 字符的工具名。"""
-    prefix = f"mcp__{server_name}__"
+    prefix = f"mcp__{slugify_name(server_name)}__"
     safe = _INVALID.sub("_", tool_name)
     full = f"{prefix}{safe}"
     if len(full) <= MAX_TOOL_NAME:

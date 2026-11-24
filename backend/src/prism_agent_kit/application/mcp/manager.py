@@ -22,6 +22,7 @@ from prism_agent_kit.application.mcp.config_service import (
     McpConnection,
     McpServerInput,
 )
+from prism_agent_kit.application.mcp.naming import slugify_name
 from prism_agent_kit.core.enums import RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.mcp import McpServer, McpStatus
@@ -337,7 +338,7 @@ class McpServerManager:
         if was_active:
             self._workers.pop(server_id, None)
         self._server_tools.pop(server_id, None)
-        self._registry.unregister_by_prefix(f"mcp__{server_name}__")
+        self._registry.unregister_by_prefix(f"mcp__{slugify_name(server_name)}__")
         if not was_active:
             return
         task = asyncio.create_task(
@@ -403,7 +404,7 @@ class McpServerManager:
                 self._registry.register(definition)
         except Exception:
             # 部分注册失败时回滚该服务已注册的工具，避免半套工具泄漏。
-            self._registry.unregister_by_prefix(f"mcp__{server.name}__")
+            self._registry.unregister_by_prefix(f"mcp__{slugify_name(server.name)}__")
             raise
         self._server_tools[server.id] = [definition.name for definition in definitions]
         return definitions

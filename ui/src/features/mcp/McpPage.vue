@@ -11,7 +11,6 @@ const { client } = useAppContext()
 const controller = createMcpController({ client })
 const state = controller.state
 const formError = ref<string | null>(null)
-const NAME_PATTERN = /^[a-z0-9][a-z0-9_-]*$/
 
 const form = reactive({
   name: '',
@@ -72,12 +71,12 @@ function cancelEdit(): void {
 
 async function submit(): Promise<void> {
   formError.value = null
-  if (!NAME_PATTERN.test(form.name)) {
-    formError.value = '服务名只能是小写字母、数字、连字符或下划线'
+  if (form.name.trim() === '') {
+    formError.value = '服务名不能为空'
     return
   }
   await controller.save({
-    name: form.name,
+    name: form.name.trim(),
     transport: form.transport,
     command: form.transport === 'stdio' ? form.command : null,
     args: form.transport === 'stdio' ? form.args.split('\n').filter((item) => item.trim()) : [],
@@ -175,8 +174,10 @@ onUnmounted(() => {
         </button>
       </div>
       <div>
-        <Input v-model="form.name" placeholder="名称，例如 deep_wiki" />
-        <p class="mt-1 text-[11px] text-muted-foreground">小写字母、数字、连字符或下划线</p>
+        <Input v-model="form.name" placeholder="名称，例如 DeepWiki" />
+        <p class="mt-1 text-[11px] text-muted-foreground">
+          可含大小写与空格；工具前缀会规范化为小写，如 DeepWiki → deepwiki
+        </p>
       </div>
       <select
         v-model="form.transport"
@@ -185,27 +186,29 @@ onUnmounted(() => {
         <option value="stdio">stdio</option>
         <option value="http">Streamable HTTP</option>
       </select>
-      <template v-if="form.transport === 'stdio'">
-        <Input v-model="form.command" placeholder="command，例如 python" />
-        <textarea
-          v-model="form.args"
-          placeholder="args，每行一个"
-          class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
-        />
-        <textarea
-          v-model="form.env"
-          placeholder="env，每行 KEY=VALUE；value 为 *** 表示保持原值"
-          class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
-        />
-      </template>
-      <template v-else>
-        <Input v-model="form.url" placeholder="https://example.com/mcp" />
-        <textarea
-          v-model="form.headers"
-          placeholder="headers，每行 KEY=VALUE；value 为 *** 表示保持原值"
-          class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
-        />
-      </template>
+      <div class="min-h-[220px] space-y-3">
+        <template v-if="form.transport === 'stdio'">
+          <Input v-model="form.command" placeholder="command，例如 python" />
+          <textarea
+            v-model="form.args"
+            placeholder="args，每行一个"
+            class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
+          />
+          <textarea
+            v-model="form.env"
+            placeholder="env，每行 KEY=VALUE；value 为 *** 表示保持原值"
+            class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
+          />
+        </template>
+        <template v-else>
+          <Input v-model="form.url" placeholder="https://example.com/mcp" />
+          <textarea
+            v-model="form.headers"
+            placeholder="headers，每行 KEY=VALUE；value 为 *** 表示保持原值"
+            class="min-h-16 w-full rounded-lg border bg-background p-3 text-xs"
+          />
+        </template>
+      </div>
       <Button size="sm" type="submit" :disabled="canSubmit === false">
         {{ isEditing ? '保存修改' : '保存' }}
       </Button>

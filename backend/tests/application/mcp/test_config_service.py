@@ -35,12 +35,10 @@ async def test_requires_transport_fields(uow_factory: UnitOfWorkFactory) -> None
     assert error.value.code is ErrorCode.MCP_CONFIG_INVALID
 
 
-async def test_rejects_invalid_name(uow_factory: UnitOfWorkFactory) -> None:
+async def test_rejects_empty_name(uow_factory: UnitOfWorkFactory) -> None:
     service = make_service(uow_factory)
     with pytest.raises(AgentKitError) as error:
-        await service.create(
-            McpServerInput(name="Bad Name!", transport="http", url="https://e/mcp")
-        )
+        await service.create(McpServerInput(name="   ", transport="http", url="https://e/mcp"))
     assert error.value.code is ErrorCode.MCP_CONFIG_INVALID
 
 
@@ -115,3 +113,24 @@ async def test_name_allows_underscore(uow_factory: UnitOfWorkFactory) -> None:
         McpServerInput(name="deep_wiki", transport="http", url="https://e/mcp")
     )
     assert server.name == "deep_wiki"
+
+
+async def test_name_accepts_mixed_case_and_normalizes_slug(uow_factory: UnitOfWorkFactory) -> None:
+    service = make_service(uow_factory)
+    server = await service.create(
+        McpServerInput(name="DeepWiki", transport="http", url="https://e/mcp")
+    )
+    assert server.name == "DeepWiki"
+    from prism_agent_kit.application.mcp.naming import slugify_name
+
+    assert slugify_name(server.name) == "deepwiki"
+
+
+async def test_duplicate_slug_rejected(uow_factory: UnitOfWorkFactory) -> None:
+    service = make_service(uow_factory)
+    await service.create(McpServerInput(name="deep_wiki", transport="http", url="https://a/mcp"))
+    with pytest.raises(AgentKitError) as error:
+        await service.create(
+            McpServerInput(name="DEEP_WIKI", transport="http", url="https://b/mcp")
+        )
+    assert error.value.code is ErrorCode.MCP_CONFIG_INVALID
