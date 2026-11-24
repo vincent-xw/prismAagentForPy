@@ -1,0 +1,14 @@
+ui/src/features/mcp/McpPage.vue
+  h_c3a612a540ca0b 189,195,200,208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a6c650e8e4a18c482206258f06bc0a07433851b0",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
