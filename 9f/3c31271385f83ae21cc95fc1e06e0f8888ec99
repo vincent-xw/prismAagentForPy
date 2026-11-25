@@ -1,0 +1,20 @@
+backend/pyproject.toml
+  h_c3a612a540ca0b 7
+backend/src/prism_agent_kit/__init__.py
+  h_c3a612a540ca0b 3
+backend/uv.lock
+  h_c3a612a540ca0b 1291
+ui/package.json
+  h_c3a612a540ca0b 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9f3c31271385f83ae21cc95fc1e06e0f8888ec99",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
