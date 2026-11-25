@@ -6,6 +6,7 @@ import { isTerminal } from '@/lib/api/contracts'
 import { Button } from '@/components/ui/button'
 import MessageList from './MessageList.vue'
 import MessageComposer from './MessageComposer.vue'
+import ApprovalCard from '@/features/runs/ApprovalCard.vue'
 const { conversation, connection, client } = useAppContext()
 const router = useRouter()
 const state = computed(() => conversation.value!.state)
@@ -56,6 +57,14 @@ const draft = computed({
     state.value.drafts[state.value.selectedSessionId ?? 'new'] = value
   },
 })
+const pendingApprovals = computed(() => (active.value ?? projection.value)?.pendingApprovals ?? [])
+const pendingRunId = computed(() => (active.value ?? projection.value)?.run.id ?? null)
+
+async function refreshAfterDecision(): Promise<void> {
+  if (state.value.selectedSessionId === null) return
+  await conversation.value!.openSession(state.value.selectedSessionId)
+}
+
 const messages = computed(() =>
   state.value.selectedSessionId ? (state.value.messages[state.value.selectedSessionId] ?? []) : [],
 )
@@ -102,19 +111,24 @@ const labels = {
           >重新读取会话</Button
         >
       </div>
-      <button
-        v-if="(active ?? projection)?.run.status === 'waiting_for_approval'"
-        type="button"
-        class="flex w-full items-center justify-between gap-2 border-b bg-primary/5 px-5 py-2 text-left text-xs"
-        @click="inspect((active ?? projection)!.run.id)"
+      <section
+        v-if="pendingApprovals.length && pendingRunId !== null"
+        class="border-b bg-primary/5 px-5 py-3"
+        aria-label="等待确认的工具调用"
       >
-        <span
-          >等待你确认写入{{
-            (active ?? projection)!.run.status === 'waiting_for_approval' ? '' : ''
-          }}</span
-        >
-        <span class="font-medium text-primary">去处理</span>
-      </button>
+        <p class="mb-2 text-xs font-medium text-primary">
+          有 {{ pendingApprovals.length }} 个工具调用等待你确认，确认后才继续执行
+        </p>
+        <div class="max-h-72 space-y-2 overflow-y-auto">
+          <ApprovalCard
+            v-for="item in pendingApprovals"
+            :key="item.callId"
+            :run-id="pendingRunId"
+            :item="item"
+            @decided="refreshAfterDecision"
+          />
+        </div>
+      </section>
       <MessageList
         :messages="messages"
         :projection="active ?? projection"

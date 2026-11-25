@@ -2,34 +2,30 @@ import { mount } from '@vue/test-utils'
 import { expect, test, vi } from 'vitest'
 
 import { appContextKey } from '@/app/context'
-import RunInspector from '@/features/runs/RunInspector.vue'
-import { createRunProjection } from '@/features/runs/projection'
-import { runDto } from '../support/fixtures'
+import ApprovalCard from '@/features/runs/ApprovalCard.vue'
+import type { PendingApproval } from '@/features/runs/projection'
 
-function genericProjection() {
-  const projection = createRunProjection(runDto({ status: 'waiting_for_approval' }))
-  projection.pendingApprovals.push({
-    callId: 'c1',
-    toolName: 'mcp__demo__search',
-    kind: 'generic',
-    path: '',
-    mode: '',
-    bytes: 0,
-    inputPreview: '{"query": "订单 123"}',
-  })
-  return projection
+const genericItem: PendingApproval = {
+  callId: 'c1',
+  toolName: 'mcp__demo__search',
+  kind: 'generic',
+  path: '',
+  mode: '',
+  bytes: 0,
+  inputPreview: '{"query": "订单 123"}',
 }
 
-test('generic 审批展示工具名与输入参数', () => {
-  const client = { getApprovalPreview: vi.fn(), decideApproval: vi.fn() }
-  const wrapper = mount(RunInspector, {
-    props: { projection: genericProjection() },
-    global: {
-      provide: { [appContextKey as symbol]: { client } },
-    },
+test('通用审批展示工具名与参数，批准后回调', async () => {
+  const decideApproval = vi.fn().mockResolvedValue({ call: {}, run: {} })
+  const client = { decideApproval, getApprovalPreview: vi.fn() }
+  const wrapper = mount(ApprovalCard, {
+    props: { runId: 'run-1', item: genericItem },
+    global: { provide: { [appContextKey as symbol]: { client } } },
   })
 
   expect(wrapper.text()).toContain('mcp__demo__search')
-  expect(wrapper.text()).toContain('允许执行')
   expect(wrapper.text()).toContain('订单 123')
+  await wrapper.get('button').trigger('click')
+  expect(decideApproval).toHaveBeenCalledWith('run-1', 'c1', 'approve', null)
+  expect(wrapper.emitted('decided')).toHaveLength(1)
 })
