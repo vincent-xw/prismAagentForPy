@@ -1,0 +1,24 @@
+backend/src/prism_agent_kit/application/mcp/manager.py
+  h_c3a612a540ca0b 259
+backend/src/prism_agent_kit/core/mcp.py
+  h_c3a612a540ca0b 15
+backend/tests/application/mcp/test_manager.py
+  h_c3a612a540ca0b 263-299
+ui/src/features/mcp/McpPage.vue
+  h_c3a612a540ca0b 4-5,29-38,143-150,157-163,165-177,180-186
+ui/src/features/mcp/mcp.ts
+  h_c3a612a540ca0b 77,85
+ui/tests/unit/mcp.test.ts
+  h_c3a612a540ca0b 69-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e3d37f46d442882ca99fbdc3e2d1a39bbaafeaf7",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
