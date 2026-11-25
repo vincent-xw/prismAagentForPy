@@ -1,0 +1,30 @@
+backend/.env.example
+  h_c3a612a540ca0b 45-47
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 14,289-296
+backend/src/prism_agent_kit/db/repositories/sessions.py
+  h_c3a612a540ca0b 65-79
+backend/src/prism_agent_kit/application/session_title_service.py
+  h_c3a612a540ca0b 1-95
+backend/tests/test_agent_e2e.py
+  h_c3a612a540ca0b 37
+backend/src/prism_agent_kit/application/run_service.py
+  h_c3a612a540ca0b 7,35,43,91-96
+backend/tests/application/test_session_title_service.py
+  h_c3a612a540ca0b 1-80
+ui/src/features/sessions/conversation.ts
+  h_c3a612a540ca0b 222-223
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "8d74fab252115de4eaf75c62b339b6569a8ffd8d",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
