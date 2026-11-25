@@ -83,3 +83,18 @@ def test_mcp_view_masks_literals_and_update_keeps_masked(api_client) -> None:
         },
     )
     assert patched.status_code == 200, patched.text
+
+
+def test_mcp_view_returns_connection_fields(api_client) -> None:
+    created = api_client.post(
+        "/api/v1/mcp/servers",
+        json={"name": "Demo", "transport": "http", "url": "https://mcp.example/mcp"},
+    ).json()
+    assert created["url"] == "https://mcp.example/mcp"
+    assert created["command"] is None and created["args"] == []
+
+    stdio = api_client.post(
+        "/api/v1/mcp/servers",
+        json={"name": "Local", "transport": "stdio", "command": "python", "args": ["a.py"]},
+    ).json()
+    assert stdio["command"] == "python" and stdio["args"] == ["a.py"] and stdio["url"] is None

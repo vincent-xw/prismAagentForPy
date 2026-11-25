@@ -68,10 +68,10 @@ function edit(server: McpServerDto): void {
   controller.beginEdit(server)
   form.name = server.name
   form.transport = server.transport
-  form.command = ''
-  form.args = ''
+  form.command = server.command ?? ''
+  form.args = server.args.join('\n')
   form.env = pairsToText(server.env)
-  form.url = ''
+  form.url = server.url ?? ''
   form.headers = pairsToText(server.headers)
 }
 

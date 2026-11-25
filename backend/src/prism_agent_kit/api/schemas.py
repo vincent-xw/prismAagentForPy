@@ -339,6 +339,9 @@ class McpServerView(BaseModel):
     id: str
     name: str
     transport: Literal["stdio", "http"]
+    command: str | None
+    args: list[str]
+    url: str | None
     enabled: bool
     status: str
     last_error: str | None
