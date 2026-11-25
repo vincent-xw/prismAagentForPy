@@ -256,6 +256,7 @@ class McpServerManager:
             connect_timeout_seconds=self._connect_timeout,
         )
         holder.append(worker)
+        await self._config.set_status(server_id, McpStatus.CONNECTING, None)
         try:
             await worker.start()
         except AgentKitError as error:

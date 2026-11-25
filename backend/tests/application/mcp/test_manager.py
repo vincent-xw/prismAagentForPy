@@ -260,3 +260,40 @@ async def test_update_server_restores_masked_env(uow_factory: UnitOfWorkFactory)
 
     stored = await service.get(server.id)
     assert stored.env == {"PLAIN": "value"}
+
+
+async def test_status_is_connecting_while_handshake(uow_factory: UnitOfWorkFactory) -> None:
+    import asyncio as _asyncio
+
+    release = _asyncio.Event()
+
+    class SlowFactory(FakeFactory):
+        def __call__(self, connection):
+            @asynccontextmanager
+            async def factory():
+                await release.wait()
+                client = FakeClient()
+                try:
+                    yield client
+                finally:
+                    self.closed.append("slow")
+
+            return factory()
+
+    registry = ToolRegistry()
+    manager = make_manager(uow_factory, SlowFactory(), registry)
+    server = await add_server(uow_factory, "slow")
+    service = McpConfigService(uow_factory)
+
+    task = _asyncio.create_task(manager.connect(server.id))
+    deadline = _asyncio.get_running_loop().time() + 2
+    while _asyncio.get_running_loop().time() < deadline:
+        if (await service.get(server.id)).status is McpStatus.CONNECTING:
+            break
+        await _asyncio.sleep(0.01)
+    assert (await service.get(server.id)).status is McpStatus.CONNECTING
+
+    release.set()
+    await task
+    assert (await service.get(server.id)).status is McpStatus.CONNECTED
+    await manager.stop()

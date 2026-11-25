@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
+import { Loader2 } from '@lucide/vue'
+
 import { useAppContext } from '@/app/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,6 +26,16 @@ const form = reactive({
 
 const canSubmit = computed(() => !state.loading && form.name !== '')
 const isEditing = computed(() => state.editingId !== null)
+const STATUS_LABEL: Record<string, string> = {
+  disabled: '已停用',
+  connecting: '连接中…',
+  connected: '已连接',
+  error: '连接失败',
+}
+
+function statusLabel(server: McpServerDto): string {
+  return STATUS_LABEL[server.status] ?? server.status
+}
 
 function parsePairs(text: string): Record<string, string> {
   const result: Record<string, string> = {}
@@ -128,21 +140,50 @@ onUnmounted(() => {
                 >编辑中</span
               >
             </p>
-            <p class="mt-1 text-xs text-muted-foreground">
-              {{ server.transport }} · {{ server.status }} · {{ server.tool_count }} 个工具
+            <p class="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <Loader2
+                v-if="server.status === 'connecting'"
+                class="size-3 animate-spin text-primary"
+              />
+              <span>{{ server.transport }} · {{ statusLabel(server) }} ·</span>
+              <span v-if="server.status === 'connecting'">加载工具中…</span>
+              <span v-else>{{ server.tool_count }} 个工具</span>
             </p>
             <p v-if="server.last_error" class="mt-1 break-all text-xs text-destructive">
               {{ server.last_error }}
             </p>
           </div>
           <div class="flex gap-2">
-            <Button size="sm" variant="outline" @click="controller.openTools(server)">工具</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              :disabled="server.status === 'connecting'"
+              @click="controller.openTools(server)"
+              >工具</Button
+            >
             <Button size="sm" variant="outline" @click="edit(server)">编辑</Button>
-            <Button size="sm" variant="outline" @click="controller.reconnect(server)">重连</Button>
-            <Button size="sm" variant="outline" @click="controller.toggle(server)">
+            <Button
+              size="sm"
+              variant="outline"
+              :disabled="server.status === 'connecting'"
+              @click="controller.reconnect(server)"
+              >重连</Button
+            >
+            <Button
+              size="sm"
+              variant="outline"
+              :disabled="server.status === 'connecting'"
+              @click="controller.toggle(server)"
+            >
               {{ server.enabled ? '停用' : '启用' }}
             </Button>
-            <Button size="sm" variant="outline" @click="remove(server)">删除</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              :disabled="server.status === 'connecting'"
+              @click="remove(server)"
+              >删除</Button
+            >
           </div>
         </div>
         <div v-if="state.selectedId === server.id" class="mt-3 border-t pt-3">

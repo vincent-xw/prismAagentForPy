@@ -66,3 +66,26 @@ test('编辑时调用 update 并退出编辑态', async () => {
   )
   expect(controller.state.editingId).toBeNull()
 })
+
+test('启用时立即进入 connecting 状态', async () => {
+  let release: (value: unknown) => void = () => {}
+  const pending = new Promise((resolve) => {
+    release = resolve
+  })
+  const disabled = { ...server, enabled: false, status: 'disabled', tool_count: 0 }
+  const listMcpServers = vi.fn().mockResolvedValue([disabled])
+  const client = {
+    listMcpServers,
+    setMcpEnabled: vi.fn().mockReturnValue(pending),
+  } as unknown as CoreClient
+  const controller = createMcpController({ client })
+  await controller.load()
+  listMcpServers.mockResolvedValue([{ ...server, enabled: true, status: 'connected' }])
+
+  const running = controller.toggle(disabled)
+  expect(disabled.status).toBe('connecting')
+
+  release(server)
+  await running
+  expect(controller.state.servers[0]?.status).toBe('connected')
+})

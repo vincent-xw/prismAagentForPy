@@ -12,6 +12,7 @@ class McpStatus(StrEnum):
     """MCP 服务连接状态。"""
 
     DISABLED = "disabled"
+    CONNECTING = "connecting"
     CONNECTED = "connected"
     ERROR = "error"
 

@@ -74,6 +74,7 @@ export function createMcpController({ client }: { client: CoreClient }): McpCont
 
   async function toggle(server: McpServerDto): Promise<void> {
     await guard(async () => {
+      if (!server.enabled) server.status = 'connecting'
       await client.setMcpEnabled(server.id, !server.enabled)
       state.servers = await client.listMcpServers()
     })
@@ -81,6 +82,7 @@ export function createMcpController({ client }: { client: CoreClient }): McpCont
 
   async function reconnect(server: McpServerDto): Promise<void> {
     await guard(async () => {
+      server.status = 'connecting'
       await client.reconnectMcp(server.id)
       state.servers = await client.listMcpServers()
     })
