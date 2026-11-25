@@ -4,6 +4,7 @@ from typing import cast
 from pydantic import JsonValue
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.session_title_service import SessionTitleService
 from prism_agent_kit.core.enums import EventType, MessageRole, RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, RunEvent
@@ -31,6 +32,7 @@ class RunService:
         default_prompt_ref: str,
         event_publisher: EventPublisher,
         cancellation_registry: RunCancellationRegistry,
+        title_service: SessionTitleService | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._prompt_registry = prompt_registry
@@ -38,6 +40,7 @@ class RunService:
         self._default_prompt_ref = default_prompt_ref
         self._event_publisher = event_publisher
         self._cancellation_registry = cancellation_registry
+        self._title_service = title_service
 
     async def create(
         self,
@@ -85,6 +88,12 @@ class RunService:
                 )
             )
             await uow.commit()
+        if self._title_service is not None and session.title is None:
+            await self._title_service.generate_and_store(
+                session_id=session.id,
+                run_id=run.id,
+                input_text=input_text,
+            )
         return run
 
     async def get(self, run_id: str) -> Run:

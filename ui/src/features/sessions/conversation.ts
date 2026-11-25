@@ -219,6 +219,8 @@ export function createConversation({
         await connect(run.id)
       }
       await refreshMessages(sessionId)
+      const current = state.sessions.find((item) => item.id === sessionId)
+      if (current !== undefined && current.title === null) await loadSessions()
     } catch (error) {
       if (disposed) return
       if (error instanceof CoreApiError && (error.status === 409 || error.kind === 'network')) {

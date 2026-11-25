@@ -11,6 +11,7 @@ from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.run_worker import RunWorker
 from prism_agent_kit.application.session_service import SessionService
+from prism_agent_kit.application.session_title_service import SessionTitleService
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
@@ -285,6 +286,14 @@ class ApplicationContainer:
                 default_prompt_ref=self.settings.default_prompt_ref,
                 event_publisher=event_bus,
                 cancellation_registry=cancellation_registry,
+                title_service=(
+                    SessionTitleService(
+                        uow_factory=uow_factory,
+                        model_provider=model_provider,
+                    )
+                    if self.settings.session_title_generation_enabled
+                    else None
+                ),
             )
             tool_result_service = ToolResultService(
                 uow_factory=uow_factory,

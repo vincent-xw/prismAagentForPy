@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     mcp_connect_timeout_seconds: float = 10.0
     mcp_tool_timeout_seconds: float = 30.0
     mcp_max_result_bytes: int = 204_800
+    session_title_generation_enabled: bool = True
 
     @property
     def resolved_database_path(self) -> Path:

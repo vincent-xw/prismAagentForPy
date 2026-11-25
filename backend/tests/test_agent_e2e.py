@@ -34,6 +34,7 @@ def make_settings(database_path: Path, **overrides: object) -> Settings:
         "model_token_encoding": "cl100k_base",
         "max_steps": 5,
         "worker_concurrency": 1,
+        "session_title_generation_enabled": False,
     }
     values.update(overrides)
     return Settings(**values)

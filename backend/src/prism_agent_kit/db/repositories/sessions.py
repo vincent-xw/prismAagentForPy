@@ -62,6 +62,21 @@ class SessionRepository:
         )
         return [session_to_domain(row) for row in result]
 
+    async def set_title(self, session_id: str, title: str) -> Session:
+        """设置会话标题。"""
+        row = await self._session.get(SessionRow, session_id)
+        if row is None:
+            raise AgentKitError(
+                ErrorCode.SESSION_NOT_FOUND,
+                "Session 不存在",
+                http_status=404,
+                details={"session_id": session_id},
+            )
+        row.title = title
+        await self._session.flush()
+        await self._session.refresh(row)
+        return session_to_domain(row)
+
     async def touch(
         self,
         session_id: str,
