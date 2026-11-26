@@ -5,7 +5,7 @@ from pydantic import JsonValue
 
 from prism_agent_kit.core.context import ContextAssembler
 from prism_agent_kit.core.digests import canonical_json_digest
-from prism_agent_kit.core.enums import ExecutionMode, MessageRole
+from prism_agent_kit.core.enums import ExecutionMode, MessageKind, MessageRole
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, ToolCall
 
@@ -31,12 +31,14 @@ def make_message(
     role: MessageRole,
     content: Any,
     tool_call_id: str | None = None,
+    kind: MessageKind = MessageKind.TEXT,
 ) -> Message:
     return Message(
         id=message_id,
         session_id="session-1",
         run_id="run-1",
         role=role,
+        kind=kind,
         content=content,
         tool_call_id=tool_call_id,
     )
@@ -144,4 +146,37 @@ def test_tool_call_payload_counts_toward_budget() -> None:
             tool_calls=[make_tool_call("call-1")],
         )
 
+    assert error.value.code is ErrorCode.CONTEXT_BUDGET_EXCEEDED
+
+
+def make_small_assembler(window: int) -> ContextAssembler:
+    return ContextAssembler(
+        FixedEstimator(),
+        context_window=window,
+        max_output_tokens=1,
+        safety_margin_tokens=1,
+    )
+
+
+def test_skill_context_never_trimmed() -> None:
+    messages = [
+        make_message(1, MessageRole.USER, "old"),
+        make_message(2, MessageRole.USER, "skill", kind=MessageKind.SKILL_CONTEXT),
+        make_message(3, MessageRole.USER, "current"),
+    ]
+
+    assembly = make_small_assembler(5).assemble(system_prompt="s", messages=messages)
+
+    assert [message.id for message in assembly.messages] == [2, 3]
+    assert assembly.messages[0].kind is MessageKind.SKILL_CONTEXT
+
+
+def test_only_skill_context_over_budget_raises() -> None:
+    messages = [
+        make_message(1, MessageRole.USER, "skill", kind=MessageKind.SKILL_CONTEXT),
+        make_message(2, MessageRole.USER, "current"),
+    ]
+
+    with pytest.raises(AgentKitError) as error:
+        make_small_assembler(4).assemble(system_prompt="s", messages=messages)
     assert error.value.code is ErrorCode.CONTEXT_BUDGET_EXCEEDED

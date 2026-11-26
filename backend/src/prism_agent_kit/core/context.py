@@ -3,7 +3,7 @@ from collections.abc import Sequence
 
 from pydantic import BaseModel, JsonValue
 
-from prism_agent_kit.core.enums import MessageRole
+from prism_agent_kit.core.enums import MessageKind, MessageRole
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, ToolCall
 from prism_agent_kit.core.token_budget import TokenEstimator
@@ -69,15 +69,22 @@ class ContextAssembler:
         unit_tokens = [
             sum(self._estimator.count_message(message) for message in unit_messages)
             + sum(self._estimator.count_tool_call(tool_call) for tool_call in unit_tool_calls)
-            for unit_messages, unit_tool_calls in units
+            for unit_messages, unit_tool_calls, _protected in units
         ]
         total_tokens = fixed_tokens + sum(unit_tokens)
         trimmed_count = 0
         trimmed_tokens = 0
 
-        while len(units) > 1 and total_tokens > self._input_budget:
-            removed_unit, _ = units.pop(0)
-            removed_tokens = unit_tokens.pop(0)
+        while total_tokens > self._input_budget:
+            removable = [
+                index for index, (_unit, _calls, protected) in enumerate(units) if not protected
+            ]
+            # 至少保留最后一条非保护单元（当前用户输入），受保护单元永不裁剪。
+            if len(removable) <= 1:
+                break
+            removed_index = removable[0]
+            removed_unit, _removed_calls, _ = units.pop(removed_index)
+            removed_tokens = unit_tokens.pop(removed_index)
             total_tokens -= removed_tokens
             trimmed_count += len(removed_unit)
             trimmed_tokens += removed_tokens
@@ -94,7 +101,7 @@ class ContextAssembler:
             )
 
         return ContextAssembly(
-            messages=[message for unit, _ in units for message in unit],
+            messages=[message for unit, _calls, _protected in units for message in unit],
             estimated_tokens=total_tokens,
             trimmed_count=trimmed_count,
             trimmed_tokens=trimmed_tokens,
@@ -104,8 +111,8 @@ class ContextAssembler:
         self,
         messages: list[Message],
         tool_calls: Sequence[ToolCall],
-    ) -> list[tuple[list[Message], list[ToolCall]]]:
-        """把 assistant 与其全部 tool 结果组成不可拆分单元。"""
+    ) -> list[tuple[list[Message], list[ToolCall], bool]]:
+        """把 assistant 与其全部 tool 结果组成不可拆分单元；技能上下文标记为受保护。"""
         calls_by_assistant: dict[int, list[ToolCall]] = {}
         for tool_call in tool_calls:
             calls_by_assistant.setdefault(
@@ -113,12 +120,12 @@ class ContextAssembler:
                 [],
             ).append(tool_call)
 
-        units: list[tuple[list[Message], list[ToolCall]]] = []
+        units: list[tuple[list[Message], list[ToolCall], bool]] = []
         index = 0
         while index < len(messages):
             message = messages[index]
             if message.role is MessageRole.USER:
-                units.append(([message], []))
+                units.append(([message], [], message.kind is MessageKind.SKILL_CONTEXT))
                 index += 1
                 continue
             if message.role is MessageRole.TOOL:
@@ -137,7 +144,7 @@ class ContextAssembler:
             tool_messages = unit[1:]
             if expected_ids or tool_messages:
                 self._validate_tool_group(expected_ids, tool_messages)
-            units.append((unit, expected_calls))
+            units.append((unit, expected_calls, False))
         return units
 
     def _validate_tool_group(

@@ -3,7 +3,7 @@
 from pydantic import BaseModel, JsonValue
 
 from prism_agent_kit.application.skills.catalog import SkillCatalog
-from prism_agent_kit.application.skills.package import read_text_resource
+from prism_agent_kit.application.skills.package import read_text_resource, render_skill_content
 from prism_agent_kit.core.enums import ExecutionMode
 from prism_agent_kit.tools.contracts import ToolDefinition, ToolExecutionContext
 
@@ -30,7 +30,7 @@ def build_skill_tool(catalog: SkillCatalog, *, max_chars: int = 60_000) -> ToolD
             content = read_text_resource(package, raw.path)
             resources: list[JsonValue] = []
         else:
-            content = f'<skill_content name="{package.name}">\n{package.body}\n</skill_content>'
+            content = render_skill_content(package)
             resources = [
                 {"path": resource.path, "kind": resource.kind, "bytes": resource.bytes}
                 for resource in package.resources

@@ -68,6 +68,11 @@ def parse_skill(directory: Path, *, max_description: int = 1024) -> SkillPackage
     )
 
 
+def render_skill_content(package: SkillPackage) -> str:
+    """渲染注入给模型的 <skill_content> 块。"""
+    return f'<skill_content name="{package.name}">\n{package.body}\n</skill_content>'
+
+
 def read_text_resource(
     package: SkillPackage,
     rel_path: str,

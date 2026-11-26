@@ -5,7 +5,9 @@ from pydantic import JsonValue
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.session_title_service import SessionTitleService
-from prism_agent_kit.core.enums import EventType, MessageRole, RunStatus
+from prism_agent_kit.application.skills.catalog import SkillCatalog
+from prism_agent_kit.application.skills.package import render_skill_content
+from prism_agent_kit.core.enums import EventType, MessageKind, MessageRole, RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, RunEvent
 from prism_agent_kit.core.ports import EventEnvelope, EventPublisher
@@ -33,6 +35,7 @@ class RunService:
         event_publisher: EventPublisher,
         cancellation_registry: RunCancellationRegistry,
         title_service: SessionTitleService | None = None,
+        skill_catalog: SkillCatalog | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._prompt_registry = prompt_registry
@@ -41,6 +44,7 @@ class RunService:
         self._event_publisher = event_publisher
         self._cancellation_registry = cancellation_registry
         self._title_service = title_service
+        self._skill_catalog = skill_catalog
 
     async def create(
         self,
@@ -49,9 +53,24 @@ class RunService:
         input_text: str,
         prompt_ref: str | None,
         metadata: Mapping[str, JsonValue] | None = None,
+        skill_name: str | None = None,
     ) -> Run:
         """在单个事务中创建 user Message、Run 和排队事件。"""
         prompt = self._resolve_prompt(prompt_ref)
+        skill_package = None
+        if skill_name is not None:
+            if self._skill_catalog is None:
+                raise AgentKitError(
+                    ErrorCode.SKILL_CATALOG_UNAVAILABLE,
+                    "技能目录不可用",
+                    http_status=503,
+                )
+            skill_package = self._skill_catalog.get(skill_name)
+        system_prompt = prompt.content
+        if self._skill_catalog is not None:
+            catalog_block = self._skill_catalog.render_catalog()
+            if catalog_block:
+                system_prompt = f"{system_prompt}\n\n{catalog_block}"
         async with self._uow_factory() as uow:
             session = await uow.sessions.get(session_id)
             await uow.sessions.touch(session_id)
@@ -62,10 +81,21 @@ class RunService:
                     input_text=input_text,
                     prompt_name=prompt.name,
                     prompt_version=prompt.version,
-                    system_prompt=prompt.content,
+                    system_prompt=system_prompt,
                     model=self._model_name,
+                    skill_name=skill_name,
                 )
             )
+            if skill_package is not None:
+                await uow.messages.append(
+                    Message(
+                        session_id=session_id,
+                        run_id=run.id,
+                        role=MessageRole.USER,
+                        kind=MessageKind.SKILL_CONTEXT,
+                        content=render_skill_content(skill_package),
+                    )
+                )
             await uow.messages.append(
                 Message(
                     session_id=session_id,

@@ -320,6 +320,7 @@ class ApplicationContainer:
                 default_prompt_ref=self.settings.default_prompt_ref,
                 event_publisher=event_bus,
                 cancellation_registry=cancellation_registry,
+                skill_catalog=skill_catalog,
                 title_service=(
                     SessionTitleService(
                         uow_factory=uow_factory,
