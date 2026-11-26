@@ -31,14 +31,22 @@ const highlight = ref(0)
 const composing = ref(false)
 
 const filtered = computed(() => {
-  const needle = query.value.toLowerCase()
-  return skills.value
-    .filter(
-      (item) =>
-        !item.shadowed &&
-        (item.name.toLowerCase().includes(needle) ||
-          item.description.toLowerCase().includes(needle)),
-    )
+  const needle = query.value.trim().toLowerCase()
+  const visible = skills.value.filter((item) => !item.shadowed)
+  if (needle === '') return visible.slice(0, 20)
+  // 优先按技能名匹配；名字没有命中时才退回描述匹配，避免常见字母把整个列表带出来。
+  const byName = visible.filter((item) => item.name.toLowerCase().includes(needle))
+  const pool =
+    byName.length > 0
+      ? byName
+      : visible.filter((item) => item.description.toLowerCase().includes(needle))
+  return pool
+    .sort((left, right) => {
+      const prefix =
+        Number(right.name.toLowerCase().startsWith(needle)) -
+        Number(left.name.toLowerCase().startsWith(needle))
+      return prefix !== 0 ? prefix : left.name.localeCompare(right.name)
+    })
     .slice(0, 20)
 })
 

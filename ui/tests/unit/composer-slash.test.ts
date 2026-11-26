@@ -68,3 +68,35 @@ test('无匹配时 Enter 只关闭菜单不发送', async () => {
   await wrapper.get('textarea').trigger('keydown', { key: 'Enter' })
   expect(wrapper.emitted('send')).toBeUndefined()
 })
+
+test('按技能名过滤，不被描述里的字母带偏', async () => {
+  const items = [
+    { name: 'internal-comms', description: '内部沟通', path: '/s/a', root: '/s', shadowed: false },
+    {
+      name: 'frontend-design',
+      description: 'intentional visual design',
+      path: '/s/b',
+      root: '/s',
+      shadowed: false,
+    },
+    {
+      name: 'security-best-practices',
+      description: 'security review',
+      path: '/s/c',
+      root: '/s',
+      shadowed: false,
+    },
+  ]
+  const client = { listSkills: vi.fn().mockResolvedValue({ items }) }
+  const wrapper = mount(MessageComposer, {
+    props: { modelValue: '', disabled: false, busy: false, sending: false, stopping: false },
+    global: { provide: { [appContextKey as symbol]: { client } } },
+  })
+  await flushPromises()
+
+  await wrapper.get('textarea').setValue('/in')
+  await wrapper.setProps({ modelValue: '/in' })
+
+  expect(wrapper.text()).toContain('internal-comms')
+  expect(wrapper.text()).not.toContain('frontend-design')
+})
