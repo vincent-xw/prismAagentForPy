@@ -1,0 +1,16 @@
+ui/src/features/sessions/MessageComposer.vue
+  h_c3a612a540ca0b 34-49
+ui/tests/unit/composer-slash.test.ts
+  h_c3a612a540ca0b 71-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3e047b7e4707420744ecce46d17d944ba0d3355b",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
