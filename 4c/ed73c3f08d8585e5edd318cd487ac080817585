@@ -1,0 +1,16 @@
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 3,17,215-221
+backend/src/prism_agent_kit/application/skills/tools.py
+  h_c3a612a540ca0b 1-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4ced73c3f08d8585e5edd318cd487ac080817585",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
