@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     mcp_tool_timeout_seconds: float = 30.0
     mcp_max_result_bytes: int = 204_800
     session_title_generation_enabled: bool = True
+    prism_home: str = "~/.prism"
+    skills_paths: str = ""
+    skills_catalog_max_chars: int = 8_000
+    skills_max_tool_result_chars: int = 60_000
 
     @property
     def resolved_database_path(self) -> Path:

@@ -98,6 +98,7 @@ class RunRow(Base):
         ForeignKey("workspaces.id", ondelete="SET NULL"),
     )
     status: Mapped[str] = mapped_column(String(32))
+    skill_name: Mapped[str | None] = mapped_column(String(64))
     input_text: Mapped[str] = mapped_column(Text)
     prompt_name: Mapped[str] = mapped_column(String(128))
     prompt_version: Mapped[str] = mapped_column(String(64))
@@ -138,6 +139,7 @@ class MessageRow(Base):
         ForeignKey("runs.id", ondelete="CASCADE"),
     )
     role: Mapped[str] = mapped_column(String(16))
+    kind: Mapped[str] = mapped_column(String(32), default="text")
     content: Mapped[Any] = mapped_column(JSON)
     reasoning: Mapped[str | None] = mapped_column(Text)
     tool_call_id: Mapped[str | None] = mapped_column(String(128))

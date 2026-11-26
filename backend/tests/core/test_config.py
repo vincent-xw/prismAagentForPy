@@ -54,3 +54,11 @@ def test_mcp_defaults() -> None:
     assert settings.mcp_connect_timeout_seconds == 10.0
     assert settings.mcp_tool_timeout_seconds == 30.0
     assert settings.mcp_max_result_bytes == 204_800
+
+
+def test_skills_defaults() -> None:
+    settings = Settings()
+
+    assert settings.skills_catalog_max_chars == 8000
+    assert settings.skills_max_tool_result_chars == 60_000
+    assert settings.skills_paths == ""

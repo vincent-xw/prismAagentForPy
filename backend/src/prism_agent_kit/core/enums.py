@@ -42,6 +42,13 @@ class MessageRole(StrEnum):
     TOOL = "tool"
 
 
+class MessageKind(StrEnum):
+    """消息用途：普通文本或技能加载上下文。"""
+
+    TEXT = "text"
+    SKILL_CONTEXT = "skill_context"
+
+
 class ExecutionMode(StrEnum):
     """工具由本地执行器还是远端宿主执行。"""
 

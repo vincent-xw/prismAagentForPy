@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, JsonValue
 from prism_agent_kit.core.enums import (
     EventType,
     ExecutionMode,
+    MessageKind,
     MessageRole,
     RunStatus,
     ToolCallStatus,
@@ -39,6 +40,7 @@ class Run(BaseModel):
     prompt_version: str
     system_prompt: str
     model: str
+    skill_name: str | None = None
     step_count: int = 0
     output_text: str | None = None
     error_code: str | None = None
@@ -61,6 +63,7 @@ class Message(BaseModel):
     session_id: str
     run_id: str
     role: MessageRole
+    kind: MessageKind = MessageKind.TEXT
     content: JsonValue
     reasoning: str | None = None
     tool_call_id: str | None = None

@@ -267,3 +267,12 @@ def test_mcp_servers_table_applied(migrated_database_path: Path) -> None:
         "updated_at",
     } <= cols
     assert index_sql is not None
+
+
+def test_skill_context_columns_applied(migrated_database_path: Path) -> None:
+    with sqlite3.connect(migrated_database_path) as connection:
+        message_cols = {row[1] for row in connection.execute("PRAGMA table_info(messages)")}
+        run_cols = {row[1] for row in connection.execute("PRAGMA table_info(runs)")}
+
+    assert "kind" in message_cols
+    assert "skill_name" in run_cols
