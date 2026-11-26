@@ -1,0 +1,14 @@
+docs/superpowers/specs/2026-11-27-v1.4-compaction-trajectory-model-profile-design.md
+  h_c3a612a540ca0b 1-292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6f96274da3b7e3fad02613f40ae3891303b8c3c8",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
