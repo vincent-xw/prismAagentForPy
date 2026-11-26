@@ -25,6 +25,17 @@ watch(
     viewport.value?.scrollTo({ top: viewport.value.scrollHeight, behavior: 'instant' })
   },
 )
+function skillName(message: MessageDto): string {
+  const match = /name="([^"]+)"/.exec(content(message))
+  return match?.[1] ?? '技能'
+}
+
+function skillBody(message: MessageDto): string {
+  return content(message)
+    .replace(/<skill_content[^>]*>\n?/, '')
+    .replace(/\n?<\/skill_content>$/, '')
+}
+
 function content(message: MessageDto) {
   return typeof message.content === 'string'
     ? message.content
@@ -56,8 +67,18 @@ function content(message: MessageDto) {
         </p>
       </div>
       <template v-for="message in messages" :key="message.id">
+        <details
+          v-if="message.kind === 'skill_context'"
+          class="mb-8 rounded-xl border border-dashed bg-secondary/40 px-4 py-2 text-xs text-muted-foreground"
+        >
+          <summary class="cursor-pointer">已加载技能：{{ skillName(message) }}</summary>
+          <pre class="mt-2 max-h-64 overflow-auto whitespace-pre-wrap leading-6">{{
+            skillBody(message)
+          }}</pre>
+        </details>
         <div
-          v-if="message.role === 'user'"
+          v-else-if="message.role === 'user'"
+          data-role="user"
           class="mb-9 ml-auto w-fit max-w-[90%] whitespace-pre-wrap break-words rounded-2xl rounded-br-sm bg-secondary px-5 py-3.5 text-sm leading-7"
         >
           {{ content(message) }}
