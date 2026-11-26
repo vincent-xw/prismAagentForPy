@@ -11,6 +11,7 @@ const { conversation, connection, client } = useAppContext()
 const router = useRouter()
 const state = computed(() => conversation.value!.state)
 const workspaceLabel = ref<string | null>(null)
+const composer = ref<{ clearSkill: () => void } | null>(null)
 
 // 只用于展示当前会话绑定的工作区，加载失败不打断主流程。
 async function loadWorkspaceLabel(): Promise<void> {
@@ -68,6 +69,11 @@ async function refreshAfterDecision(): Promise<void> {
 const messages = computed(() =>
   state.value.selectedSessionId ? (state.value.messages[state.value.selectedSessionId] ?? []) : [],
 )
+async function handleSend(payload: { text: string; skillName: string | null }): Promise<void> {
+  const sent = await conversation.value!.send(payload.text, payload.skillName)
+  if (sent) composer.value?.clearSkill()
+}
+
 async function inspect(runId: string) {
   const sessionId = state.value.selectedSessionId
   if (sessionId === null) return
@@ -159,6 +165,7 @@ const labels = {
         >
       </div>
       <MessageComposer
+        ref="composer"
         v-model="draft"
         :disabled="connection.state.status !== 'ready' || !state.selectedSessionId || state.loading"
         :busy="active !== null"
@@ -167,7 +174,7 @@ const labels = {
           active !== null &&
           (!!state.cancelling[active.run.id] || active.run.cancel_requested_at !== null)
         "
-        @send="conversation!.send(draft)"
+        @send="handleSend"
         @stop="active && conversation!.cancel(active.run.id)"
       />
     </section>

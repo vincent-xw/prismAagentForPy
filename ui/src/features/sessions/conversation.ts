@@ -198,14 +198,14 @@ export function createConversation({
   }
   async function send(text: string, skillName: string | null = null) {
     const sessionId = state.selectedSessionId
-    if (!sessionId || disposed || !text.trim() || state.sending[sessionId]) return
+    if (!sessionId || disposed || !text.trim() || state.sending[sessionId]) return false
     state.drafts[sessionId] = text
     if (
       Object.values(state.runs).some(
         (item) => item.run.session_id === sessionId && !isTerminal(item.run),
       )
     )
-      return
+      return false
     state.sending[sessionId] = true
     state.error = null
     try {
@@ -225,12 +225,14 @@ export function createConversation({
       await refreshMessages(sessionId)
       const current = state.sessions.find((item) => item.id === sessionId)
       if (current !== undefined && current.title === null) await loadSessions()
+      return true
     } catch (error) {
       if (disposed) return
       if (error instanceof CoreApiError && (error.status === 409 || error.kind === 'network')) {
         if (state.selectedSessionId === sessionId) await openSession(sessionId)
       }
       if (state.selectedSessionId === sessionId) report(error)
+      return false
     } finally {
       state.sending[sessionId] = false
     }
