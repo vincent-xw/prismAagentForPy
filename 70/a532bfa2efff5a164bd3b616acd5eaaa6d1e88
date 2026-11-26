@@ -1,0 +1,16 @@
+README.md
+  h_c3a612a540ca0b 42
+docs/skills.md
+  h_c3a612a540ca0b 1-165
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "70a532bfa2efff5a164bd3b616acd5eaaa6d1e88",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
