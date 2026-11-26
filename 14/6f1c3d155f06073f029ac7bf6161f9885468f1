@@ -1,0 +1,22 @@
+backend/src/prism_agent_kit/application/skills/catalog.py
+  h_c3a612a540ca0b 1-135
+backend/src/prism_agent_kit/application/skills/package.py
+  h_c3a612a540ca0b 1-135
+backend/tests/application/skills/test_catalog.py
+  h_c3a612a540ca0b 1-38
+backend/tests/application/skills/test_package.py
+  h_c3a612a540ca0b 1-72
+backend/tests/support/skill_helpers.py
+  h_c3a612a540ca0b 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "146f1c3d155f06073f029ac7bf6161f9885468f1",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
