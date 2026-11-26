@@ -3,7 +3,13 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, JsonValue, field_validator
 
-from prism_agent_kit.core.enums import ExecutionMode, MessageRole, RunStatus, ToolCallStatus
+from prism_agent_kit.core.enums import (
+    ExecutionMode,
+    MessageKind,
+    MessageRole,
+    RunStatus,
+    ToolCallStatus,
+)
 from prism_agent_kit.core.models import Message, Run, Session, ToolCall
 from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.tools.contracts import ToolDefinition
@@ -53,6 +59,7 @@ class RunCreate(BaseModel):
     input: str
     prompt_ref: str | None = None
     metadata: dict[str, JsonValue] = Field(default_factory=dict)
+    skill_name: str | None = None
 
     @field_validator("input")
     @classmethod
@@ -110,6 +117,7 @@ class MessageView(BaseModel):
     session_id: str
     run_id: str
     role: MessageRole
+    kind: MessageKind
     content: JsonValue
     reasoning: str | None
     tool_call_id: str | None
@@ -124,6 +132,7 @@ class MessageView(BaseModel):
             session_id=message.session_id,
             run_id=message.run_id,
             role=message.role,
+            kind=message.kind,
             content=message.content,
             reasoning=message.reasoning,
             tool_call_id=message.tool_call_id,

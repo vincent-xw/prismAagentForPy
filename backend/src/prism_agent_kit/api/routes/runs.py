@@ -135,6 +135,7 @@ def create_runs_router() -> APIRouter:
             input_text=payload.input,
             prompt_ref=payload.prompt_ref,
             metadata=payload.metadata,
+            skill_name=payload.skill_name,
         )
         return RunView.from_domain(run)
 

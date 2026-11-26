@@ -6,7 +6,7 @@ from pydantic import JsonValue
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.session_title_service import SessionTitleService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
-from prism_agent_kit.application.skills.package import render_skill_content
+from prism_agent_kit.application.skills.package import SkillError, render_skill_content
 from prism_agent_kit.core.enums import EventType, MessageKind, MessageRole, RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, RunEvent
@@ -65,7 +65,15 @@ class RunService:
                     "技能目录不可用",
                     http_status=503,
                 )
-            skill_package = self._skill_catalog.get(skill_name)
+            try:
+                skill_package = self._skill_catalog.get(skill_name)
+            except SkillError as error:
+                raise AgentKitError(
+                    error.code,
+                    error.message,
+                    http_status=422,
+                    details={"skill_name": skill_name},
+                ) from error
         system_prompt = prompt.content
         if self._skill_catalog is not None:
             catalog_block = self._skill_catalog.render_catalog()

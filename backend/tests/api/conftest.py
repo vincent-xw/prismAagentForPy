@@ -104,6 +104,7 @@ def build_api_application(
     )
     database = Database(database_path)
     uow_factory = UnitOfWorkFactory(database.session_factory)
+    skill_catalog = SkillCatalog([skills_root] if skills_root is not None else [])
     prompts = PromptRegistry()
     prompts.register(name="default", version="1", prompt="default system")
     session_service = SessionService(uow_factory)
@@ -158,6 +159,7 @@ def build_api_application(
         default_prompt_ref="default@1",
         event_publisher=event_bus,
         cancellation_registry=cancellation_registry,
+        skill_catalog=skill_catalog,
     )
     tool_result_service = ToolResultService(
         uow_factory=uow_factory,
@@ -165,7 +167,6 @@ def build_api_application(
         event_publisher=event_bus,
     )
 
-    skill_catalog = SkillCatalog([skills_root] if skills_root is not None else [])
     mcp_config_service = McpConfigService(uow_factory, parent_env={"PATH": "/usr/bin"})
     mcp_manager = McpServerManager(
         uow_factory=uow_factory,
