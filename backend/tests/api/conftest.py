@@ -19,6 +19,7 @@ from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
+from prism_agent_kit.application.skills.catalog import SkillCatalog
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
@@ -58,6 +59,7 @@ class ApiTestContainer:
     tool_result_service: ToolResultService
     workspace_service: WorkspaceService
     tool_approval_service: ToolApprovalService
+    skill_catalog: SkillCatalog
     mcp_config_service: McpConfigService
     mcp_manager: McpServerManager
     workspace_fts_supported: bool = True
@@ -86,6 +88,7 @@ async def _fake_mcp_factory(_connection: object) -> AsyncIterator[_FakeMcpClient
 
 def build_api_application(
     database_path: Path,
+    skills_root: Path | None = None,
 ) -> tuple[
     FastAPI,
     UnitOfWorkFactory,
@@ -162,6 +165,7 @@ def build_api_application(
         event_publisher=event_bus,
     )
 
+    skill_catalog = SkillCatalog([skills_root] if skills_root is not None else [])
     mcp_config_service = McpConfigService(uow_factory, parent_env={"PATH": "/usr/bin"})
     mcp_manager = McpServerManager(
         uow_factory=uow_factory,
@@ -188,6 +192,7 @@ def build_api_application(
         tool_result_service=tool_result_service,
         workspace_service=workspace_service,
         tool_approval_service=tool_approval_service,
+        skill_catalog=skill_catalog,
         mcp_config_service=mcp_config_service,
         mcp_manager=mcp_manager,
     )
@@ -199,9 +204,19 @@ def build_api_application(
 
 
 @pytest.fixture
-def api_client(migrated_database_path: Path) -> Iterator[TestClient]:
+def skill_dirs(tmp_path: Path) -> Path:
+    """提供含一个示例技能的临时技能根目录。"""
+    from tests.support.skill_helpers import make_skill
+
+    root = tmp_path / "skills"
+    make_skill(root, "pdf-tools", "Extract PDFs.", "# PDF tools", {"references/a.md": "# A"})
+    return root
+
+
+@pytest.fixture
+def api_client(migrated_database_path: Path, skill_dirs: Path) -> Iterator[TestClient]:
     """提供带真实 SQLite 迁移和完整 API 路由的同步测试客户端。"""
-    application, _, _, _, _ = build_api_application(migrated_database_path)
+    application, _, _, _, _ = build_api_application(migrated_database_path, skill_dirs)
 
     with TestClient(application) as client:
         yield client

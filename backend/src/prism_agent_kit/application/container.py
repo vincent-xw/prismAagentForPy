@@ -12,6 +12,7 @@ from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.run_worker import RunWorker
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.session_title_service import SessionTitleService
+from prism_agent_kit.application.skills.catalog import SkillCatalog
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
@@ -76,6 +77,7 @@ class ApplicationContainer:
         self._workspace_fts_supported = False
         self._mcp_config_service: McpConfigService | None = None
         self._mcp_manager: McpServerManager | None = None
+        self._skill_catalog: SkillCatalog | None = None
 
     @property
     def database(self) -> Database:
@@ -139,6 +141,25 @@ class ApplicationContainer:
         return self._tool_result_service
 
     @property
+    def skill_catalog(self) -> SkillCatalog:
+        """返回技能目录服务。"""
+        if self._skill_catalog is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._skill_catalog
+
+    def _skill_roots(self) -> list["Path"]:
+        """按优先级返回技能根目录。"""
+        configured = [
+            part.strip() for part in self.settings.skills_paths.split(",") if part.strip()
+        ]
+        return [
+            Path(self.settings.prism_home).expanduser() / "skills",
+            Path("~/.agent").expanduser() / "skills",
+            Path("~/.agents").expanduser() / "skills",
+            *[Path(part).expanduser() for part in configured],
+        ]
+
+    @property
     def mcp_config_service(self) -> McpConfigService:
         """返回 MCP 配置服务。"""
         if self._mcp_config_service is None:
@@ -185,6 +206,10 @@ class ApplicationContainer:
                 if workspace_tool.name not in existing_tool_names:
                     tool_registry.register(workspace_tool)
             cancellation_registry = RunCancellationRegistry()
+            skill_catalog = SkillCatalog(
+                self._skill_roots(),
+                max_chars=self.settings.skills_catalog_max_chars,
+            )
             mcp_config_service = McpConfigService(uow_factory)
             mcp_manager = McpServerManager(
                 uow_factory=uow_factory,
@@ -320,6 +345,7 @@ class ApplicationContainer:
             self._workspace_service = workspace_service
             self._tool_approval_service = tool_approval_service
             self._index_tasks = index_tasks
+            self._skill_catalog = skill_catalog
             self._mcp_config_service = mcp_config_service
             self._mcp_manager = mcp_manager
             self._started = True

@@ -365,3 +365,28 @@ class McpToolsView(BaseModel):
 
     server_id: str
     tools: list[McpToolView]
+
+
+class SkillView(BaseModel):
+    """技能清单条目。"""
+
+    name: str
+    description: str
+    path: str
+    root: str
+    shadowed: bool
+
+
+class SkillsView(BaseModel):
+    """技能清单响应。"""
+
+    items: list[SkillView]
+
+
+class SkillDetailView(BaseModel):
+    """技能详情响应。"""
+
+    name: str
+    description: str
+    content: str
+    resources: list[dict[str, JsonValue]]
