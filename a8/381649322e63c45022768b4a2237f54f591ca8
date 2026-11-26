@@ -1,0 +1,14 @@
+docs/superpowers/specs/2026-11-26-skills-design.md
+  h_c3a612a540ca0b 1-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a8381649322e63c45022768b4a2237f54f591ca8",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
