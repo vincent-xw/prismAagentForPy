@@ -1,0 +1,22 @@
+ui/src/features/sessions/MessageComposer.vue
+  h_c3a612a540ca0b 2-5,8-10,18-113,115,118-119,121,125,127-141,145,148,168
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 14,72-76,168,177
+ui/src/features/sessions/conversation.ts
+  h_c3a612a540ca0b 201,208,228,235
+ui/src/features/skills/SkillMenu.vue
+  h_c3a612a540ca0b 1-24
+ui/tests/unit/composer-slash.test.ts
+  h_c3a612a540ca0b 1-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2fb2ed82a02d9c2fc9e6e72b0829b2cad2dfdf40",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
