@@ -13,6 +13,8 @@ import {
   searchResponseSchema,
   sessionSchema,
   sessionsSchema,
+  skillDetailSchema,
+  skillsSchema,
   toolsSchema,
   treeResponseSchema,
   workspaceListSchema,
@@ -150,8 +152,16 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
         undefined,
         signal,
       ),
-    createRun: (sessionId: string, body: { input: string }, signal?: AbortSignal) =>
+    createRun: (
+      sessionId: string,
+      body: { input: string; skill_name?: string | null },
+      signal?: AbortSignal,
+    ) =>
       request(`/sessions/${encodeURIComponent(sessionId)}/runs`, runSchema, 'POST', body, signal),
+    listSkills: (signal?: AbortSignal) =>
+      request('/skills', skillsSchema, 'GET', undefined, signal),
+    getSkill: (name: string, signal?: AbortSignal) =>
+      request(`/skills/${encodeURIComponent(name)}`, skillDetailSchema, 'GET', undefined, signal),
     getRun: (id: string, signal?: AbortSignal) =>
       request(`/runs/${encodeURIComponent(id)}`, runSchema, 'GET', undefined, signal),
     cancelRun: (id: string, signal?: AbortSignal) =>

@@ -38,6 +38,7 @@ export function messageDto(overrides: Partial<MessageDto> = {}): MessageDto {
     session_id: 's1',
     run_id: 'r1',
     role: 'user',
+    kind: 'text',
     content: '你好',
     reasoning: null,
     tool_call_id: null,

@@ -196,7 +196,7 @@ export function createConversation({
       return null
     }
   }
-  async function send(text: string) {
+  async function send(text: string, skillName: string | null = null) {
     const sessionId = state.selectedSessionId
     if (!sessionId || disposed || !text.trim() || state.sending[sessionId]) return
     state.drafts[sessionId] = text
@@ -209,7 +209,11 @@ export function createConversation({
     state.sending[sessionId] = true
     state.error = null
     try {
-      const run = await client.createRun(sessionId, { input: text }, lifetime.signal)
+      const run = await client.createRun(
+        sessionId,
+        skillName === null ? { input: text } : { input: text, skill_name: skillName },
+        lifetime.signal,
+      )
       if (disposed) return
       validateRun(run, sessionId)
       state.runs[run.id] = createRunProjection(run)

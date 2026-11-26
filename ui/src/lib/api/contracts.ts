@@ -41,6 +41,7 @@ export const messageSchema = z.object({
   session_id: id,
   run_id: id,
   role: z.enum(['user', 'assistant', 'tool']),
+  kind: z.enum(['text', 'skill_context']),
   content: z.json(),
   reasoning: z.string().nullable(),
   tool_call_id: z.string().nullable(),
@@ -264,3 +265,25 @@ export interface McpServerPayload {
   headers: Record<string, string>
   enabled: boolean
 }
+
+export const skillSummarySchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  path: z.string(),
+  root: z.string(),
+  shadowed: z.boolean(),
+})
+export const skillsSchema = z.object({ items: z.array(skillSummarySchema) })
+export const skillResourceSchema = z.object({
+  path: z.string(),
+  kind: z.string(),
+  bytes: z.number().int().nonnegative(),
+})
+export const skillDetailSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  content: z.string(),
+  resources: z.array(skillResourceSchema),
+})
+export type SkillSummaryDto = z.infer<typeof skillSummarySchema>
+export type SkillDetailDto = z.infer<typeof skillDetailSchema>
