@@ -1,0 +1,18 @@
+backend/src/prism_agent_kit/api/auth.py
+  h_c3a612a540ca0b 31-36,46
+backend/tests/api/test_auth.py
+  h_c3a612a540ca0b 108-116
+backend/tests/test_agent_e2e_skills.py
+  h_c3a612a540ca0b 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3de904201ff83d2535a90b8e29306f13f9f2627b",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
