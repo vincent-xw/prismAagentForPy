@@ -1,0 +1,16 @@
+backend/src/prism_agent_kit/application/skills/catalog.py
+  h_c3a612a540ca0b 1-135
+backend/tests/application/skills/test_catalog.py
+  h_c3a612a540ca0b 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e2fd866119b477e74113085d7e97f9af0040bb42",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
