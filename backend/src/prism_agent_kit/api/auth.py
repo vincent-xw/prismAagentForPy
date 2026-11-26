@@ -28,6 +28,12 @@ class ApiTokenMiddleware:
         self.app = app
         self.environment = settings.environment
         self.health_path = f"{settings.api_prefix.rstrip('/')}/health"
+        # 开发/测试环境放行 FastAPI 自带的文档与 OpenAPI 描述；生产仍要求 Token。
+        self.public_docs_paths = (
+            {"/docs", "/docs/oauth2-redirect", "/redoc", "/openapi.json"}
+            if settings.environment != "production"
+            else set()
+        )
         token = settings.api_token
         self.expected_token = token.get_secret_value() if token is not None else None
 
@@ -37,7 +43,7 @@ class ApiTokenMiddleware:
             return
 
         path = str(scope["path"]).rstrip("/")
-        if path == self.health_path:
+        if path == self.health_path or path in self.public_docs_paths:
             await self.app(scope, receive, send)
             return
 

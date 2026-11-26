@@ -105,3 +105,12 @@ def test_non_test_environment_requires_token(migrated_database_path: Path) -> No
 
     with pytest.raises(RuntimeError, match="API_TOKEN"), TestClient(application):
         pass
+
+
+def test_docs_are_public_outside_production(migrated_database_path: Path) -> None:
+    application = make_app(migrated_database_path, api_token=SecretStr("secret"))
+
+    with TestClient(application) as client:
+        assert client.get("/docs").status_code == 200
+        assert client.get("/openapi.json").status_code == 200
+        assert client.get("/api/v1/protected").status_code == 401
