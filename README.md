@@ -39,7 +39,7 @@
 - 工作区页：选择/切换目录、文件树、文本预览、内容检索与索引状态。
 - 会话页写入审批卡片与等待确认提示。
 - MCP 页：配置 `stdio` / `Streamable HTTP` 服务、启停重连、工具目录；MCP 工具调用前一律审批。
-- Skills：`~/.prism/skills`、`~/.agent/skills`、`~/.agents/skills` 下的 `SKILL.md` 技能包；清单常驻、`skill` 工具按需加载、输入框 `/` 选择并在会话内高亮。
+- Skills：`~/.prism/skills`、`~/.agent/skills`、`~/.agents/skills` 下的 `SKILL.md` 技能包；清单常驻、`skill` 工具按需加载、输入框 `/` 选择并在会话内高亮。接入与使用见 [docs/skills.md](docs/skills.md)。
 
 当前**不包含**：向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
