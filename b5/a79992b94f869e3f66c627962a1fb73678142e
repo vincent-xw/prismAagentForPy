@@ -1,0 +1,30 @@
+backend/migrations/versions/20261126_0006_skill_context.py
+  h_c3a612a540ca0b 1-29
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 52-55
+backend/src/prism_agent_kit/core/enums.py
+  h_c3a612a540ca0b 45-51
+backend/src/prism_agent_kit/core/errors.py
+  h_c3a612a540ca0b 55-59
+backend/src/prism_agent_kit/core/models.py
+  h_c3a612a540ca0b 9,43,66
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 8,81,105,123,141
+backend/src/prism_agent_kit/db/models.py
+  h_c3a612a540ca0b 101,142
+backend/tests/core/test_config.py
+  h_c3a612a540ca0b 57-64
+backend/tests/db/test_migration.py
+  h_c3a612a540ca0b 270-278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "b5a79992b94f869e3f66c627962a1fb73678142e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
