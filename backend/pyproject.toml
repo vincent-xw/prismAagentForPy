@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "prism-agent-kit"
-version = "1.2.1"
+version = "1.3.0"
 description = "PrismAgentKit 的 Python 后端实现"
 readme = "README.md"
 requires-python = ">=3.12"

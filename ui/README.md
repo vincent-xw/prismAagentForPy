@@ -1,6 +1,6 @@
 # Prism Core UI
 
-Vue 3 + TypeScript + Vite 的独立前端，使用 Tailwind CSS 4、自有语义主题和按需 shadcn-vue / Reka 组件。提供会话工作台、执行详情、独立设置页、工作区页与 MCP 服务页；会话页支持写入审批与通用工具审批。
+Vue 3 + TypeScript + Vite 的独立前端，使用 Tailwind CSS 4、自有语义主题和按需 shadcn-vue / Reka 组件。提供会话工作台、执行详情、独立设置页、工作区页与 MCP 服务页；会话页支持写入审批与通用工具审批，输入框支持 `/` 选择技能并以标签呈现。
 
 ## 启动
 

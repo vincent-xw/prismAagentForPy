@@ -24,6 +24,7 @@
 - 完成用户当前指定的范围后立即停止，不自行进入未获明确授权的迁移阶段（如多 Agent、Workflow 等）。
 - 不引入 LangChain、LangGraph、LangSmith、PydanticAI。
 - MCP 官方 Python SDK（`mcp`）自 V1.2 起允许使用，但**仅限 MCP Client 与 `tools` 能力**（与上游 Node 版对齐）；扩展到 `resources`/`prompts` 或 Server 端需另立设计。
+- Skills 自 V1.3 起支持：只读技能包（`SKILL.md` + references），**不执行 scripts、不做作者化生成、不做技能市场**；脚本执行与项目级目录需另立设计。
 
 ## 当前架构约束
 
