@@ -1,0 +1,22 @@
+ui/src/features/sessions/conversation.ts
+  h_c3a612a540ca0b 199,212-216
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 16-17,155-159,161-164
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 44,268-289
+ui/tests/support/fixtures.ts
+  h_c3a612a540ca0b 41
+ui/tests/unit/skills-client.test.ts
+  h_c3a612a540ca0b 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a90e324b3ce3bdb8d43fa0852918aa4a6aa35e53",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
