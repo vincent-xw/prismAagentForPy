@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from pathlib import Path
 
 from filelock import FileLock, Timeout
 
@@ -13,6 +14,7 @@ from prism_agent_kit.application.run_worker import RunWorker
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.session_title_service import SessionTitleService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
+from prism_agent_kit.application.skills.tools import build_skill_tool
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
@@ -210,6 +212,13 @@ class ApplicationContainer:
                 self._skill_roots(),
                 max_chars=self.settings.skills_catalog_max_chars,
             )
+            if "skill" not in existing_tool_names:
+                tool_registry.register(
+                    build_skill_tool(
+                        skill_catalog,
+                        max_chars=self.settings.skills_max_tool_result_chars,
+                    )
+                )
             mcp_config_service = McpConfigService(uow_factory)
             mcp_manager = McpServerManager(
                 uow_factory=uow_factory,
