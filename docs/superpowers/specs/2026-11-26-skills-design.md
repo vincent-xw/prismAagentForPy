@@ -63,6 +63,8 @@ V1.2 让 Agent 能接外部 MCP 工具，但它仍然"只会做事，不会按�
 - 只读取文本资源，单文件 ≤ 200 KB；拒绝路径逃逸与符号链接越界。
 - 清单预算：`skills_catalog_max_chars` 默认 8000，超出按 description 截断、随后按 name 排序省略并告警。
 - `skill` 工具返回体预算：`skills_max_tool_result_chars` 默认 60_000 字符，超出截断并附 `truncated: true`（资源单文件仍限 200 KB）。
+- 显式注入正文预算：`skills_max_context_chars` 默认 20_000 字符，超限截断并附 `（技能正文已截断）`，避免单条受保护消息永久撑爆会话预算。
+- frontmatter 按 YAML 解析（PyYAML），支持 `description: |` 多行；拒绝符号链接技能目录/SKILL.md。
 - 名称规范：`^[a-z0-9]+(?:-[a-z0-9]+)*$`，≤64 字符；description ≤1024。
 - 技能根目录优先级（同名先到先得，后者记为 shadowed）：`~/.prism/skills` → `~/.agent/skills` → `~/.agents/skills` → 额外 `skills_paths`（逗号分隔，用于测试/自定义）。
 - 前端契约运行时校验（zod），不补造字段。

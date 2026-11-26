@@ -36,6 +36,10 @@ def test_e2e_skill_context_once_and_catalog(tmp_path: Path, migrated_database_pa
         wait_for_run_status(client, first.json()["id"], {"succeeded"})
 
         messages = client.get(f"/api/v1/sessions/{session['id']}/messages").json()["items"]
+        assert any(
+            "PDF TOOLS BODY" in str(message.content)
+            for message in provider.requests[0].messages
+        )
         kinds = [item["kind"] for item in messages]
         assert kinds.count("skill_context") == 1
         skill_content = next(

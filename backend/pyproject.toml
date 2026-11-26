@@ -26,6 +26,7 @@ dependencies = [
     "openai>=1.59,<3.0",
     "platformdirs>=4.3,<5.0",
     "pydantic-settings>=2.7,<3.0",
+    "pyyaml>=6.0.4",
     "sqlalchemy[asyncio]>=2.0.36,<3.0",
     "sse-starlette>=2.1,<4.0",
     "tiktoken>=0.8,<1.0",
@@ -39,6 +40,7 @@ dev = [
     "pytest-asyncio>=0.25,<2.0",
     "pytest-cov>=6.0,<8.0",
     "ruff>=0.9,<1.0",
+    "types-pyyaml>=6.0.12.20261122",
 ]
 
 [[tool.uv.index]]

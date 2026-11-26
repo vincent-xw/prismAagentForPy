@@ -321,6 +321,7 @@ class ApplicationContainer:
                 event_publisher=event_bus,
                 cancellation_registry=cancellation_registry,
                 skill_catalog=skill_catalog,
+                skills_max_context_chars=self.settings.skills_max_context_chars,
                 title_service=(
                     SessionTitleService(
                         uow_factory=uow_factory,

@@ -57,3 +57,14 @@ test('发送时携带选中的技能名', async () => {
   await wrapper.get('button[aria-label="发送消息"]').trigger('click')
   expect(wrapper.emitted('send')?.[0]).toEqual([{ text: '整理这份 PDF', skillName: 'pdf-tools' }])
 })
+
+test('无匹配时 Enter 只关闭菜单不发送', async () => {
+  const { wrapper } = mountComposer()
+  await flushPromises()
+  await wrapper.get('textarea').setValue('/zzz')
+  await wrapper.setProps({ modelValue: '/zzz' })
+  expect(wrapper.text()).toContain('没有匹配的技能')
+
+  await wrapper.get('textarea').trigger('keydown', { key: 'Enter' })
+  expect(wrapper.emitted('send')).toBeUndefined()
+})

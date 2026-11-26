@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     skills_paths: str = ""
     skills_catalog_max_chars: int = 8_000
     skills_max_tool_result_chars: int = 60_000
+    skills_max_context_chars: int = 20_000
 
     @property
     def resolved_database_path(self) -> Path:

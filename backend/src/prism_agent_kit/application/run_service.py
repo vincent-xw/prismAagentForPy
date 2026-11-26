@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Mapping, Sequence
 from typing import cast
 
@@ -36,6 +37,7 @@ class RunService:
         cancellation_registry: RunCancellationRegistry,
         title_service: SessionTitleService | None = None,
         skill_catalog: SkillCatalog | None = None,
+        skills_max_context_chars: int = 20_000,
     ) -> None:
         self._uow_factory = uow_factory
         self._prompt_registry = prompt_registry
@@ -45,6 +47,7 @@ class RunService:
         self._cancellation_registry = cancellation_registry
         self._title_service = title_service
         self._skill_catalog = skill_catalog
+        self._skills_max_context_chars = skills_max_context_chars
 
     async def create(
         self,
@@ -66,7 +69,7 @@ class RunService:
                     http_status=503,
                 )
             try:
-                skill_package = self._skill_catalog.get(skill_name)
+                skill_package = await asyncio.to_thread(self._skill_catalog.get, skill_name)
             except SkillError as error:
                 raise AgentKitError(
                     error.code,
@@ -76,7 +79,7 @@ class RunService:
                 ) from error
         system_prompt = prompt.content
         if self._skill_catalog is not None:
-            catalog_block = self._skill_catalog.render_catalog()
+            catalog_block = await asyncio.to_thread(self._skill_catalog.render_catalog)
             if catalog_block:
                 system_prompt = f"{system_prompt}\n\n{catalog_block}"
         async with self._uow_factory() as uow:
@@ -95,13 +98,17 @@ class RunService:
                 )
             )
             if skill_package is not None:
+                injected = render_skill_content(skill_package)
+                limit = self._skills_max_context_chars
+                if len(injected) > limit:
+                    injected = f"{injected[:limit]}\n（技能正文已截断）"
                 await uow.messages.append(
                     Message(
                         session_id=session_id,
                         run_id=run.id,
                         role=MessageRole.USER,
                         kind=MessageKind.SKILL_CONTEXT,
-                        content=render_skill_content(skill_package),
+                        content=injected,
                     )
                 )
             await uow.messages.append(

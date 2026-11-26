@@ -5,6 +5,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import yaml
+
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 
 logger = logging.getLogger(__name__)
@@ -40,7 +42,11 @@ class SkillPackage:
 
 def parse_skill(directory: Path, *, max_description: int = 1024) -> SkillPackage:
     """解析目录下的 SKILL.md，缺失或非法时抛 SkillError。"""
+    if directory.is_symlink():
+        raise _error(ErrorCode.SKILL_INVALID, f"技能目录不能是符号链接: {directory}")
     skill_file = directory / "SKILL.md"
+    if skill_file.is_symlink():
+        raise _error(ErrorCode.SKILL_INVALID, f"SKILL.md 不能是符号链接: {skill_file}")
     if not skill_file.is_file():
         raise _error(ErrorCode.SKILL_INVALID, f"{directory} 缺少 SKILL.md")
     try:
@@ -48,9 +54,15 @@ def parse_skill(directory: Path, *, max_description: int = 1024) -> SkillPackage
     except (OSError, UnicodeDecodeError) as error:
         raise _error(ErrorCode.SKILL_INVALID, f"无法读取 {skill_file}: {error}") from error
 
-    frontmatter, body = _split_frontmatter(text)
-    name = frontmatter.get("name", "").strip()
-    description = frontmatter.get("description", "").strip()
+    frontmatter_text, body = _split_frontmatter(text)
+    try:
+        parsed = yaml.safe_load(frontmatter_text)
+    except yaml.YAMLError as error:
+        raise _error(ErrorCode.SKILL_INVALID, f"frontmatter 不是合法 YAML: {error}") from error
+    if not isinstance(parsed, dict):
+        raise _error(ErrorCode.SKILL_INVALID, "frontmatter 必须是映射")
+    name = str(parsed.get("name", "")).strip()
+    description = str(parsed.get("description", "")).strip()
     if _SKILL_NAME.fullmatch(name) is None or len(name) > 64:
         raise _error(ErrorCode.SKILL_INVALID, f"技能名非法: {name!r}")
     if not description or len(description) > max_description:
@@ -98,7 +110,7 @@ def read_text_resource(
         raise _error(ErrorCode.SKILL_INVALID, f"资源不是 UTF-8 文本: {rel_path}") from error
 
 
-def _split_frontmatter(text: str) -> tuple[dict[str, str], str]:
+def _split_frontmatter(text: str) -> tuple[str, str]:
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         raise _error(ErrorCode.SKILL_INVALID, "SKILL.md 缺少 frontmatter")
@@ -109,23 +121,19 @@ def _split_frontmatter(text: str) -> tuple[dict[str, str], str]:
             break
     if end is None:
         raise _error(ErrorCode.SKILL_INVALID, "SKILL.md frontmatter 未闭合")
-    values: dict[str, str] = {}
-    for line in lines[1:end]:
-        if ":" not in line or line[:1].isspace():
-            continue
-        key, value = line.split(":", 1)
-        values[key.strip()] = value.strip().strip("\"'")
-    return values, "\n".join(lines[end + 1 :]).strip()
+    return "\n".join(lines[1:end]), "\n".join(lines[end + 1 :]).strip()
 
 
 def _scan_resources(directory: Path) -> list[SkillResource]:
     resources: list[SkillResource] = []
-    for kind in _RESOURCE_KINDS:
-        base = directory / kind
-        if not base.is_dir():
-            continue
-        for path in sorted(base.rglob("*")):
-            if path.is_file():
+    try:
+        for kind in _RESOURCE_KINDS:
+            base = directory / kind
+            if not base.is_dir():
+                continue
+            for path in sorted(base.rglob("*")):
+                if path.is_symlink() or not path.is_file():
+                    continue
                 resources.append(
                     SkillResource(
                         path=path.relative_to(directory).as_posix(),
@@ -133,6 +141,8 @@ def _scan_resources(directory: Path) -> list[SkillResource]:
                         bytes=path.stat().st_size,
                     )
                 )
+    except OSError as error:
+        raise _error(ErrorCode.SKILL_INVALID, f"扫描技能资源失败: {error}") from error
     return resources
 
 

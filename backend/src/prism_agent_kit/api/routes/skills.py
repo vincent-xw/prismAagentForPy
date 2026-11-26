@@ -1,5 +1,7 @@
 """技能列表与详情接口。"""
 
+import asyncio
+
 from fastapi import APIRouter
 
 from prism_agent_kit.api.dependencies import SkillCatalogDependency
@@ -20,7 +22,7 @@ async def list_skills(catalog: SkillCatalogDependency) -> SkillsView:
                 root=item.root,
                 shadowed=item.shadowed,
             )
-            for item in catalog.list_skills()
+            for item in await asyncio.to_thread(catalog.list_skills)
         ]
     )
 
@@ -28,7 +30,7 @@ async def list_skills(catalog: SkillCatalogDependency) -> SkillsView:
 @router.get("/{name}", response_model=SkillDetailView)
 async def get_skill(name: str, catalog: SkillCatalogDependency) -> SkillDetailView:
     """返回单个技能的正文与资源清单。"""
-    package = catalog.get(name)
+    package = await asyncio.to_thread(catalog.get, name)
     return SkillDetailView(
         name=package.name,
         description=package.description,

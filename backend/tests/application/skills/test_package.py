@@ -70,3 +70,26 @@ def test_resource_too_large(tmp_path: Path) -> None:
     with pytest.raises(SkillError) as error:
         read_text_resource(package, "references/big.md", max_bytes=100)
     assert error.value.code is ErrorCode.SKILL_RESOURCE_TOO_LARGE
+
+
+def test_multiline_description_and_comments(tmp_path: Path) -> None:
+    directory = tmp_path / "multi"
+    directory.mkdir()
+    (directory / "SKILL.md").write_text(
+        "---\nname: multi\ndescription: |\n  line one\n  line two # keep\n---\nbody",
+        encoding="utf-8",
+    )
+
+    package = parse_skill(directory)
+
+    assert "line one" in package.description and "line two" in package.description
+
+
+def test_rejects_symlink_package(tmp_path: Path) -> None:
+    real = make_skill(tmp_path, "real", "d")
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+
+    with pytest.raises(SkillError) as error:
+        parse_skill(link)
+    assert error.value.code is ErrorCode.SKILL_INVALID

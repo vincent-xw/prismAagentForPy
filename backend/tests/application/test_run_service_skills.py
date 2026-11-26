@@ -98,3 +98,31 @@ async def test_without_catalog_keeps_plain_prompt(
     run = await runs.create(session.id, input_text="hi", prompt_ref=None)
 
     assert run.system_prompt == "default system"
+
+
+async def test_explicit_skill_content_truncated(
+    uow_factory: UnitOfWorkFactory, tmp_path: Path
+) -> None:
+    make_skill(tmp_path, "big", "d", "x" * 1000)
+    prompts = PromptRegistry()
+    prompts.register(name="default", version="1", prompt="default system")
+    runs = RunService(
+        uow_factory=uow_factory,
+        prompt_registry=prompts,
+        model_name="test-model",
+        default_prompt_ref="default@1",
+        event_publisher=RecordingEventPublisher(),
+        cancellation_registry=RunCancellationRegistry(),
+        skill_catalog=SkillCatalog([tmp_path]),
+        skills_max_context_chars=100,
+    )
+    sessions = SessionService(uow_factory)
+    session = await sessions.create(title="demo")
+
+    await runs.create(session.id, input_text="hi", prompt_ref=None, skill_name="big")
+
+    async with uow_factory() as uow:
+        messages = await uow.messages.list_for_session(session.id)
+    content = str(messages[0].content)
+    assert len(content) <= 100 + len("\n（技能正文已截断）")
+    assert "已截断" in content

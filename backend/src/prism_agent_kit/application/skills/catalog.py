@@ -115,8 +115,10 @@ class SkillCatalog:
                     continue
                 try:
                     package = parse_skill(directory)
-                except SkillError as error:
-                    logger.warning("跳过非法技能 %s: %s", directory, error.message)
+                except (SkillError, OSError) as error:
+                    logger.warning(
+                        "跳过非法技能 %s: %s", directory, getattr(error, "message", str(error))
+                    )
                     continue
                 shadowed = package.name in seen
                 if not shadowed:

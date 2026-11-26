@@ -1,5 +1,7 @@
 """`skill` 内置工具：按需加载技能正文与资源。"""
 
+import asyncio
+
 from pydantic import BaseModel, JsonValue
 
 from prism_agent_kit.application.skills.catalog import SkillCatalog
@@ -25,7 +27,7 @@ def build_skill_tool(catalog: SkillCatalog, *, max_chars: int = 60_000) -> ToolD
     """构造只读的 `skill` 工具。"""
 
     async def handler(raw: SkillToolInput, _context: ToolExecutionContext) -> JsonValue:
-        package = catalog.get(raw.name)
+        package = await asyncio.to_thread(catalog.get, raw.name)
         if raw.path is not None:
             content = read_text_resource(package, raw.path)
             resources: list[JsonValue] = []
@@ -33,7 +35,7 @@ def build_skill_tool(catalog: SkillCatalog, *, max_chars: int = 60_000) -> ToolD
             content = render_skill_content(package)
             resources = [
                 {"path": resource.path, "kind": resource.kind, "bytes": resource.bytes}
-                for resource in package.resources
+                for resource in package.resources[:50]
             ]
         truncated = len(content) > max_chars
         return {

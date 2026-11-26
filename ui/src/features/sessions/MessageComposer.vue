@@ -28,6 +28,7 @@ const menuOpen = ref(false)
 const query = ref('')
 const tokenStart = ref(0)
 const highlight = ref(0)
+const composing = ref(false)
 
 const filtered = computed(() => {
   const needle = query.value.toLowerCase()
@@ -53,7 +54,7 @@ onMounted(async () => {
 function selectSkill(item: SkillSummaryDto): void {
   const value = props.modelValue
   const end = tokenStart.value + 1 + query.value.length
-  const next = `${value.slice(0, tokenStart.value)}${value.slice(end)}`.replace(/\s{2,}/g, ' ')
+  const next = `${value.slice(0, tokenStart.value)}${value.slice(end)}`
   selected.value = item
   menuOpen.value = false
   query.value = ''
@@ -73,7 +74,7 @@ function onInput(event: Event): void {
   if (match !== null) {
     tokenStart.value = cursor - (match[2]?.length ?? 0) - 1
     query.value = match[2] ?? ''
-    menuOpen.value = filtered.value.length > 0
+    menuOpen.value = true
     highlight.value = 0
   } else {
     menuOpen.value = false
@@ -86,7 +87,14 @@ function submit(): void {
 }
 
 function keydown(event: KeyboardEvent): void {
-  if (event.isComposing || event.keyCode === 229) return
+  if (event.isComposing || composing.value || event.keyCode === 229) return
+  if (menuOpen.value && filtered.value.length === 0) {
+    if (event.key === 'Enter' || event.key === 'Tab' || event.key === 'Escape') {
+      event.preventDefault()
+      menuOpen.value = false
+    }
+    return
+  }
   if (menuOpen.value && filtered.value.length > 0) {
     if (event.key === 'ArrowDown') {
       event.preventDefault()
@@ -126,10 +134,14 @@ defineExpose({ clearSkill })
     >
       <div v-if="menuOpen" class="absolute inset-x-2 bottom-full z-10 mb-1">
         <SkillMenu
+          v-if="filtered.length > 0"
           :items="filtered"
           :active-index="highlight"
           @select="(index) => selectSkill(filtered[index]!)"
         />
+        <p v-else class="rounded-xl border bg-card px-3 py-2 text-xs text-muted-foreground">
+          没有匹配的技能
+        </p>
       </div>
       <div v-if="selected !== null" class="mb-1 flex">
         <span
@@ -146,6 +158,8 @@ defineExpose({ clearSkill })
         class="min-h-20 max-h-44 resize-none border-0 bg-transparent px-3 py-3 text-sm shadow-none focus-visible:ring-0"
         :disabled="disabled"
         @input="onInput"
+        @compositionstart="composing = true"
+        @compositionend="composing = false"
         @keydown="keydown"
       />
       <div class="flex items-center justify-between px-2 pb-1">
