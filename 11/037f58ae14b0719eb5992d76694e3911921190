@@ -1,0 +1,44 @@
+backend/.env.example
+  h_c3a612a540ca0b 50-54
+backend/pyproject.toml
+  h_c3a612a540ca0b 29,43
+backend/src/prism_agent_kit/api/routes/skills.py
+  h_c3a612a540ca0b 3-4,25,33
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 324
+backend/src/prism_agent_kit/application/run_service.py
+  h_c3a612a540ca0b 1,40,50,72,82,101-104,111
+backend/src/prism_agent_kit/application/skills/catalog.py
+  h_c3a612a540ca0b 118-121
+backend/src/prism_agent_kit/application/skills/package.py
+  h_c3a612a540ca0b 8-9,45-46,48-49,57-65,113,124,129-136,144-145
+backend/src/prism_agent_kit/application/skills/tools.py
+  h_c3a612a540ca0b 3-4,30,38
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 56
+backend/tests/application/skills/test_package.py
+  h_c3a612a540ca0b 73-95
+backend/tests/application/test_run_service_skills.py
+  h_c3a612a540ca0b 101-128
+backend/tests/test_agent_e2e_skills.py
+  h_c3a612a540ca0b 39-42
+backend/uv.lock
+  h_c3a612a540ca0b 1303,1317,1331,1345,2125-2133
+docs/superpowers/specs/2026-11-26-skills-design.md
+  h_c3a612a540ca0b 66-67
+ui/src/features/sessions/MessageComposer.vue
+  h_c3a612a540ca0b 31,57,77,90-97,137,142-144,161-162
+ui/tests/unit/composer-slash.test.ts
+  h_c3a612a540ca0b 60-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "11037f58ae14b0719eb5992d76694e3911921190",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
