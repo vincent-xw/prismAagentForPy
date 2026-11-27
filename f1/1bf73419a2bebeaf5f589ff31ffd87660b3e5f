@@ -1,0 +1,14 @@
+tests/contract/test_mcp.py
+  h_c3a612a540ca0b 1-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f11bf73419a2bebeaf5f589ff31ffd87660b3e5f",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
