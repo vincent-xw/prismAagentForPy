@@ -35,7 +35,13 @@ const currentSession = computed(
 const sessionPath = computed(() =>
   state.value.selectedSessionId ? `/sessions/${state.value.selectedSessionId}` : '/',
 )
-const activeTab = computed(() => (route.path.endsWith('/execution') ? 'execution' : 'session'))
+const activeTab = computed(() =>
+  route.path.endsWith('/trajectory')
+    ? 'trajectory'
+    : route.path.endsWith('/execution')
+      ? 'execution'
+      : 'session',
+)
 
 async function loadWorkspaces(): Promise<void> {
   if (client === undefined || connection.state.status !== 'ready') return
@@ -171,7 +177,7 @@ onMounted(() => {
         <nav
           v-if="currentSession !== null && !settings && !workspace"
           class="ml-1 hidden items-center gap-0.5 rounded-full border bg-card p-0.5 text-xs sm:flex"
-          aria-label="会话与执行详情切换"
+          aria-label="会话、执行详情与轨迹切换"
         >
           <RouterLink
             :to="sessionPath"
@@ -192,6 +198,16 @@ onMounted(() => {
                 : 'text-muted-foreground hover:text-foreground'
             "
             >执行详情</RouterLink
+          >
+          <RouterLink
+            :to="`${sessionPath}/trajectory`"
+            class="rounded-full px-3 py-1 transition"
+            :class="
+              activeTab === 'trajectory'
+                ? 'bg-secondary text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            "
+            >轨迹</RouterLink
           >
         </nav>
         <div class="ml-auto flex shrink-0 items-center gap-2">

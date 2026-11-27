@@ -20,6 +20,7 @@ import {
   skillDetailSchema,
   skillsSchema,
   toolsSchema,
+  trajectorySchema,
   treeResponseSchema,
   workspaceListSchema,
   workspacePickSchema,
@@ -215,6 +216,14 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
       request(
         `/workspaces/${encodeURIComponent(id)}/search?q=${encodeURIComponent(query)}`,
         searchResponseSchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    getTrajectory: (sessionId: string, signal?: AbortSignal) =>
+      request(
+        `/sessions/${encodeURIComponent(sessionId)}/trajectory`,
+        trajectorySchema,
         'GET',
         undefined,
         signal,

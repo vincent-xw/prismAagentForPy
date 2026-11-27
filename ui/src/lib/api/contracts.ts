@@ -322,3 +322,49 @@ export const compactResultSchema = z.object({
   tokens_after: z.number().optional(),
 })
 export type CompactResultDto = z.infer<typeof compactResultSchema>
+
+const trajectoryUsageSchema = z.object({
+  prompt_tokens: z.number().int().nonnegative(),
+  completion_tokens: z.number().int().nonnegative(),
+  total_tokens: z.number().int().nonnegative(),
+})
+const trajectoryToolSchema = z.object({
+  call_id: z.string(),
+  tool_name: z.string(),
+  status: z.string(),
+  duration_ms: z.number().nullable(),
+  input: z.unknown(),
+  output: z.unknown(),
+})
+const trajectoryStepSchema = z.object({
+  index: z.number().int(),
+  model: z.string(),
+  usage: trajectoryUsageSchema.nullable(),
+  duration_ms: z.number().nullable(),
+  finish_reason: z.string().nullable(),
+  assistant_message_id: z.number().nullable(),
+  tools: z.array(trajectoryToolSchema),
+  legacy: z.boolean(),
+})
+const trajectoryTurnSchema = z.object({
+  run: z.object({
+    id: z.string(),
+    status: z.string(),
+    input_text: z.string(),
+    created_at: z.string(),
+    finished_at: z.string().nullable(),
+  }),
+  steps: z.array(trajectoryStepSchema),
+  compactions: z.array(
+    z.object({
+      id: z.string(),
+      tokens_before: z.number().int(),
+      tokens_after: z.number().int(),
+      created_at: z.string(),
+    }),
+  ),
+})
+export const trajectorySchema = z.object({ turns: z.array(trajectoryTurnSchema) })
+export type TrajectoryDto = z.infer<typeof trajectorySchema>
+export type TrajectoryStepDto = z.infer<typeof trajectoryStepSchema>
+export type TrajectoryToolDto = z.infer<typeof trajectoryToolSchema>

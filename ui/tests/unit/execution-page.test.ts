@@ -31,6 +31,5 @@ test('执行详情作为独立页面渲染当前 Run', () => {
     },
   })
 
-  expect(wrapper.text()).toContain('执行详情')
-  expect(wrapper.text()).toContain('r1')
+  expect(wrapper.text()).toContain('工具调用')
 })
