@@ -40,6 +40,9 @@
 - 会话页写入审批卡片与等待确认提示。
 - MCP 页：配置 `stdio` / `Streamable HTTP` 服务、启停重连、工具目录；MCP 工具调用前一律审批。
 - Skills：`~/.prism/skills`、`~/.agent/skills`、`~/.agents/skills` 下的 `SKILL.md` 技能包；清单常驻、`skill` 工具按需加载、输入框 `/` 选择并在会话内高亮。接入与使用见 [docs/skills.md](docs/skills.md)。
+- 上下文压缩：先裁剪 tool 结果，超阈值生成结构化 checkpoint；原文保留、可回放。
+- 轨迹页：按 Turn → Step → Tool 查看模型、token、耗时与压缩记录。
+- 模型档案：页面维护多份 OpenAI-compatible 档案并全局切换，下一次请求生效。使用见 [docs/compaction.md](docs/compaction.md)。
 
 当前**不包含**：向量检索/embedding、文件删除移动与 shell 执行、多 Agent、LangChain、LangGraph、LangSmith、独立 Worker、Redis、消息队列或分布式部署。
 
@@ -107,4 +110,5 @@ pnpm dev
 - [x] 第二部分：工作区、文件工具与写入审批
 - [x] 第三部分：MCP Client（官方 `mcp` Python SDK；工具调用一律审批）
 - [x] 第四部分：Skills（Agent Skills 规范；清单 + `skill` 工具 + `/` 显式选择）
+- [x] 第五部分：V1.4（上下文压缩、轨迹、Model Profile）
 - [ ] 后续按明确范围迁移上下文压缩/记忆等能力
