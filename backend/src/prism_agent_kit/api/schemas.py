@@ -402,12 +402,13 @@ class SkillDetailView(BaseModel):
 
 
 class ModelProfileCreate(BaseModel):
-    """新增/更新模型档案的入参。"""
+    """新增/更新模型档案的入参。api_key 只写不读，省略表示不修改。"""
 
     name: str
     base_url: str
     model: str
     api_key_env: str
+    api_key: str | None = None
     context_window: int
     max_output_tokens: int
 
@@ -423,6 +424,7 @@ class ModelProfileView(BaseModel):
     context_window: int
     max_output_tokens: int
     is_active: bool
+    has_key: bool
 
 
 class ModelProfileProbeView(BaseModel):

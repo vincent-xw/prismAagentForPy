@@ -110,6 +110,7 @@ class ModelProfile(BaseModel):
     base_url: str
     model: str
     api_key_env: str
+    api_key: str | None = None
     context_window: int
     max_output_tokens: int
     is_active: bool = False

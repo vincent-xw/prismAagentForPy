@@ -1,5 +1,4 @@
 import asyncio
-import os
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import cast
 
@@ -7,6 +6,7 @@ from pydantic import JsonValue
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.model_profile_service import ModelProfileService
+from prism_agent_kit.application.provider_factory import has_credential
 from prism_agent_kit.application.session_title_service import SessionTitleService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
 from prism_agent_kit.application.skills.package import SkillError, render_skill_content
@@ -84,7 +84,7 @@ class RunService:
                     details={"skill_name": skill_name},
                 ) from error
         profile = await self._profiles.active() if self._profiles is not None else None
-        if profile is not None and not os.environ.get(profile.api_key_env):
+        if profile is not None and not has_credential(profile):
             raise AgentKitError(
                 ErrorCode.MODEL_PROFILE_INVALID,
                 f"环境变量 {profile.api_key_env} 未设置",

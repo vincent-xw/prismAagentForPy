@@ -14,6 +14,7 @@ from prism_agent_kit.api.schemas import (
     ModelProfileView,
 )
 from prism_agent_kit.application.model_profile_service import ModelProfileInput
+from prism_agent_kit.application.provider_factory import has_credential
 from prism_agent_kit.core.enums import MessageRole
 from prism_agent_kit.core.errors import AgentKitError
 from prism_agent_kit.core.models import Message, ModelProfile
@@ -23,7 +24,10 @@ router = APIRouter(prefix="/model-profiles", tags=["model-profiles"])
 
 
 def _to_input(payload: ModelProfileCreate) -> ModelProfileInput:
-    return ModelProfileInput(**payload.model_dump())
+    """把 API 入参转成服务层输入；api_key 是否出现由 model_fields_set 判定。"""
+    return ModelProfileInput(
+        **payload.model_dump(), api_key_provided="api_key" in payload.model_fields_set
+    )
 
 
 def _to_view(profile: ModelProfile) -> ModelProfileView:
@@ -36,6 +40,7 @@ def _to_view(profile: ModelProfile) -> ModelProfileView:
         context_window=profile.context_window,
         max_output_tokens=profile.max_output_tokens,
         is_active=profile.is_active,
+        has_key=has_credential(profile),
     )
 
 

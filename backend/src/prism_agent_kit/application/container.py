@@ -340,10 +340,14 @@ class ApplicationContainer:
                     self.settings.model_max_output_tokens,
                 )
             )
-            encoding_name = self._require_text(
-                "MODEL_TOKEN_ENCODING",
-                self.settings.model_token_encoding,
-            )
+            if active_profile is not None and not self.settings.model_token_encoding:
+                # 有激活档案时不再强制一行 env；默认 cl100k_base。
+                encoding_name = "cl100k_base"
+            else:
+                encoding_name = self._require_text(
+                    "MODEL_TOKEN_ENCODING",
+                    self.settings.model_token_encoding,
+                )
             try:
                 estimator = TiktokenEstimator(encoding_name)
             except ValueError as error:

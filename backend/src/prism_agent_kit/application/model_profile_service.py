@@ -18,6 +18,8 @@ class ModelProfileInput(BaseModel):
     base_url: str
     model: str
     api_key_env: str
+    api_key: str | None = None
+    api_key_provided: bool = False
     context_window: int
     max_output_tokens: int
 
@@ -50,6 +52,7 @@ class ModelProfileService:
                     base_url=payload.base_url,
                     model=payload.model,
                     api_key_env=payload.api_key_env,
+                    api_key=_normalized_key(payload),
                     context_window=payload.context_window,
                     max_output_tokens=payload.max_output_tokens,
                 )
@@ -70,6 +73,10 @@ class ModelProfileService:
                 context_window=payload.context_window,
                 max_output_tokens=payload.max_output_tokens,
             )
+            if payload.api_key_provided:
+                # 省略 = 保持原密钥；空串 = 清除；其余 = 覆盖。
+                await uow.model_profiles.update(profile_id, api_key=_normalized_key(payload))
+                updated = await uow.model_profiles.get(profile_id)
             await uow.commit()
             return updated
 
@@ -112,6 +119,14 @@ class ModelProfileService:
         profiles = await uow.model_profiles.list_all()  # type: ignore[attr-defined]
         if any(item.name == name and item.id != exclude_id for item in profiles):
             raise _invalid("档案名已存在")
+
+
+def _normalized_key(payload: ModelProfileInput) -> str | None:
+    """空串视为清除；其余去首尾空白后落库。"""
+    if not payload.api_key_provided:
+        return None
+    value = (payload.api_key or "").strip()
+    return value or None
 
 
 def _invalid(message: str) -> AgentKitError:

@@ -16,6 +16,11 @@ from prism_agent_kit.providers.openai_compatible import OpenAICompatibleProvider
 ProviderResolver = Callable[[Run], Awaitable[ModelProvider]]
 
 
+def has_credential(profile: ModelProfile) -> bool:
+    """库内密钥或对应环境变量任一存在即视为可用。"""
+    return bool(profile.api_key) or bool(os.environ.get(profile.api_key_env))
+
+
 class ProviderFactory:
     """构造并缓存档案 Provider；同一档案内容更新后重建。"""
 
@@ -27,7 +32,7 @@ class ProviderFactory:
         cached = self._cache.get(profile.id)
         if cached is not None and cached[0] == profile.updated_at:
             return cached[1]
-        api_key = os.environ.get(profile.api_key_env)
+        api_key = profile.api_key or os.environ.get(profile.api_key_env)
         if not api_key:
             raise AgentKitError(
                 ErrorCode.MODEL_PROFILE_INVALID,

@@ -215,6 +215,7 @@ class ModelProfileRow(Base):
     base_url: Mapped[str] = mapped_column(Text)
     model: Mapped[str] = mapped_column(String(128))
     api_key_env: Mapped[str] = mapped_column(String(128))
+    api_key: Mapped[str | None] = mapped_column(Text)
     context_window: Mapped[int] = mapped_column(Integer)
     max_output_tokens: Mapped[int] = mapped_column(Integer)
     is_active: Mapped[int] = mapped_column(Integer, default=0)
