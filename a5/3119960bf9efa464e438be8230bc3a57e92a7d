@@ -1,0 +1,24 @@
+backend-java/src/main/java/com/prism/agent/application/service/ContextUsageService.java
+  h_c3a612a540ca0b 1-84
+backend-java/src/main/java/com/prism/agent/api/dto/ContextUsageView.java
+  h_c3a612a540ca0b 1-18
+backend-java/src/test/java/com/prism/agent/api/ContextUsageApiTest.java
+  h_c3a612a540ca0b 1-82
+backend-java/src/main/java/com/prism/agent/api/controller/ContextUsageController.java
+  h_c3a612a540ca0b 1-24
+backend-java/src/main/java/com/prism/agent/application/worker/ExpirySweeper.java
+  h_c3a612a540ca0b 32-34,50-52
+backend-java/src/test/resources/application.properties
+  h_c3a612a540ca0b 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a53119960bf9efa464e438be8230bc3a57e92a7d",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
