@@ -1,0 +1,16 @@
+backend-java/src/main/java/com/prism/agent/api/controller/TrajectoryController.java
+  h_c3a612a540ca0b 28-40
+tests/contract/test_trajectory.py
+  h_c3a612a540ca0b 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "cc1a10ed63c8fb90ed371ce89b73c402b198ed62",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
