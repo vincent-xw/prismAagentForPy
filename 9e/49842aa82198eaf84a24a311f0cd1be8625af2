@@ -1,0 +1,22 @@
+backend-java/src/main/java/com/prism/agent/api/dto/WorkspaceViews.java
+  h_c3a612a540ca0b 36-38,49-51,55
+backend-java/src/main/java/com/prism/agent/application/service/WorkspaceService.java
+  h_c3a612a540ca0b 93,130-131,138-145
+backend-java/src/main/java/com/prism/agent/core/domain/Workspace.java
+  h_c3a612a540ca0b 15,32
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisWorkspaceRepository.java
+  h_c3a612a540ca0b 106,127
+backend-java/src/test/java/com/prism/agent/tools/WorkspaceToolExecutorTest.java
+  h_c3a612a540ca0b 22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9e49842aa82198eaf84a24a311f0cd1be8625af2",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
