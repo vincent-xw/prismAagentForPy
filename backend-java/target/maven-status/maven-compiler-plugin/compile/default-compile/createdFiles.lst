@@ -1,7 +1,9 @@
+com/prism/agent/persistence/mapper/SessionMapper.class
 com/prism/agent/PrismAgentApplication.class
 com/prism/agent/config/PrismProperties.class
 com/prism/agent/api/security/RequestIdFilter.class
 com/prism/agent/api/exception/GlobalExceptionHandler.class
 com/prism/agent/common/ErrorCode.class
+com/prism/agent/persistence/entity/SessionEntity.class
 com/prism/agent/common/ApiException.class
 com/prism/agent/api/security/ApiTokenFilter.class

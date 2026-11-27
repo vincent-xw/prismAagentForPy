@@ -5,3 +5,5 @@
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/common/ApiException.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/config/PrismProperties.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/persistence/entity/SessionEntity.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/persistence/mapper/SessionMapper.java
