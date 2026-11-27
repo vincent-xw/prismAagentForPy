@@ -463,6 +463,37 @@ paths:
               schema:
                 $ref: '#/components/schemas/WorkspacePickResponse'
   /api/v1/workspaces/{workspace_id}:
+    patch:
+      tags:
+      - workspaces
+      summary: 更新工作区档位
+      operationId: update_workspace_api_v1_workspaces__workspace_id__patch
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
     get:
       tags:
       - workspaces
@@ -2070,7 +2101,9 @@ components:
     WorkspaceCreate:
       properties:
         path:
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
           title: Path
         label:
           anyOf:
@@ -2078,11 +2111,19 @@ components:
             maxLength: 255
           - type: 'null'
           title: Label
+        name:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Name
+        permission_mode:
+          type: string
+          title: Permission Mode
+          default: workspace_write
       type: object
-      required:
-      - path
       title: WorkspaceCreate
-      description: 绑定工作区请求。
+      description: 绑定工作区请求：path 绑定已有目录；name 创建 <root>/<user>/<name>。
     WorkspaceListResponse:
       properties:
         items:
@@ -2111,6 +2152,22 @@ components:
       - path
       title: WorkspacePickResponse
       description: 原生目录选择结果。
+    WorkspaceUpdate:
+      properties:
+        permission_mode:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Permission Mode
+        label:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Label
+      type: object
+      title: WorkspaceUpdate
+      description: 更新工作区档位/标签。
     WorkspaceView:
       properties:
         id:
@@ -2124,6 +2181,14 @@ components:
           - type: string
           - type: 'null'
           title: Label
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        permission_mode:
+          type: string
+          title: Permission Mode
         is_active:
           type: boolean
           title: Is Active
@@ -2149,6 +2214,7 @@ components:
       - id
       - root_path
       - label
+      - permission_mode
       - is_active
       - index_status
       - index_error

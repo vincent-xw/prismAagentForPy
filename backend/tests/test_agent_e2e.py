@@ -239,6 +239,7 @@ async def test_container_secures_new_database_directory_before_file_lock(
 def test_e2e_write_requires_approval_then_completes(
     migrated_database_path: Path,
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """完整链路：模型请求写文件 → Run 等审批 → 批准 → 文件落盘且 Run 完成。"""
     provider = ScriptedModelProvider(
@@ -257,6 +258,8 @@ def test_e2e_write_requires_approval_then_completes(
             ModelResponse(text="done", reasoning=None, tool_calls=[]),
         ]
     )
+    # K-09 默认关闭逐工具审批；这个用例专门验证审批链路，因此显式打开。
+    monkeypatch.setenv("PRISM_AGENT_KIT_WORKSPACE_REQUIRE_WRITE_APPROVAL", "true")
     settings = make_settings(migrated_database_path, api_token=None)
     container = ApplicationContainer(settings, model_provider=provider)
     application = create_app(settings, container_factory=lambda _: container)

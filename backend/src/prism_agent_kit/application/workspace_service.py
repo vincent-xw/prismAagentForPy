@@ -134,7 +134,7 @@ class WorkspaceService:
     def _validate_mode(permission_mode: str) -> None:
         if permission_mode not in {"read_only", "workspace_write", "full_access"}:
             raise AgentKitError(
-                ErrorCode.WORKSPACE_PATH_INVALID,
+                ErrorCode.VALIDATION_ERROR,
                 "permission_mode 必须是 read_only/workspace_write/full_access",
                 http_status=422,
                 details={"permission_mode": permission_mode},
