@@ -21,6 +21,14 @@ def token() -> str:
 
 
 @pytest.fixture(scope="session")
+def ui_base_url() -> str:
+    value = os.environ.get("PRISM_CONTRACT_UI_BASE_URL")
+    if not value:
+        raise RuntimeError("必须设置 PRISM_CONTRACT_UI_BASE_URL")
+    return value.rstrip("/")
+
+
+@pytest.fixture(scope="session")
 def client(base_url: str, token: str) -> httpx.Client:
     with httpx.Client(
         base_url=base_url,
