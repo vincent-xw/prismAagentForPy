@@ -1,0 +1,14 @@
+docs/releases/v1.4.0.md
+  h_c3a612a540ca0b 3-10,50-64,67,69-71,83-92,97-105,114-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d9497849e6a0176a0c941f5bcba1e500236d8e16",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
