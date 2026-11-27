@@ -53,3 +53,10 @@
 - [ ] Python `pytest/ruff/mypy`、Java `verify`、UI `check/test/build`
 - [ ] parity 表按实际覆盖改为 Behavior/E2E Passed
 - [ ] 提交；报告明确哪些行仍未覆盖（如有）
+
+## 执行结果（2026-11-28）
+
+- 行为 parity：`bash scripts/run-parity.sh` → **6 passed**（文本、工具回环、技能注入、BUSY+取消、重放、上下文）。
+- 双 UI E2E：`PRISM_UI_URL=http://192.168.31.90:$PORT PRISM_UI_E2E_TOKEN=change-me pnpm --dir ui exec playwright test -c playwright.ui-parity.config.ts` → 3000/3001 **各 2 passed**（core + parity spec）。
+- 过程中发现并修复：Java 本地工具曾多出 `run.waiting_for_tool`/`run.requeued` 事件，已改为仅内部状态流转；Python mock 工具调用 ID 需每次唯一，避免唯一约束误报。
+- 未覆盖：超时/恢复跨端行为、压缩行为、MCP 与权限档位 E2E、Model Profile 行为对比（保持 Pending，不冒进标绿）。
