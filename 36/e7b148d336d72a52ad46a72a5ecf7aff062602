@@ -1,0 +1,26 @@
+backend-java/pom.xml
+  h_c3a612a540ca0b 26-30
+backend-java/src/main/java/com/prism/agent/core/context/HistoryPruner.java
+  h_c3a612a540ca0b 1-51
+backend-java/src/main/java/com/prism/agent/core/context/PruneResult.java
+  h_c3a612a540ca0b 1-7
+backend-java/src/main/java/com/prism/agent/core/context/TokenEstimator.java
+  h_c3a612a540ca0b 1-29
+backend-java/src/main/resources/db/migration/V4__compaction_checkpoints.sql
+  h_c3a612a540ca0b 1-12
+backend-java/src/test/java/com/prism/agent/core/context/HistoryPrunerTest.java
+  h_c3a612a540ca0b 1-59
+docs/superpowers/plans/2026-11-27-java-runtime-parity-phase3b2.md
+  h_c3a612a540ca0b 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "36e7b148d336d72a52ad46a72a5ecf7aff062602",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
