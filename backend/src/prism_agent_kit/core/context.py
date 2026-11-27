@@ -38,6 +38,35 @@ class ContextAssembler:
                 http_status=422,
             )
 
+    @property
+    def input_budget(self) -> int:
+        """模型输入的 token 预算。"""
+        return self._input_budget
+
+    @property
+    def estimator(self) -> TokenEstimator:
+        """组装器使用的 token 估算器。"""
+        return self._estimator
+
+    def estimate_tokens(
+        self,
+        *,
+        system_prompt: str,
+        messages: Sequence[Message],
+        tool_calls: Sequence[ToolCall] = (),
+        tool_schemas: Sequence[JsonValue] = (),
+    ) -> int:
+        """按 assembler 相同的口径估算当前输入 token。"""
+        units = self._build_units(list(messages), tool_calls)
+        fixed_tokens = self._estimator.count_text(system_prompt) + sum(
+            self._estimator.count_json(schema) for schema in tool_schemas
+        )
+        return fixed_tokens + sum(
+            sum(self._estimator.count_message(message) for message in unit_messages)
+            + sum(self._estimator.count_tool_call(call) for call in unit_calls)
+            for unit_messages, unit_calls, _protected in units
+        )
+
     def assemble(
         self,
         *,
@@ -125,7 +154,13 @@ class ContextAssembler:
         while index < len(messages):
             message = messages[index]
             if message.role is MessageRole.USER:
-                units.append(([message], [], message.kind is MessageKind.SKILL_CONTEXT))
+                units.append(
+                    (
+                        [message],
+                        [],
+                        message.kind in (MessageKind.SKILL_CONTEXT, MessageKind.CHECKPOINT),
+                    )
+                )
                 index += 1
                 continue
             if message.role is MessageRole.TOOL:

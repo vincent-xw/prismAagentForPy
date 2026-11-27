@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Protocol
 
-from prism_agent_kit.core.enums import MessageRole
+from prism_agent_kit.core.enums import MessageKind, MessageRole
 from prism_agent_kit.core.models import Message
 
 _PRUNE_MARKER_TEMPLATE = "\n…(pruned {removed} chars)…\n"
@@ -113,3 +113,28 @@ def _units(messages: list[Message]) -> list[tuple[int, int]]:
                 index += 1
         units.append((start, index))
     return units
+
+
+def checkpoint_message(*, session_id: str, run_id: str, summary: str) -> Message:
+    """构造不入库的 checkpoint 合成消息，供组装时置于最前。"""
+    return Message(
+        id=None,
+        session_id=session_id,
+        run_id=run_id,
+        role=MessageRole.USER,
+        kind=MessageKind.CHECKPOINT,
+        content=f"<conversation_checkpoint>\n{summary}\n</conversation_checkpoint>",
+    )
+
+
+@dataclass(frozen=True)
+class CompactionConfig:
+    """引擎内的压缩策略配置。"""
+
+    enabled: bool = True
+    threshold_ratio: float = 0.85
+    retain_ratio: float = 0.2
+    retain_tokens: int = 20_000
+    prune: PruneConfig = field(default_factory=PruneConfig)
+    timeout_seconds: float = 30.0
+    max_summary_output_tokens: int = 1_500
