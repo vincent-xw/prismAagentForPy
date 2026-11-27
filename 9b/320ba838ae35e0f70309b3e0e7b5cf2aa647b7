@@ -1,0 +1,20 @@
+tests/parity/conftest.py
+  h_c3a612a540ca0b 1-42
+tests/parity/helpers.py
+  h_c3a612a540ca0b 1-69
+tests/parity/pyproject.toml
+  h_c3a612a540ca0b 1-9
+tests/parity/test_behavior.py
+  h_c3a612a540ca0b 1-149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9b320ba838ae35e0f70309b3e0e7b5cf2aa647b7",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
