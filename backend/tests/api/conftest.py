@@ -13,8 +13,10 @@ from prism_agent_kit.api.errors import install_exception_handlers
 from prism_agent_kit.api.request_context import RequestIdMiddleware
 from prism_agent_kit.api.router import create_api_router
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.compaction import summarizer as _summarizer  # noqa: F401
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
+from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
 from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.model_profile_service import ModelProfileService
@@ -26,6 +28,7 @@ from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
 from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
 from prism_agent_kit.application.workspace_service import WorkspaceService
+from prism_agent_kit.core.compaction import CompactionConfig, PruneConfig
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.ports import EventEnvelope
 from prism_agent_kit.core.prompts import PromptRegistry
@@ -64,6 +67,7 @@ class ApiTestContainer:
     mcp_config_service: McpConfigService
     mcp_manager: McpServerManager
     model_profile_service: ModelProfileService
+    manual_compaction_service: ManualCompactionService
     provider_factory: object
     workspace_fts_supported: bool = True
 
@@ -121,6 +125,16 @@ def build_api_application(
             return _ProbeProvider()
 
     provider_factory = _ProbeFactory()
+    manual_compaction_service = ManualCompactionService(
+        uow_factory=uow_factory,
+        profiles=model_profile_service,
+        provider_factory=provider_factory,  # type: ignore[arg-type]
+        compaction=CompactionConfig(retain_tokens=5, retain_ratio=0.2, prune=PruneConfig()),
+        context_window=128000,
+        max_output_tokens=4096,
+        token_encoding="cl100k_base",
+        safety_margin_tokens=1024,
+    )
     prompts = PromptRegistry()
     prompts.register(name="default", version="1", prompt="default system")
     session_service = SessionService(uow_factory)
@@ -213,6 +227,7 @@ def build_api_application(
         mcp_config_service=mcp_config_service,
         mcp_manager=mcp_manager,
         model_profile_service=model_profile_service,
+        manual_compaction_service=manual_compaction_service,
         provider_factory=provider_factory,
     )
     application.add_middleware(RequestIdMiddleware)

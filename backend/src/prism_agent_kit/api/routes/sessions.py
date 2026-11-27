@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 
-from prism_agent_kit.api.dependencies import SessionServiceDependency
+from prism_agent_kit.api.dependencies import (
+    ManualCompactionServiceDependency,
+    SessionServiceDependency,
+)
 from prism_agent_kit.api.schemas import (
     MessageListResponse,
     MessageView,
@@ -60,5 +63,21 @@ def create_sessions_router() -> APIRouter:
     ) -> MessageListResponse:
         messages = await service.list_messages(session_id)
         return MessageListResponse(items=[MessageView.from_domain(item) for item in messages])
+
+    @router.post("/sessions/{session_id}/compact")
+    async def compact_session(
+        session_id: str,
+        service: ManualCompactionServiceDependency,
+    ) -> dict[str, object]:
+        """手动压缩空闲会话的上下文。"""
+        checkpoint = await service.compact(session_id)
+        if checkpoint is None:
+            return {"compacted": False, "reason": "nothing_to_compact"}
+        return {
+            "compacted": True,
+            "checkpoint_id": checkpoint.id,
+            "tokens_before": checkpoint.tokens_before,
+            "tokens_after": checkpoint.tokens_after,
+        }
 
     return router

@@ -4,6 +4,7 @@ from fastapi import Depends, Request
 
 from prism_agent_kit.application.container import ApplicationContainer
 from prism_agent_kit.application.event_bus import RunEventBus
+from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
 from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.model_profile_service import ModelProfileService
@@ -68,6 +69,11 @@ def get_model_profile_service(request: Request) -> ModelProfileService:
     return get_application_container(request).model_profile_service
 
 
+def get_manual_compaction_service(request: Request) -> ManualCompactionService:
+    """返回手动压缩服务。"""
+    return get_application_container(request).manual_compaction_service
+
+
 def get_provider_factory(request: Request) -> ProviderFactory:
     """返回 Provider 工厂。"""
     return get_application_container(request).provider_factory
@@ -106,4 +112,7 @@ McpConfigServiceDependency = Annotated[McpConfigService, Depends(get_mcp_config_
 SkillCatalogDependency = Annotated[SkillCatalog, Depends(get_skill_catalog)]
 ModelProfileServiceDependency = Annotated[ModelProfileService, Depends(get_model_profile_service)]
 ProviderFactoryDependency = Annotated[ProviderFactory, Depends(get_provider_factory)]
+ManualCompactionServiceDependency = Annotated[
+    ManualCompactionService, Depends(get_manual_compaction_service)
+]
 McpManagerDependency = Annotated[McpServerManager, Depends(get_mcp_manager)]

@@ -49,6 +49,7 @@ class ModelResponse(BaseModel):
     reasoning: str | None = None
     tool_calls: list[ToolCallDraft] = Field(default_factory=list)
     usage: TokenUsage | None = None
+    finish_reason: str | None = None
 
 
 class ModelProvider(Protocol):

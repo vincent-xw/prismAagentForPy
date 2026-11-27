@@ -8,6 +8,7 @@ from sqlalchemy.exc import OperationalError, ProgrammingError
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import ReplayLoader, RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
+from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
 from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
 from prism_agent_kit.application.model_profile_service import ModelProfileService
@@ -23,6 +24,7 @@ from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
 from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
 from prism_agent_kit.application.workspace_service import WorkspaceService
+from prism_agent_kit.core.compaction import CompactionConfig, PruneConfig
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.context import ContextAssembler
 from prism_agent_kit.core.engine import SimpleAgentEngine
@@ -86,6 +88,7 @@ class ApplicationContainer:
         self._skill_catalog: SkillCatalog | None = None
         self._provider_factory: ProviderFactory | None = None
         self._model_profile_service: ModelProfileService | None = None
+        self._manual_compaction_service: ManualCompactionService | None = None
 
     @property
     def database(self) -> Database:
@@ -154,6 +157,13 @@ class ApplicationContainer:
         if self._model_profile_service is None:
             raise RuntimeError("ApplicationContainer 尚未启动")
         return self._model_profile_service
+
+    @property
+    def manual_compaction_service(self) -> ManualCompactionService:
+        """返回手动压缩服务。"""
+        if self._manual_compaction_service is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._manual_compaction_service
 
     @property
     def provider_factory(self) -> ProviderFactory:
@@ -364,6 +374,17 @@ class ApplicationContainer:
                 approval_timeout_seconds=float(
                     self.settings.workspace_tool_approval_timeout_seconds
                 ),
+                compaction=CompactionConfig(
+                    threshold_ratio=self.settings.compaction_threshold_ratio,
+                    retain_ratio=self.settings.compaction_retain_ratio,
+                    retain_tokens=self.settings.compaction_retain_tokens,
+                    prune=PruneConfig(
+                        threshold_chars=self.settings.compaction_prune_threshold_chars,
+                        head_chars=self.settings.compaction_prune_head_chars,
+                        tail_chars=self.settings.compaction_prune_tail_chars,
+                    ),
+                    timeout_seconds=self.settings.compaction_timeout_seconds,
+                ),
             )
             session_service = SessionService(
                 uow_factory,
@@ -420,6 +441,26 @@ class ApplicationContainer:
             self._skill_catalog = skill_catalog
             self._provider_factory = provider_factory
             self._model_profile_service = profile_service
+            self._manual_compaction_service = ManualCompactionService(
+                uow_factory=uow_factory,
+                profiles=profile_service,
+                provider_factory=provider_factory,
+                compaction=CompactionConfig(
+                    threshold_ratio=self.settings.compaction_threshold_ratio,
+                    retain_ratio=self.settings.compaction_retain_ratio,
+                    retain_tokens=self.settings.compaction_retain_tokens,
+                    prune=PruneConfig(
+                        threshold_chars=self.settings.compaction_prune_threshold_chars,
+                        head_chars=self.settings.compaction_prune_head_chars,
+                        tail_chars=self.settings.compaction_prune_tail_chars,
+                    ),
+                    timeout_seconds=self.settings.compaction_timeout_seconds,
+                ),
+                context_window=context_window,
+                max_output_tokens=max_output_tokens,
+                token_encoding=encoding_name,
+                safety_margin_tokens=self.settings.context_safety_margin_tokens,
+            )
             self._mcp_config_service = mcp_config_service
             self._mcp_manager = mcp_manager
             self._started = True

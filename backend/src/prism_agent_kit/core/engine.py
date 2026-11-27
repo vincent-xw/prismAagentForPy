@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from pathlib import Path
 from typing import Literal, Protocol, cast
@@ -9,7 +9,15 @@ from typing import Literal, Protocol, cast
 from pydantic import BaseModel, ConfigDict, JsonValue, ValidationError
 from sqlalchemy.exc import IntegrityError
 
+from prism_agent_kit.application.compaction.summarizer import summarize_span
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
+from prism_agent_kit.core.compaction import (
+    CompactionConfig,
+    checkpoint_message,
+    prune_tool_results,
+    select_compaction_span,
+    should_compact,
+)
 from prism_agent_kit.core.context import ContextAssembler, ContextAssembly
 from prism_agent_kit.core.digests import canonical_json_digest
 from prism_agent_kit.core.enums import (
@@ -19,7 +27,14 @@ from prism_agent_kit.core.enums import (
     RunStatus,
 )
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
-from prism_agent_kit.core.models import Message, Run, RunEvent, ToolCall, utc_now
+from prism_agent_kit.core.models import (
+    CompactionCheckpoint,
+    Message,
+    Run,
+    RunEvent,
+    ToolCall,
+    utc_now,
+)
 from prism_agent_kit.core.ports import (
     EventEnvelope,
     EventPublisher,
@@ -114,6 +129,7 @@ class SimpleAgentEngine:
         tool_result_recorder: ToolResultRecorder | None = None,
         workspace_locator: WorkspaceLocator | None = None,
         approval_timeout_seconds: float = 1800,
+        compaction: CompactionConfig | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._model_provider = model_provider
@@ -129,6 +145,7 @@ class SimpleAgentEngine:
         self._tool_timeout_seconds = tool_timeout_seconds
         self._workspace_locator = workspace_locator
         self._approval_timeout_seconds = approval_timeout_seconds
+        self._compaction = compaction or CompactionConfig()
         self._tool_result_recorder = tool_result_recorder or ToolResultRecorder(
             uow_factory=uow_factory,
             event_publisher=event_publisher,
@@ -185,6 +202,7 @@ class SimpleAgentEngine:
                 step_count = current.step_count
                 messages = await uow.messages.list_for_session(current.session_id)
                 history_calls = await uow.tool_calls.list_for_session(current.session_id)
+                checkpoint = await uow.checkpoints.latest(current.session_id)
 
             if step_count >= self._max_steps:
                 return await self._fail_run(
@@ -193,33 +211,93 @@ class SimpleAgentEngine:
                     "Run 已达到最大模型步数",
                 )
 
-            try:
-                assembly = assembler.assemble(
+            messages = self._apply_checkpoint(messages, checkpoint, current.session_id, run.id)
+            pruned = prune_tool_results(messages, self._compaction.prune)
+            if pruned.pruned_count:
+                messages = pruned.messages
+                await self._record_event(
+                    run.id,
+                    EventType.CONTEXT_PRUNED,
+                    {
+                        "pruned_chars": pruned.pruned_chars,
+                        "pruned_count": pruned.pruned_count,
+                    },
+                )
+
+            if self._compaction.enabled:
+                estimated = assembler.estimate_tokens(
                     system_prompt=current.system_prompt,
                     messages=messages,
                     tool_calls=history_calls,
                     tool_schemas=tool_schemas,
                 )
-            except AgentKitError as error:
-                return await self._fail_run(run.id, error.code, error.message)
-
-            try:
-                response = await provider.stream(
-                    ModelRequest(
+                if should_compact(
+                    estimated, assembler.input_budget, self._compaction.threshold_ratio
+                ):
+                    messages = await self._compact_history(
+                        run_id=run.id,
+                        session_id=current.session_id,
                         system_prompt=current.system_prompt,
-                        messages=assembly.messages,
+                        messages=messages,
+                        previous=checkpoint,
+                        provider=provider,
+                        assembler=assembler,
                         tool_calls=history_calls,
-                        tools=tool_schemas,
+                        tool_schemas=tool_schemas,
                         max_output_tokens=max_output_tokens,
-                    ),
-                    on_delta=lambda chunk: self._publish_delta(run.id, chunk),
-                )
-            except asyncio.CancelledError:
-                raise
-            except AgentKitError as error:
-                if await self._is_cancel_requested(run.id, context.cancel):
-                    return await self._cancel_run(run.id)
-                return await self._fail_run(run.id, error.code, error.message)
+                        force=False,
+                    )
+
+            retried_overflow = False
+            while True:
+                try:
+                    assembly = assembler.assemble(
+                        system_prompt=current.system_prompt,
+                        messages=messages,
+                        tool_calls=history_calls,
+                        tool_schemas=tool_schemas,
+                    )
+                except AgentKitError as error:
+                    return await self._fail_run(run.id, error.code, error.message)
+
+                try:
+                    response = await provider.stream(
+                        ModelRequest(
+                            system_prompt=current.system_prompt,
+                            messages=assembly.messages,
+                            tool_calls=history_calls,
+                            tools=tool_schemas,
+                            max_output_tokens=max_output_tokens,
+                        ),
+                        on_delta=lambda chunk: self._publish_delta(run.id, chunk),
+                    )
+                    break
+                except asyncio.CancelledError:
+                    raise
+                except AgentKitError as error:
+                    if (
+                        error.code is ErrorCode.CONTEXT_OVERFLOW
+                        and not retried_overflow
+                        and self._compaction.enabled
+                    ):
+                        retried_overflow = True
+                        messages = await self._compact_history(
+                            run_id=run.id,
+                            session_id=current.session_id,
+                            system_prompt=current.system_prompt,
+                            messages=messages,
+                            previous=checkpoint,
+                            provider=provider,
+                            assembler=assembler,
+                            tool_calls=history_calls,
+                            tool_schemas=tool_schemas,
+                            max_output_tokens=max_output_tokens,
+                            force=True,
+                        )
+                        continue
+                    if await self._is_cancel_requested(run.id, context.cancel):
+                        return await self._cancel_run(run.id)
+                    return await self._fail_run(run.id, error.code, error.message)
 
             if await self._is_cancel_requested(run.id, context.cancel):
                 return await self._cancel_run(run.id)
@@ -713,6 +791,135 @@ class SimpleAgentEngine:
             await uow.commit()
         await self._publish_events(new_events)
         return EngineOutcome(kind="cancelled", error_code=ErrorCode.RUN_CANCELLED)
+
+    @staticmethod
+    def _apply_checkpoint(
+        messages: list[Message],
+        checkpoint: CompactionCheckpoint | None,
+        session_id: str,
+        run_id: str,
+    ) -> list[Message]:
+        """应用最新 checkpoint：只保留 first_kept 之后的消息，摘要置前。"""
+        if checkpoint is None:
+            return messages
+        kept = [
+            message
+            for message in messages
+            if message.id is not None and message.id >= checkpoint.first_kept_message_id
+        ]
+        return [
+            checkpoint_message(session_id=session_id, run_id=run_id, summary=checkpoint.summary),
+            *kept,
+        ]
+
+    async def _compact_history(
+        self,
+        *,
+        run_id: str,
+        session_id: str,
+        system_prompt: str,
+        messages: list[Message],
+        previous: CompactionCheckpoint | None,
+        provider: ModelProvider,
+        assembler: ContextAssembler,
+        tool_calls: list[ToolCall],
+        tool_schemas: Sequence[JsonValue],
+        max_output_tokens: int | None,
+        force: bool,
+    ) -> list[Message]:
+        """摘要一段旧历史并写 checkpoint；失败只记录事件并继续。"""
+        retain = min(
+            self._compaction.retain_tokens,
+            int(assembler.input_budget * self._compaction.retain_ratio),
+        )
+        span = select_compaction_span(
+            messages,
+            retain_tokens=max(retain, 0),
+            estimator=assembler.estimator,
+        )
+        if span is None:
+            await self._record_event(
+                run_id, EventType.COMPACTION_SKIPPED, {"reason": "nothing_to_compact"}
+            )
+            return messages
+        tokens_before = assembler.estimate_tokens(
+            system_prompt=system_prompt,
+            messages=messages,
+            tool_calls=tool_calls,
+            tool_schemas=tool_schemas,
+        )
+        await self._record_event(
+            run_id,
+            EventType.COMPACTION_STARTED,
+            {"tokens_before": tokens_before, "forced": force},
+        )
+        try:
+            summary = await summarize_span(
+                provider,
+                span.summarized,
+                previous_summary=previous.summary if previous is not None else None,
+                max_output_tokens=min(
+                    self._compaction.max_summary_output_tokens,
+                    max_output_tokens or self._compaction.max_summary_output_tokens,
+                ),
+                timeout_seconds=self._compaction.timeout_seconds,
+            )
+        except AgentKitError as error:
+            await self._record_event(
+                run_id,
+                EventType.COMPACTION_FAILED,
+                {"error": error.message, "error_code": error.code.value},
+            )
+            return messages
+
+        kept = [
+            message
+            for message in messages
+            if message.id is not None and message.id >= span.first_kept_message_id
+        ]
+        rebuilt = [
+            checkpoint_message(session_id=session_id, run_id=run_id, summary=summary.text),
+            *kept,
+        ]
+        tokens_after = assembler.estimate_tokens(
+            system_prompt=system_prompt,
+            messages=rebuilt,
+            tool_calls=tool_calls,
+            tool_schemas=tool_schemas,
+        )
+        async with self._uow_factory() as uow:
+            checkpoint = await uow.checkpoints.create(
+                CompactionCheckpoint(
+                    session_id=session_id,
+                    summary=summary.text,
+                    first_kept_message_id=span.first_kept_message_id,
+                    tokens_before=tokens_before,
+                    tokens_after=tokens_after,
+                )
+            )
+            await uow.commit()
+        await self._record_event(
+            run_id,
+            EventType.COMPACTION_COMPLETED,
+            {
+                "checkpoint_id": checkpoint.id,
+                "tokens_before": tokens_before,
+                "tokens_after": tokens_after,
+                "usage": summary.usage.model_dump() if summary.usage is not None else None,
+            },
+        )
+        return rebuilt
+
+    async def _record_event(
+        self, run_id: str, event_type: EventType, payload: dict[str, JsonValue]
+    ) -> None:
+        """追加并发布一个产品事件。"""
+        async with self._uow_factory() as uow:
+            event = await uow.events.append(
+                RunEvent(run_id=run_id, event_type=event_type, payload=payload)
+            )
+            await uow.commit()
+        await self._publish_events([event])
 
     async def _emit_started(self, run_id: str) -> None:
         """每个 Run 只持久化一次 run.started 事件。"""
