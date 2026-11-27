@@ -17,13 +17,13 @@
 | Health | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过；Java 返回 `workspace_fts=unsupported` |
 | Session 创建/列表/查询 | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过（含 401/404 信封） |
 | Session 工作区绑定 | Verified | Pending | Pending | Pending | Pending | `POST /sessions/{id}/workspace` |
-| Run / Message / ToolCall | Verified | Pending | Pending | Pending | Pending | Phase 3a |
-| SSE 事件与重放 | Verified | Pending | Pending | Pending | Pending | Phase 3a |
-| 取消 / 超时 / 恢复 | Verified | Pending | Pending | Pending | Pending | Phase 3a |
-| 上下文裁剪与压缩 | Verified | Pending | Pending | Pending | Pending | Phase 3b |
-| 轨迹投影 | Verified | Pending | Pending | Pending | Pending | Phase 3b |
-| Model Profile | Verified | Pending | Pending | Pending | Pending | Phase 3b |
-| 会话标题生成 | Verified | Pending | Pending | Pending | Pending | Phase 3b |
+| Run / Message / ToolCall | Verified | Implemented | **Contract Passed** | Pending | Pending | `tests/contract/test_runs.py`（无模型密钥时跳过模型场景） |
+| SSE 事件与重放 | Verified | Implemented | **Contract Passed** | Pending | Pending | 事件 seq/重放/终态关流已双端验证 |
+| 取消 / 超时 / 恢复 | Verified | Implemented | Pending | Pending | Pending | Java 语言内测试覆盖取消/恢复/过期 |
+| 上下文裁剪与压缩 | Verified | Implemented | Pending | Pending | Pending | `CompactionTest`；token 计数差异按 K-05 不比对 |
+| 轨迹投影 | Verified | Implemented | **Contract Passed** | Pending | Pending | `tests/contract/test_trajectory.py` 双端通过 |
+| Model Profile | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_model_profiles.py` 双端通过；密钥只写、只回 `has_key` |
+| 会话标题生成 | Verified | Implemented | Pending | Pending | Pending | 依赖模型 Provider，无密钥时仅告警 |
 | Workspace / 文件工具 / 审批 | Verified | Pending | Pending | Pending | Pending | Phase 4 |
 | MCP Client | Verified | Pending | Pending | Pending | Pending | Phase 5 |
 | Skills | Verified | Pending | Pending | Pending | Pending | Phase 6 |

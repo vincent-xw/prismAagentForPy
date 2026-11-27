@@ -1513,6 +1513,11 @@ components:
         api_key_env:
           type: string
           title: Api Key Env
+        api_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Api Key
         context_window:
           type: integer
           title: Context Window
@@ -1528,7 +1533,7 @@ components:
       - context_window
       - max_output_tokens
       title: ModelProfileCreate
-      description: 新增/更新模型档案的入参。
+      description: 新增/更新模型档案的入参。api_key 只写不读，省略表示不修改。
     ModelProfileProbeView:
       properties:
         ok:
@@ -1577,6 +1582,9 @@ components:
         is_active:
           type: boolean
           title: Is Active
+        has_key:
+          type: boolean
+          title: Has Key
       type: object
       required:
       - id
@@ -1587,6 +1595,7 @@ components:
       - context_window
       - max_output_tokens
       - is_active
+      - has_key
       title: ModelProfileView
       description: 模型档案视图；不回显任何密钥值。
     RunCreate:
