@@ -1,0 +1,18 @@
+docs/superpowers/plans/2026-11-28-phase6-skills.md
+  h_c3a612a540ca0b 1-107
+skills/skills/prism-demo/SKILL.md
+  h_c3a612a540ca0b 1-14
+skills/skills/prism-demo/references/checklist.md
+  h_c3a612a540ca0b 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f90bcd42a36a940887a401a2528051c2804aee35",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
