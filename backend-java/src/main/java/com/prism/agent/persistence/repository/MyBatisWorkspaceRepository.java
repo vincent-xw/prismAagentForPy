@@ -89,6 +89,27 @@ public class MyBatisWorkspaceRepository implements WorkspaceRepository {
     }
 
     @Override
+    public Workspace updateIndexState(
+            String id, String status, int fileCount, java.time.Instant indexedAt) {
+        mapper.update(
+                null,
+                Wrappers.<WorkspaceEntity>lambdaUpdate()
+                        .eq(WorkspaceEntity::getId, id)
+                        .set(WorkspaceEntity::getIndexStatus, status)
+                        .set(WorkspaceEntity::getIndexError, null)
+                        .set(WorkspaceEntity::getFileCount, fileCount)
+                        .set(
+                                WorkspaceEntity::getIndexedAt,
+                                indexedAt == null
+                                        ? null
+                                        : LocalDateTime.ofInstant(indexedAt, ZoneOffset.UTC))
+                        .set(
+                                WorkspaceEntity::getUpdatedAt,
+                                LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC)));
+        return requireById(id);
+    }
+
+    @Override
     public void delete(String id) {
         mapper.deleteById(id);
     }

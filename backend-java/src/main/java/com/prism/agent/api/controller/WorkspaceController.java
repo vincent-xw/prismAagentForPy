@@ -1,5 +1,6 @@
 package com.prism.agent.api.controller;
 
+import com.prism.agent.api.dto.WorkspaceFileViews;
 import com.prism.agent.api.dto.WorkspaceViews;
 import com.prism.agent.application.service.WorkspaceService;
 import com.prism.agent.core.domain.Session;
@@ -62,6 +63,27 @@ public class WorkspaceController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable String id) {
         service.delete(id);
+    }
+
+    @PostMapping("/workspaces/{id}/reindex")
+    public WorkspaceViews.View reindex(@PathVariable String id) {
+        return WorkspaceViews.View.from(service.reindex(id));
+    }
+
+    @GetMapping("/workspaces/{id}/file")
+    public WorkspaceFileViews.File readFile(
+            @PathVariable String id,
+            @RequestParam String path,
+            @RequestParam(required = false) Integer maxBytes) {
+        return service.readFile(id, path, maxBytes);
+    }
+
+    @GetMapping("/workspaces/{id}/search")
+    public WorkspaceFileViews.Search search(
+            @PathVariable String id,
+            @RequestParam String q,
+            @RequestParam(required = false) Integer limit) {
+        return new WorkspaceFileViews.Search(service.search(id, q, limit));
     }
 
     @GetMapping("/workspaces/{id}/tree")

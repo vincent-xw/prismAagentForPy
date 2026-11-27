@@ -19,4 +19,6 @@ public interface WorkspaceRepository {
     Workspace setActive(String id);
 
     void delete(String id);
+
+    Workspace updateIndexState(String id, String status, int fileCount, java.time.Instant indexedAt);
 }

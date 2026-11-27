@@ -1,5 +1,6 @@
 package com.prism.agent.application.service;
 
+import com.prism.agent.api.dto.WorkspaceFileViews;
 import com.prism.agent.api.dto.WorkspaceViews;
 import com.prism.agent.common.ApiException;
 import com.prism.agent.common.ErrorCode;
@@ -104,6 +105,83 @@ public class WorkspaceService {
 
     public void delete(String id) {
         repository.delete(id);
+    }
+
+    private static final long MAX_FILE_BYTES = 2L * 1024 * 1024;
+    private static final int MAX_INDEX_FILES = 20_000;
+
+    public Workspace reindex(String id) {
+        Workspace workspace = repository.requireById(id);
+        Path root = Paths.get(workspace.rootPath()).toAbsolutePath().normalize();
+        int count = 0;
+        try (var stream = Files.walk(root, 8)) {
+            count = (int) stream
+                    .filter(Files::isRegularFile)
+                    .filter(path -> !path.toString().contains("/.git/"))
+                    .limit(MAX_INDEX_FILES)
+                    .count();
+        } catch (IOException error) {
+            throw new ApiException(ErrorCode.WORKSPACE_PATH_INVALID, "工作区索引失败", 400, Map.of());
+        }
+        return repository.updateIndexState(id, "ready", count, Instant.now());
+    }
+
+    public WorkspaceFileViews.File readFile(String id, String relativePath, Integer maxBytes) {
+        Workspace workspace = repository.requireById(id);
+        Path root = Paths.get(workspace.rootPath()).toAbsolutePath().normalize();
+        Path target = root.resolve(relativePath).normalize();
+        if (!target.startsWith(root)) {
+            throw new ApiException(ErrorCode.WORKSPACE_PATH_OUTSIDE, "路径不在工作区范围内", 403, Map.of());
+        }
+        if (!Files.isRegularFile(target)) {
+            throw new ApiException(ErrorCode.WORKSPACE_FILE_NOT_FOUND, "文件不存在", 404, Map.of());
+        }
+        try {
+            byte[] bytes = Files.readAllBytes(target);
+            int limit = maxBytes == null || maxBytes <= 0 ? 65_536 : maxBytes;
+            int length = Math.min(bytes.length, Math.min(limit, (int) MAX_FILE_BYTES));
+            String content = new String(bytes, 0, length, java.nio.charset.StandardCharsets.UTF_8);
+            return new WorkspaceFileViews.File(relativePath, content, bytes.length > length, bytes.length);
+        } catch (IOException error) {
+            throw new ApiException(ErrorCode.WORKSPACE_FILE_ENCODING, "文件读取失败", 422, Map.of());
+        }
+    }
+
+    public List<WorkspaceFileViews.SearchHit> search(String id, String query, Integer limit) {
+        Workspace workspace = repository.requireById(id);
+        Path root = Paths.get(workspace.rootPath()).toAbsolutePath().normalize();
+        int max = limit == null || limit <= 0 ? 20 : Math.min(limit, 100);
+        List<WorkspaceFileViews.SearchHit> hits = new ArrayList<>();
+        if (query == null || query.isBlank()) {
+            return hits;
+        }
+        try (var stream = Files.walk(root, 6)) {
+            stream.filter(Files::isRegularFile)
+                    .limit(500)
+                    .forEach(path -> {
+                        if (hits.size() >= max) {
+                            return;
+                        }
+                        try {
+                            if (Files.size(path) > 1_048_576) {
+                                return;
+                            }
+                            String text = Files.readString(path, java.nio.charset.StandardCharsets.UTF_8);
+                            int index = text.indexOf(query);
+                            if (index >= 0) {
+                                String snippet = text.substring(
+                                        Math.max(0, index - 40), Math.min(text.length(), index + 80));
+                                hits.add(new WorkspaceFileViews.SearchHit(
+                                        root.relativize(path).toString(), snippet));
+                            }
+                        } catch (IOException ignored) {
+                            // 跳过二进制/不可读文件
+                        }
+                    });
+        } catch (IOException error) {
+            throw new ApiException(ErrorCode.WORKSPACE_PATH_INVALID, "检索失败", 400, Map.of());
+        }
+        return hits;
     }
 
     public WorkspaceViews.Tree tree(String id, String relativePath) {

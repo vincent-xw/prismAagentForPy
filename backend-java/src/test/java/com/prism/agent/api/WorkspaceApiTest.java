@@ -95,6 +95,24 @@ class WorkspaceApiTest extends MySqlTestBase {
     }
 
     @Test
+    void reindexReadFileAndSearch() throws Exception {
+        String id = createNamed("files").get("id").asText();
+        String root = call(HttpMethod.GET, "/api/v1/workspaces/" + id, null).getBody().get("root_path").asText();
+        java.nio.file.Files.writeString(Path.of(root, "note.md"), "hello prism search");
+
+        JsonNode reindexed = call(HttpMethod.POST, "/api/v1/workspaces/" + id + "/reindex", null).getBody();
+        assertThat(reindexed.get("index_status").asText()).isEqualTo("ready");
+        assertThat(reindexed.get("file_count").asInt()).isEqualTo(1);
+
+        JsonNode file = call(HttpMethod.GET, "/api/v1/workspaces/" + id + "/file?path=note.md", null).getBody();
+        assertThat(file.get("content").asText()).contains("hello prism");
+        assertThat(file.get("truncated").asBoolean()).isFalse();
+
+        JsonNode search = call(HttpMethod.GET, "/api/v1/workspaces/" + id + "/search?q=prism", null).getBody();
+        assertThat(search.get("items").get(0).get("path").asText()).isEqualTo("note.md");
+    }
+
+    @Test
     void bindWorkspaceToSession() {
         String workspaceId = createNamed("bind").get("id").asText();
         String sessionId = sessions.insert(Session.newSession("s", Instant.now())).id();
