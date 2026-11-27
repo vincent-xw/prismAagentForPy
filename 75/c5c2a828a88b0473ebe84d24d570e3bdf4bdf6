@@ -1,0 +1,16 @@
+backend-java/src/main/java/com/prism/agent/application/service/WorkspaceService.java
+  h_c3a612a540ca0b 117-122
+docker-compose.yml
+  h_c3a612a540ca0b 39,78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "75c5c2a828a88b0473ebe84d24d570e3bdf4bdf6",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
