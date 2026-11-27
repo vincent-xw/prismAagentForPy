@@ -1,0 +1,32 @@
+.dockerignore
+  h_c3a612a540ca0b 13-14
+backend-java/Dockerfile
+  h_c3a612a540ca0b 2-5,18,20-26
+backend-java/src/main/resources/application.yml
+  h_c3a612a540ca0b 48-50
+backend/Dockerfile
+  h_c3a612a540ca0b 2-5,16,20-25
+backend/docker/entrypoint.sh
+  h_c3a612a540ca0b 4-10
+deploy/README.md
+  h_c3a612a540ca0b 9-11,72-73,75,78,81-82,90
+deploy/nginx/default.conf.template
+  h_c3a612a540ca0b 8-11,14
+docker-compose.yml
+  h_c3a612a540ca0b 55-56,81-87,90-91,109-110,113-114,128-129,132-133
+tests/contract/conftest.py
+  h_c3a612a540ca0b 42-45,48-57
+ui/Dockerfile
+  h_c3a612a540ca0b 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6d019b2f22c3e3134693555b6cb8367a2919fd10",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
