@@ -92,3 +92,12 @@ pnpm build
 - 代码风格：显式构造器注入，不用 Lombok、不滥用反射/AOP；复杂并发与事务边界必须写中文注释。
 - 测试：`cd backend-java && ./mvnw verify` 必须全绿；集成测试连接服务器 `192.168.31.90` 上的开发库容器（`127.0.0.1:13306` + SSH 隧道），**禁止**使用本机 Docker Desktop。
 - 未实现的路由不注册（不要返回假数据）；兼容性状态以 `docs/compatibility/feature-parity.md` 为准，只有真实通过的测试才能标记为已对齐。
+
+## 容器与部署（Phase 2 起）
+
+- 编排入口是根 `docker-compose.yml`；服务名固定为 `backend-python`、`backend-java`、`ui-python`、`ui-java`、`mysql-java`。
+- **禁止在本机 Docker Desktop 上构建或运行**：镜像构建、Compose 启停都在 `192.168.31.90` 执行（仓库同步到 `~/prism-agent`）。
+- 镜像必须 `linux/amd64`；UI 只构建一次，两个 UI 容器必须引用同一 image tag（用 `docker compose images` 验证 Image ID 相同）。
+- UI 的 API 基址只允许运行时注入（`API_TARGET`），不得写进构建产物；浏览器只访问同源 `/api/v1`。
+- 两侧数据卷完全隔离；`skills/` 是唯一只读共享挂载。禁止把 MySQL 发布到公网。
+- 契约快照在 `contracts/`，重新导出用 `bash scripts/export-openapi.sh`；跨语言断言在 `tests/contract`，不得 import 后端代码。

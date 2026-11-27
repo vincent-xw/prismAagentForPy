@@ -14,8 +14,8 @@
 
 | Feature | Python | Java | API | Behavior | E2E | Notes |
 |---|---|---|---|---|---|---|
-| Health | Verified | Implemented | Pending | Pending | Pending | Java 返回 `workspace_fts=unsupported` |
-| Session 创建/列表/查询 | Verified | Implemented | Pending | Pending | Pending | Java 已对齐 snake_case、404 信封、`updated_at DESC, id DESC` |
+| Health | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过；Java 返回 `workspace_fts=unsupported` |
+| Session 创建/列表/查询 | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过（含 401/404 信封） |
 | Session 工作区绑定 | Verified | Pending | Pending | Pending | Pending | `POST /sessions/{id}/workspace` |
 | Run / Message / ToolCall | Verified | Pending | Pending | Pending | Pending | Phase 3a |
 | SSE 事件与重放 | Verified | Pending | Pending | Pending | Pending | Phase 3a |
@@ -30,3 +30,11 @@
 | 命名工作区（V1.5 扩展） | Not started | Not started | Pending | Pending | Pending | 两端同时实现 |
 
 `Python = Verified` 表示已有语言内测试与运行验证；跨语言一致性仍需 Phase 2 起的契约与 parity 测试证明。
+
+## 容器化状态（Phase 2）
+
+- Compose 五服务在 `192.168.31.90` 全部 healthy：`backend-python`、`backend-java`、`ui-python`、`ui-java`、`mysql-java`。
+- 两个 UI 容器使用同一镜像 `prism-agent-ui:dev`，Image ID 一致（`77fc872a1edb`），仅 `API_TARGET` 不同。
+- 契约测试：Python 后端 4 passed、Java 后端 4 passed、两个 UI 反代各 4 passed。
+- 隔离验证：停掉 `backend-java` 后 Python 后端与 `ui-python` 仍可用；重启后 Java 恢复 healthy。
+- 已知差异：Java 的 `workspace_fts` 仍为 `unsupported`（Phase 4 实现索引后改为真实探测）。
