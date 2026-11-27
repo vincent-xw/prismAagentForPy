@@ -19,6 +19,7 @@ import com.prism.agent.persistence.repository.RunRepository;
 import com.prism.agent.persistence.repository.ToolCallRepository;
 import com.prism.agent.providers.ModelPorts;
 import com.prism.agent.providers.ProviderResolver;
+import com.prism.agent.core.context.ContextAssembler;
 import com.prism.agent.tools.ToolRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -43,6 +44,7 @@ public class SimpleAgentEngine implements AgentEngine {
     private final RunStreamHub hub;
     private final TransactionTemplate transactionTemplate;
     private final ProviderResolver providerResolver;
+    private final ContextAssembler assembler;
     private ModelPorts.Provider fixedProvider;
     private final ToolRegistry toolRegistry;
     private final int maxSteps;
@@ -56,6 +58,7 @@ public class SimpleAgentEngine implements AgentEngine {
             RunStreamHub hub,
             TransactionTemplate transactionTemplate,
             ProviderResolver providerResolver,
+            ContextAssembler assembler,
             ToolRegistry toolRegistry,
             int maxSteps,
             double remoteToolTimeoutSeconds) {
@@ -66,6 +69,7 @@ public class SimpleAgentEngine implements AgentEngine {
         this.hub = hub;
         this.transactionTemplate = transactionTemplate;
         this.providerResolver = providerResolver;
+        this.assembler = assembler;
         this.toolRegistry = toolRegistry;
         this.maxSteps = maxSteps;
         this.remoteToolTimeoutSeconds = remoteToolTimeoutSeconds;
@@ -91,6 +95,7 @@ public class SimpleAgentEngine implements AgentEngine {
                 hub,
                 transactionTemplate,
                 (ProviderResolver) null,
+                null,
                 toolRegistry,
                 maxSteps,
                 remoteToolTimeoutSeconds);
@@ -123,39 +128,48 @@ public class SimpleAgentEngine implements AgentEngine {
             return failRun(run.id(), ErrorCode.HARNESS_STEP_LIMIT, "Run 已达到最大模型步数");
         }
 
-        List<Message> history = messages.listForSession(run.sessionId());
-        List<ToolCall> callHistory = toolCalls.listForSession(run.sessionId());
-        List<Map<String, Object>> schemas = toolRegistry.list().stream().map(ToolRegistry.ToolDefinition::toModelSchema).toList();
+        List<Message> history =
+                assembler != null
+                        ? assembler.build(run, false).messages()
+                        : messages.listForSession(run.sessionId());
 
         appendEvent(run.id(), EventType.STEP_STARTED, Map.of("step_index", step, "model", run.model()));
         long startedAt = System.currentTimeMillis();
         ModelPorts.Response response;
         try {
-            response =
-                    provider(run).stream(
-                            new ModelPorts.Request(
-                                    run.systemPrompt(), history, callHistory, schemas, run.modelMaxOutputTokens()),
-                            chunk -> {
-                                if (!chunk.text().isEmpty()) {
-                                    hub.publishTransient(run.id(), EventType.MESSAGE_DELTA, Map.of("text", chunk.text()));
-                                }
-                                if (!chunk.reasoning().isEmpty()) {
-                                    hub.publishTransient(
-                                            run.id(), EventType.REASONING_DELTA, Map.of("text", chunk.reasoning()));
-                                }
-                            });
+            response = invokeModel(run, history);
         } catch (InterruptedException error) {
             Thread.currentThread().interrupt();
             return cancelRun(run.id());
         } catch (ApiException error) {
-            appendEvent(
-                    run.id(),
-                    EventType.STEP_FAILED,
-                    Map.of(
-                            "step_index", step,
-                            "error_code", error.code().name(),
-                            "duration_ms", System.currentTimeMillis() - startedAt));
-            return failRun(run.id(), error.code(), error.getMessage());
+            if (assembler != null && error.code() == ErrorCode.CONTEXT_OVERFLOW) {
+                // 溢出：强制压缩一次再重试
+                history = assembler.build(run, true).messages();
+                try {
+                    response = invokeModel(run, history);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    return cancelRun(run.id());
+                } catch (ApiException retryError) {
+                    appendEvent(
+                            run.id(),
+                            EventType.STEP_FAILED,
+                            Map.of(
+                                    "step_index", step,
+                                    "error_code", retryError.code().name(),
+                                    "duration_ms", System.currentTimeMillis() - startedAt));
+                    return failRun(run.id(), retryError.code(), retryError.getMessage());
+                }
+            } else {
+                appendEvent(
+                        run.id(),
+                        EventType.STEP_FAILED,
+                        Map.of(
+                                "step_index", step,
+                                "error_code", error.code().name(),
+                                "duration_ms", System.currentTimeMillis() - startedAt));
+                return failRun(run.id(), error.code(), error.getMessage());
+            }
         }
 
         appendEvent(
@@ -175,6 +189,35 @@ public class SimpleAgentEngine implements AgentEngine {
 
     private ModelPorts.Provider provider(Run run) {
         return fixedProvider != null ? fixedProvider : providerResolver.forRun(run);
+    }
+
+    private ModelPorts.Response invokeModel(Run run, List<Message> history)
+            throws InterruptedException {
+        List<ToolCall> callHistory = toolCalls.listForSession(run.sessionId());
+        List<Map<String, Object>> schemas =
+                toolRegistry.list().stream()
+                        .map(ToolRegistry.ToolDefinition::toModelSchema)
+                        .toList();
+        return provider(run)
+                .stream(
+                        new ModelPorts.Request(
+                                run.systemPrompt(),
+                                history,
+                                callHistory,
+                                schemas,
+                                run.modelMaxOutputTokens()),
+                        chunk -> {
+                            if (!chunk.text().isEmpty()) {
+                                hub.publishTransient(
+                                        run.id(), EventType.MESSAGE_DELTA, Map.of("text", chunk.text()));
+                            }
+                            if (!chunk.reasoning().isEmpty()) {
+                                hub.publishTransient(
+                                        run.id(),
+                                        EventType.REASONING_DELTA,
+                                        Map.of("text", chunk.reasoning()));
+                            }
+                        });
     }
 
     private EngineOutcome persistTurn(Run run, ModelPorts.Response response) {

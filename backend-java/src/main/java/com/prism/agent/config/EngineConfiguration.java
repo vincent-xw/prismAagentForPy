@@ -25,6 +25,7 @@ public class EngineConfiguration {
             RunStreamHub hub,
             TransactionTemplate transactionTemplate,
             com.prism.agent.providers.ProviderResolver providerResolver,
+            com.prism.agent.core.context.ContextAssembler contextAssembler,
             ToolRegistry toolRegistry,
             PrismProperties properties) {
         return new SimpleAgentEngine(
@@ -35,6 +36,7 @@ public class EngineConfiguration {
                 hub,
                 transactionTemplate,
                 providerResolver,
+                contextAssembler,
                 toolRegistry,
                 properties.maxSteps(),
                 properties.remoteToolTimeoutSeconds());

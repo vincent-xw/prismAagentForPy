@@ -20,6 +20,12 @@ public enum EventType {
     RUN_SUCCEEDED("run.succeeded"),
     RUN_FAILED("run.failed"),
     RUN_CANCELLED("run.cancelled"),
+    CONTEXT_TRIMMED("context.trimmed"),
+    CONTEXT_PRUNED("context.pruned"),
+    COMPACTION_STARTED("compaction.started"),
+    COMPACTION_COMPLETED("compaction.completed"),
+    COMPACTION_FAILED("compaction.failed"),
+    COMPACTION_SKIPPED("compaction.skipped"),
     MESSAGE_DELTA("message.delta"),
     REASONING_DELTA("reasoning.delta");
 
