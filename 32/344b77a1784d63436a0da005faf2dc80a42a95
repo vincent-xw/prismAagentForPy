@@ -1,0 +1,28 @@
+backend-java/src/main/java/com/prism/agent/api/controller/RunEventController.java
+  h_c3a612a540ca0b 38,42,45,50,59
+backend-java/src/main/java/com/prism/agent/api/controller/SessionMessagesController.java
+  h_c3a612a540ca0b 1-31
+backend-java/src/main/java/com/prism/agent/api/dto/MessageView.java
+  h_c3a612a540ca0b 1-29
+backend-java/src/main/java/com/prism/agent/application/event/RunStreamHub.java
+  h_c3a612a540ca0b 50,63,127
+backend-java/src/main/java/com/prism/agent/persistence/repository/EventRepository.java
+  h_c3a612a540ca0b 14-16
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisEventRepository.java
+  h_c3a612a540ca0b 66-79
+backend-java/src/test/java/com/prism/agent/api/SseStreamTest.java
+  h_c3a612a540ca0b 119-122,133-135,137
+tests/contract/test_runs.py
+  h_c3a612a540ca0b 51-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "32344b77a1784d63436a0da005faf2dc80a42a95",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
