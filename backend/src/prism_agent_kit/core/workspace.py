@@ -13,6 +13,9 @@ class Workspace(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     root_path: str
     label: str | None = None
+    name: str | None = None
+    user: str | None = None
+    permission_mode: str = "workspace_write"
     is_active: bool = False
     index_status: IndexStatus = IndexStatus.IDLE
     index_error: str | None = None

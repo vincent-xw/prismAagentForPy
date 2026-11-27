@@ -190,8 +190,11 @@ class SimpleAgentEngine:
 
         await self._emit_started(run.id)
         workspace_root = None
+        permission_mode = None
         if self._workspace_locator is not None:
             workspace_root = await self._workspace_locator.root_for(run.workspace_id)
+            if hasattr(self._workspace_locator, "permission_for"):
+                permission_mode = await self._workspace_locator.permission_for(run.workspace_id)
         tool_schemas = self._tool_registry.model_schemas()
 
         while True:
@@ -406,6 +409,7 @@ class SimpleAgentEngine:
                         cancel=context.cancel,
                         workspace_id=run.workspace_id,
                         workspace_root=workspace_root,
+                        permission_mode=permission_mode,
                     ),
                     timeout_seconds=effective_timeout,
                 )
@@ -706,6 +710,7 @@ class SimpleAgentEngine:
         cancel: asyncio.Event,
         workspace_id: str | None,
         workspace_root: Path | None,
+        permission_mode: str | None = None,
     ) -> ToolExecutionContext:
         """构造工具上下文，并按需注入工作区根与检索回调。"""
         search = None
@@ -722,6 +727,7 @@ class SimpleAgentEngine:
             cancel=cancel,
             workspace_root=workspace_root,
             workspace_id=workspace_id,
+            permission_mode=permission_mode,
             search=search,
         )
 

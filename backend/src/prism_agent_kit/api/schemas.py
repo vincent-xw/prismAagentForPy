@@ -225,6 +225,8 @@ class WorkspaceView(BaseModel):
     id: str
     root_path: str
     label: str | None
+    name: str | None = None
+    permission_mode: str
     is_active: bool
     index_status: str
     index_error: str | None
@@ -237,6 +239,8 @@ class WorkspaceView(BaseModel):
             id=workspace.id,
             root_path=workspace.root_path,
             label=workspace.label,
+            name=workspace.name,
+            permission_mode=workspace.permission_mode,
             is_active=workspace.is_active,
             index_status=workspace.index_status.value,
             index_error=workspace.index_error,
@@ -253,9 +257,18 @@ class WorkspaceListResponse(BaseModel):
 
 
 class WorkspaceCreate(BaseModel):
-    """绑定工作区请求。"""
+    """绑定工作区请求：path 绑定已有目录；name 创建 <root>/<user>/<name>。"""
 
-    path: str
+    path: str | None = None
+    label: str | None = Field(default=None, max_length=255)
+    name: str | None = Field(default=None, max_length=128)
+    permission_mode: str = "workspace_write"
+
+
+class WorkspaceUpdate(BaseModel):
+    """更新工作区档位/标签。"""
+
+    permission_mode: str | None = None
     label: str | None = Field(default=None, max_length=255)
 
 

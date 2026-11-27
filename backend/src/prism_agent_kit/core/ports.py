@@ -83,6 +83,8 @@ class WorkspaceLocator(Protocol):
 
     async def root_for(self, workspace_id: str | None) -> Path | None: ...
 
+    async def permission_for(self, workspace_id: str | None) -> str | None: ...
+
     async def search(
         self,
         workspace_id: str,

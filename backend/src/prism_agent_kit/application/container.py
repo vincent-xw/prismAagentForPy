@@ -282,6 +282,8 @@ class ApplicationContainer:
             )
             await index_tasks.reset_interrupted()
             workspace_service = WorkspaceService(
+                workspace_root=self.settings.workspace_root,
+                workspace_user=self.settings.workspace_user,
                 uow_factory=uow_factory,
                 index_tasks=index_tasks,
                 max_file_bytes=self.settings.workspace_index_max_file_bytes,
