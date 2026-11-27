@@ -1,0 +1,52 @@
+backend-java/src/main/java/com/prism/agent/api/controller/WorkspaceController.java
+  h_c3a612a540ca0b 1-83
+backend-java/src/main/java/com/prism/agent/api/dto/WorkspaceViews.java
+  h_c3a612a540ca0b 1-66
+backend-java/src/main/java/com/prism/agent/application/service/WorkspaceService.java
+  h_c3a612a540ca0b 1-170
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 28-36
+backend-java/src/main/java/com/prism/agent/config/EngineConfiguration.java
+  h_c3a612a540ca0b 29-30,42-43
+backend-java/src/main/java/com/prism/agent/config/PrismProperties.java
+  h_c3a612a540ca0b 20-22,36-40
+backend-java/src/main/java/com/prism/agent/core/domain/Workspace.java
+  h_c3a612a540ca0b 1-36
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 23-25,51-52,67-68,80-81,108-109,201-263,391-393
+backend-java/src/main/java/com/prism/agent/persistence/entity/WorkspaceEntity.java
+  h_c3a612a540ca0b 1-52
+backend-java/src/main/java/com/prism/agent/persistence/mapper/WorkspaceMapper.java
+  h_c3a612a540ca0b 1-9
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisSessionRepository.java
+  h_c3a612a540ca0b 68-76
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisWorkspaceRepository.java
+  h_c3a612a540ca0b 1-131
+backend-java/src/main/java/com/prism/agent/persistence/repository/SessionRepository.java
+  h_c3a612a540ca0b 21-22
+backend-java/src/main/java/com/prism/agent/persistence/repository/WorkspaceRepository.java
+  h_c3a612a540ca0b 1-22
+backend-java/src/main/java/com/prism/agent/tools/WorkspaceToolExecutor.java
+  h_c3a612a540ca0b 1-173
+backend-java/src/main/java/com/prism/agent/tools/WorkspaceToolRegistrar.java
+  h_c3a612a540ca0b 1-48
+backend-java/src/main/resources/application.yml
+  h_c3a612a540ca0b 43-44
+backend-java/src/main/resources/db/migration/V5__workspaces.sql
+  h_c3a612a540ca0b 1-5
+backend-java/src/test/java/com/prism/agent/api/WorkspaceApiTest.java
+  h_c3a612a540ca0b 1-108
+backend-java/src/test/java/com/prism/agent/tools/WorkspaceToolExecutorTest.java
+  h_c3a612a540ca0b 1-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4e5f58eaa45b39c8966adcb478361d83a26af08c",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
