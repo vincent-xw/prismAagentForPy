@@ -79,6 +79,8 @@ export const workspaceSchema = z.object({
   id,
   root_path: z.string(),
   label: z.string().nullable(),
+  name: z.string().nullable(),
+  permission_mode: z.enum(['read_only', 'workspace_write', 'full_access']),
   is_active: z.boolean(),
   index_status: z.enum(['idle', 'indexing', 'ready', 'failed']),
   index_error: z.string().nullable(),
@@ -222,6 +224,13 @@ export function isTerminal(run: RunDto): boolean {
 
 export type ToolCallDto = z.infer<typeof toolCallSchema>
 export type WorkspaceDto = z.infer<typeof workspaceSchema>
+export type WorkspacePermissionMode = WorkspaceDto['permission_mode']
+export interface WorkspaceCreatePayload {
+  path?: string
+  name?: string
+  label?: string | null
+  permission_mode?: WorkspacePermissionMode
+}
 export type TreeEntryDto = z.infer<typeof treeResponseSchema>['items'][number]
 export type FileDto = z.infer<typeof fileResponseSchema>
 export type SearchHitDto = z.infer<typeof searchResponseSchema>['items'][number]

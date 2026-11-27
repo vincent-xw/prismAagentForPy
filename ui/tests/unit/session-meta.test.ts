@@ -16,6 +16,8 @@ const workspaces: WorkspaceDto[] = [
     id: 'w1',
     root_path: '/Users/me/project-a',
     label: 'project-a',
+    name: null,
+    permission_mode: 'workspace_write',
     is_active: true,
     index_status: 'ready',
     index_error: null,

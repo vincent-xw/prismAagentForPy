@@ -8,6 +8,13 @@ import { createWorkspaceController } from './workspace'
 
 const { client } = useAppContext()
 const controller = createWorkspaceController({ client })
+const namedWorkspace = ref('')
+const workspaceMode = ref<'read_only' | 'workspace_write' | 'full_access'>('workspace_write')
+const MODES = [
+  { value: 'read_only', label: '仅可查看' },
+  { value: 'workspace_write', label: '工作区内修改' },
+  { value: 'full_access', label: '完全权限' },
+] as const
 const state = controller.state
 const manualPath = ref('')
 const timer = ref<number | null>(null)
@@ -100,6 +107,44 @@ onUnmounted(stopPolling)
           @keyup.enter="bind"
         />
         <Button variant="outline" size="sm" :disabled="state.loading" @click="bind">绑定</Button>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <Input
+          v-model="namedWorkspace"
+          class="max-w-xs"
+          placeholder="新建工作区名称（重名自动加后缀）"
+        />
+        <select v-model="workspaceMode" class="rounded-lg border bg-background px-2 py-1 text-sm">
+          <option v-for="mode in MODES" :key="mode.value" :value="mode.value">
+            {{ mode.label }}
+          </option>
+        </select>
+        <Button
+          variant="outline"
+          size="sm"
+          :disabled="state.loading || namedWorkspace.trim() === ''"
+          @click="controller.createNamed(namedWorkspace.trim(), workspaceMode)"
+        >
+          创建工作区
+        </Button>
+        <span v-if="state.active !== null" class="text-xs text-muted-foreground">
+          当前档位
+          <select
+            class="ml-1 rounded border bg-background px-1 py-0.5"
+            :value="state.active.permission_mode"
+            @change="
+              controller.setPermission(
+                state.active!.id,
+                ($event.target as HTMLSelectElement).value as
+                  'read_only' | 'workspace_write' | 'full_access',
+              )
+            "
+          >
+            <option v-for="mode in MODES" :key="mode.value" :value="mode.value">
+              {{ mode.label }}
+            </option>
+          </select>
+        </span>
       </div>
       <p v-if="state.error !== null" class="mt-2 text-xs text-destructive">{{ state.error }}</p>
     </section>
