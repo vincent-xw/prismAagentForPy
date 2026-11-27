@@ -1,0 +1,20 @@
+backend-java/src/main/java/com/prism/agent/api/dto/TrajectoryViews.java
+  h_c3a612a540ca0b 11-14,16-23,29-39
+backend-java/src/main/java/com/prism/agent/application/service/TrajectoryService.java
+  h_c3a612a540ca0b 10,14-15,18,22,25,31,38,43,50-52,55-77,82-99,101-102,104-105,107-111,113,115-121,124-129,131-138,141-149,154-173,175
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 191-206
+backend-java/src/test/java/com/prism/agent/api/TrajectoryApiTest.java
+  h_c3a612a540ca0b 11-12,36-37,61-69,76-84,93-95,98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "8da7dd4edebf128b8ab046d0d3b127b27520539e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
