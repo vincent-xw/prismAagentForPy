@@ -31,6 +31,7 @@ prism:
   api-token: ${PRISM_API_TOKEN:}
   service-name: ${PRISM_SERVICE_NAME:PrismAgentKit API}
   version: ${PRISM_VERSION:1.4.0}
+  model-name: ${PRISM_MODEL_NAME:deepseek-chat}
 
 server:
   port: ${PRISM_PORT:8080}

@@ -12,7 +12,8 @@ public record PrismProperties(
         String apiPrefix,
         String apiToken,
         String serviceName,
-        String version) {
+        String version,
+        String modelName) {
 
     public PrismProperties {
         environment = environment == null || environment.isBlank() ? "development" : environment;
@@ -20,6 +21,7 @@ public record PrismProperties(
         apiToken = apiToken == null || apiToken.isBlank() ? null : apiToken;
         serviceName = serviceName == null || serviceName.isBlank() ? "PrismAgentKit API" : serviceName;
         version = version == null || version.isBlank() ? "1.4.0" : version;
+        modelName = modelName == null || modelName.isBlank() ? "mock-model" : modelName;
     }
 
     private static String normalizePrefix(String value) {
