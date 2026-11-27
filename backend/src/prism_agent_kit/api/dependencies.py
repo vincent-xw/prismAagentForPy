@@ -6,6 +6,8 @@ from prism_agent_kit.application.container import ApplicationContainer
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
+from prism_agent_kit.application.model_profile_service import ModelProfileService
+from prism_agent_kit.application.provider_factory import ProviderFactory
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
@@ -61,6 +63,16 @@ def get_tool_registry(request: Request) -> ToolRegistry:
     return get_application_container(request).tool_registry
 
 
+def get_model_profile_service(request: Request) -> ModelProfileService:
+    """返回模型档案服务。"""
+    return get_application_container(request).model_profile_service
+
+
+def get_provider_factory(request: Request) -> ProviderFactory:
+    """返回 Provider 工厂。"""
+    return get_application_container(request).provider_factory
+
+
 def get_skill_catalog(request: Request) -> SkillCatalog:
     """返回技能目录服务。"""
     return get_application_container(request).skill_catalog
@@ -92,4 +104,6 @@ ToolApprovalServiceDependency = Annotated[
 SettingsDependency = Annotated[Settings, Depends(get_request_settings)]
 McpConfigServiceDependency = Annotated[McpConfigService, Depends(get_mcp_config_service)]
 SkillCatalogDependency = Annotated[SkillCatalog, Depends(get_skill_catalog)]
+ModelProfileServiceDependency = Annotated[ModelProfileService, Depends(get_model_profile_service)]
+ProviderFactoryDependency = Annotated[ProviderFactory, Depends(get_provider_factory)]
 McpManagerDependency = Annotated[McpServerManager, Depends(get_mcp_manager)]

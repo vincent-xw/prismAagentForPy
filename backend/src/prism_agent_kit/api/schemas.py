@@ -399,3 +399,35 @@ class SkillDetailView(BaseModel):
     description: str
     content: str
     resources: list[dict[str, JsonValue]]
+
+
+class ModelProfileCreate(BaseModel):
+    """新增/更新模型档案的入参。"""
+
+    name: str
+    base_url: str
+    model: str
+    api_key_env: str
+    context_window: int
+    max_output_tokens: int
+
+
+class ModelProfileView(BaseModel):
+    """模型档案视图；不回显任何密钥值。"""
+
+    id: str
+    name: str
+    base_url: str
+    model: str
+    api_key_env: str
+    context_window: int
+    max_output_tokens: int
+    is_active: bool
+
+
+class ModelProfileProbeView(BaseModel):
+    """档案连通性探测结果。"""
+
+    ok: bool
+    latency_ms: float | None
+    error: str | None

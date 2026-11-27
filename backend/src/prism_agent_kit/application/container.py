@@ -85,6 +85,7 @@ class ApplicationContainer:
         self._mcp_manager: McpServerManager | None = None
         self._skill_catalog: SkillCatalog | None = None
         self._provider_factory: ProviderFactory | None = None
+        self._model_profile_service: ModelProfileService | None = None
 
     @property
     def database(self) -> Database:
@@ -146,6 +147,20 @@ class ApplicationContainer:
         if self._tool_result_service is None:
             raise RuntimeError("ApplicationContainer 尚未启动")
         return self._tool_result_service
+
+    @property
+    def model_profile_service(self) -> ModelProfileService:
+        """返回模型档案服务。"""
+        if self._model_profile_service is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._model_profile_service
+
+    @property
+    def provider_factory(self) -> ProviderFactory:
+        """返回模型 Provider 工厂。"""
+        if self._provider_factory is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._provider_factory
 
     @property
     def skill_catalog(self) -> SkillCatalog:
@@ -266,6 +281,7 @@ class ApplicationContainer:
             )
 
             provider_factory = ProviderFactory(self.settings)
+            profile_service = ModelProfileService(uow_factory)
             try:
                 async with uow_factory() as uow:
                     active_profile = await uow.model_profiles.active()
@@ -365,7 +381,7 @@ class ApplicationContainer:
                 cancellation_registry=cancellation_registry,
                 skill_catalog=skill_catalog,
                 skills_max_context_chars=self.settings.skills_max_context_chars,
-                profiles=ModelProfileService(uow_factory),
+                profiles=profile_service,
                 provider_resolver=resolve_provider,
                 title_service=(
                     SessionTitleService(
@@ -403,6 +419,7 @@ class ApplicationContainer:
             self._index_tasks = index_tasks
             self._skill_catalog = skill_catalog
             self._provider_factory = provider_factory
+            self._model_profile_service = profile_service
             self._mcp_config_service = mcp_config_service
             self._mcp_manager = mcp_manager
             self._started = True

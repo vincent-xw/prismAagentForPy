@@ -17,6 +17,7 @@ from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
+from prism_agent_kit.application.model_profile_service import ModelProfileService
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
@@ -62,6 +63,8 @@ class ApiTestContainer:
     skill_catalog: SkillCatalog
     mcp_config_service: McpConfigService
     mcp_manager: McpServerManager
+    model_profile_service: ModelProfileService
+    provider_factory: object
     workspace_fts_supported: bool = True
 
 
@@ -105,6 +108,19 @@ def build_api_application(
     database = Database(database_path)
     uow_factory = UnitOfWorkFactory(database.session_factory)
     skill_catalog = SkillCatalog([skills_root] if skills_root is not None else [])
+    model_profile_service = ModelProfileService(uow_factory)
+
+    class _ProbeProvider:
+        async def stream(self, request, on_delta=None):
+            from prism_agent_kit.core.ports import ModelResponse
+
+            return ModelResponse(text="pong", reasoning=None)
+
+    class _ProbeFactory:
+        def build(self, profile):
+            return _ProbeProvider()
+
+    provider_factory = _ProbeFactory()
     prompts = PromptRegistry()
     prompts.register(name="default", version="1", prompt="default system")
     session_service = SessionService(uow_factory)
@@ -196,6 +212,8 @@ def build_api_application(
         skill_catalog=skill_catalog,
         mcp_config_service=mcp_config_service,
         mcp_manager=mcp_manager,
+        model_profile_service=model_profile_service,
+        provider_factory=provider_factory,
     )
     application.add_middleware(RequestIdMiddleware)
     install_exception_handlers(application)
