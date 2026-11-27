@@ -1,0 +1,16 @@
+backend/src/prism_agent_kit/application/mcp/adapter.py
+  h_c3a612a540ca0b 55-56
+backend/tests/application/mcp/test_adapter.py
+  h_c3a612a540ca0b 17,37-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "8ab501cededa6f300cc5555bd101a55996f38a37",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
