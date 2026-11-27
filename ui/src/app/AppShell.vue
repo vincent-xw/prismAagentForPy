@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Menu, Settings, PanelsLeftBottom, Hexagon, Plug } from '@lucide/vue'
+import { ArrowLeft, Menu, Settings, PanelsLeftBottom, Hexagon, Plug, Cpu } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -24,6 +24,7 @@ const state = computed(() => conversation.value!.state)
 const settings = computed(() => route.path === '/settings')
 const workspace = computed(() => route.path === '/workspace')
 const mcp = computed(() => route.path === '/mcp')
+const models = computed(() => route.path === '/models')
 const lastSessionPath = computed(() =>
   state.value.selectedSessionId ? `/sessions/${state.value.selectedSessionId}` : '/',
 )
@@ -59,8 +60,10 @@ const title = computed(() =>
       ? '工作区'
       : mcp.value
         ? 'MCP 服务'
-        : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)?.title ??
-          '新的会话'),
+        : models.value
+          ? '模型档案'
+          : (state.value.sessions.find((item) => item.id === state.value.selectedSessionId)
+              ?.title ?? '新的会话'),
 )
 async function create() {
   navigationOpen.value = false
@@ -122,6 +125,12 @@ onMounted(() => {
         class="mx-4 mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
         :class="mcp ? 'bg-secondary text-foreground' : ''"
         ><Plug class="size-4" />MCP</RouterLink
+      >
+      <RouterLink
+        to="/models"
+        class="mx-4 mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted-foreground hover:bg-secondary"
+        :class="models ? 'bg-secondary text-foreground' : ''"
+        ><Cpu class="size-4" />模型</RouterLink
       >
       <RouterLink
         to="/settings"

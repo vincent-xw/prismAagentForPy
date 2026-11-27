@@ -287,3 +287,29 @@ export const skillDetailSchema = z.object({
 })
 export type SkillSummaryDto = z.infer<typeof skillSummarySchema>
 export type SkillDetailDto = z.infer<typeof skillDetailSchema>
+
+export const modelProfileSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  base_url: z.string(),
+  model: z.string(),
+  api_key_env: z.string(),
+  context_window: z.number().int().positive(),
+  max_output_tokens: z.number().int().positive(),
+  is_active: z.boolean(),
+})
+export const modelProfilesSchema = z.array(modelProfileSchema)
+export const modelProfileProbeSchema = z.object({
+  ok: z.boolean(),
+  latency_ms: z.number().nullable(),
+  error: z.string().nullable(),
+})
+export type ModelProfileDto = z.infer<typeof modelProfileSchema>
+export interface ModelProfilePayload {
+  name: string
+  base_url: string
+  model: string
+  api_key_env: string
+  context_window: number
+  max_output_tokens: number
+}

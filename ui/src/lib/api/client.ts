@@ -8,6 +8,9 @@ import {
   mcpServerSchema as mcpServerSchemaRef,
   mcpServersSchema,
   mcpToolsSchema,
+  modelProfileProbeSchema,
+  modelProfilesSchema,
+  modelProfileSchema,
   messagesSchema,
   runSchema,
   searchResponseSchema,
@@ -21,7 +24,7 @@ import {
   workspacePickSchema,
   workspaceSchema,
 } from './contracts'
-import type { McpServerPayload } from './contracts'
+import type { McpServerPayload, ModelProfilePayload } from './contracts'
 
 export class CoreApiError extends Error {
   // 业务错误字段仅在服务实际返回时赋值，不补造 code 或 request_id。
@@ -212,6 +215,36 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
         `/workspaces/${encodeURIComponent(id)}/search?q=${encodeURIComponent(query)}`,
         searchResponseSchema,
         'GET',
+        undefined,
+        signal,
+      ),
+    listModelProfiles: (signal?: AbortSignal) =>
+      request('/model-profiles', modelProfilesSchema, 'GET', undefined, signal),
+    createModelProfile: (payload: ModelProfilePayload, signal?: AbortSignal) =>
+      request('/model-profiles', modelProfileSchema, 'POST', payload, signal),
+    updateModelProfile: (id: string, payload: ModelProfilePayload, signal?: AbortSignal) =>
+      request(
+        `/model-profiles/${encodeURIComponent(id)}`,
+        modelProfileSchema,
+        'PATCH',
+        payload,
+        signal,
+      ),
+    deleteModelProfile: (id: string, signal?: AbortSignal) =>
+      requestVoid(`/model-profiles/${encodeURIComponent(id)}`, 'DELETE', undefined, signal),
+    activateModelProfile: (id: string, signal?: AbortSignal) =>
+      request(
+        `/model-profiles/${encodeURIComponent(id)}/activate`,
+        modelProfileSchema,
+        'POST',
+        undefined,
+        signal,
+      ),
+    probeModelProfile: (id: string, signal?: AbortSignal) =>
+      request(
+        `/model-profiles/${encodeURIComponent(id)}/probe`,
+        modelProfileProbeSchema,
+        'POST',
         undefined,
         signal,
       ),
