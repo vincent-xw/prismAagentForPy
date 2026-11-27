@@ -27,3 +27,10 @@ htmlcov/
 # 构建产物
 build/
 dist/
+
+# Java 构建产物
+backend-java/target/
+*.class
+
+# Superpowers 临时工作区
+.superpowers/
