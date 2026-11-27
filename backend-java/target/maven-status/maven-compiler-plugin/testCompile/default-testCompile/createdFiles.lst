@@ -1,4 +1,5 @@
 com/prism/agent/PrismAgentApplicationTests.class
+com/prism/agent/application/SessionServiceTest.class
 com/prism/agent/config/JsonContractTest.class
 com/prism/agent/persistence/SessionMapperTest.class
 com/prism/agent/config/JsonContractTest$Probe.class

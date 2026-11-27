@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.prism.agent.application.SessionServiceTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 6.780 s -- in com.prism.agent.application.SessionServiceTest

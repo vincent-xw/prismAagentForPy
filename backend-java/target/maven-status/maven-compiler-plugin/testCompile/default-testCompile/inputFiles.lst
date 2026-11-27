@@ -1,6 +1,7 @@
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/PrismAgentApplicationTests.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/api/ApiTokenFilterTest.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/api/ErrorEnvelopeTest.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/application/SessionServiceTest.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/config/JsonContractTest.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/persistence/SessionMapperTest.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/test/java/com/prism/agent/support/MySqlTestBase.java
