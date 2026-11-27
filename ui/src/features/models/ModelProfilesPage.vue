@@ -14,6 +14,7 @@ const form = reactive({
   base_url: 'https://api.openai.com/v1',
   model: '',
   api_key_env: 'OPENAI_API_KEY',
+  api_key: '',
   context_window: 128000,
   max_output_tokens: 8192,
 })
@@ -28,16 +29,24 @@ function edit(profile: ModelProfileDto): void {
   form.base_url = profile.base_url
   form.model = profile.model
   form.api_key_env = profile.api_key_env
+  form.api_key = ''
   contextWindow.value = profile.context_window
   maxOutputTokens.value = profile.max_output_tokens
 }
 
 async function submit(): Promise<void> {
-  await controller.save({
+  const payload = {
     ...form,
     context_window: contextWindow.value,
     max_output_tokens: maxOutputTokens.value,
-  })
+  }
+  // 留空表示不修改；只有真正填了值才发送 api_key。
+  if (form.api_key.trim() === '') {
+    delete (payload as { api_key?: string }).api_key
+  } else {
+    payload.api_key = form.api_key.trim()
+  }
+  await controller.save(payload)
 }
 
 onMounted(() => void controller.load())
@@ -62,7 +71,8 @@ onMounted(() => void controller.load())
               <span v-if="profile.is_active" class="ml-2 text-xs text-primary">使用中</span>
             </p>
             <p class="mt-1 break-all text-xs text-muted-foreground">
-              {{ profile.model }} · {{ profile.base_url }} · 密钥变量 {{ profile.api_key_env }}
+              {{ profile.model }} · {{ profile.base_url }} · 密钥变量 {{ profile.api_key_env }} ·
+              {{ profile.has_key ? '已配置密钥' : '未配置密钥' }}
             </p>
           </div>
           <div class="flex shrink-0 gap-2">
@@ -130,8 +140,15 @@ onMounted(() => void controller.load())
           placeholder="最大输出 tokens"
         />
       </div>
+      <input
+        v-model="form.api_key"
+        type="password"
+        autocomplete="new-password"
+        class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+        :placeholder="isEditing ? '留空表示不修改密钥' : 'API Key（可选）'"
+      />
       <p class="text-[11px] text-muted-foreground">
-        只保存环境变量名，明文密钥从后端进程环境读取。
+        密钥可直接保存在本地数据库（仅本机可读）；留空则回退到上面的环境变量。
       </p>
       <Button size="sm" type="submit" :disabled="canSubmit">
         {{ isEditing ? '保存修改' : '保存' }}

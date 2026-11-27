@@ -297,6 +297,7 @@ export const modelProfileSchema = z.object({
   context_window: z.number().int().positive(),
   max_output_tokens: z.number().int().positive(),
   is_active: z.boolean(),
+  has_key: z.boolean(),
 })
 export const modelProfilesSchema = z.array(modelProfileSchema)
 export const modelProfileProbeSchema = z.object({
@@ -310,6 +311,8 @@ export interface ModelProfilePayload {
   base_url: string
   model: string
   api_key_env: string
+  /** 只写字段：省略=不修改，空串=清除 */
+  api_key?: string
   context_window: number
   max_output_tokens: number
 }
