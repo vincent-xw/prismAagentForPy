@@ -1,0 +1,14 @@
+docs/superpowers/specs/2026-11-27-phase5-mcp-client-design.md
+  h_c3a612a540ca0b 3,109-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4363d988c0699eb9c3343ee3c44864a3f34f5aa7",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
