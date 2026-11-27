@@ -29,6 +29,9 @@ public class ExpirySweeper {
     private final RunStreamHub hub;
     private final TransactionTemplate transactionTemplate;
 
+    @org.springframework.beans.factory.annotation.Value("${prism.sweeper.scheduled-enabled:true}")
+    private boolean scheduledEnabled;
+
     public ExpirySweeper(
             RunRepository runs,
             ToolCallRepository toolCalls,
@@ -44,6 +47,9 @@ public class ExpirySweeper {
 
     @Scheduled(fixedDelay = 15_000L)
     public void scheduledSweep() {
+        if (!scheduledEnabled) {
+            return;
+        }
         try {
             sweepExpired(Instant.now());
         } catch (RuntimeException ignored) {
