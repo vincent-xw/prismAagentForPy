@@ -14,9 +14,9 @@
 
 | Feature | Python | Java | API | Behavior | E2E | Notes |
 |---|---|---|---|---|---|---|
-| Health | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过；Java 返回 `workspace_fts=unsupported` |
+| Health | Verified | Implemented | **Contract Passed** | Pending | Pending | Java 无 FTS5，`workspace_fts=unsupported`（见 Known Differences） |
 | Session 创建/列表/查询 | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过（含 401/404 信封） |
-| Session 工作区绑定 | Verified | Pending | Pending | Pending | Pending | `POST /sessions/{id}/workspace` |
+| Session 工作区绑定 | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_workspaces.py` 绑定用例双端通过 |
 | Run / Message / ToolCall | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_runs.py` 双端通过（含 assistant 内容）；SSE `id` 为全局事件 id |
 | SSE 事件与重放 | Verified | Implemented | **Contract Passed** | Pending | Pending | 事件 seq/重放/终态关流已双端验证 |
 | 取消 / 超时 / 恢复 | Verified | Implemented | Pending | Pending | Pending | Java 语言内测试覆盖取消/恢复/过期 |
@@ -28,9 +28,18 @@
 | Workspace / 文件工具 / 权限档位 | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_workspaces.py` 双端通过；逐工具审批按 K-09 不启用 |
 | MCP Client | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_mcp.py` 双端通过；Java 官方 SDK（stdio + Streamable HTTP） |
 | Skills | Verified | Implemented | **Contract Passed** | Pending | Pending | Phase 6：列表/详情、Run 注入、skill 工具；示例技能 prism-demo |
-| 命名工作区（V1.5 扩展） | Not started | Not started | Pending | Pending | Pending | 两端同时实现 |
+| 命名工作区（V1.5 扩展） | Verified | Implemented | **Contract Passed** | Pending | Pending | 同名自动加后缀；`test_workspaces.py` 双端通过 |
 
 `Python = Verified` 表示已有语言内测试与运行验证；跨语言一致性仍需 Phase 2 起的契约与 parity 测试证明。
+
+## Known Differences（刻意差异，不追平）
+
+| 差异 | Python | Java | 原因 |
+|---|---|---|---|
+| 逐工具审批（K-09） | `approval`/`preview` 端点 + 3 个审批事件 | 不注册；事件总数 24 | 权限档位即策略，已确认不做 |
+| 目录选择器 API | `POST /workspaces/pick` | 不注册 | UI 已改为“输入目录”，不再需要原生选择器 |
+| 工作区全文检索 | SQLite FTS5（`workspace_fts=ok`） | LIKE/关键字扫描（`unsupported`） | 无 FTS5 依赖；返回结构一致，排序/相关度可能不同 |
+| Token 估算器 | tiktoken | jtokkit | 数值允许偏差；契约只断言阈值与相对高低 |
 
 ## 容器化状态（Phase 2）
 
