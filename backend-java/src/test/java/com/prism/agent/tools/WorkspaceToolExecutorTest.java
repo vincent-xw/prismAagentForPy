@@ -19,7 +19,7 @@ class WorkspaceToolExecutorTest {
 
     private Workspace workspace(Path root, String mode) {
         Instant now = Instant.now();
-        return new Workspace("w1", root.toString(), "l", null, null, mode, true, "idle", 0, null, now, now);
+        return new Workspace("w1", root.toString(), "l", null, null, mode, true, "idle", null, 0, null, now, now);
     }
 
     @Test

@@ -90,6 +90,7 @@ public class WorkspaceService {
                         mode,
                         current.active(),
                         current.indexStatus(),
+                        current.indexError(),
                         current.fileCount(),
                         current.indexedAt(),
                         current.createdAt(),
@@ -126,11 +127,20 @@ public class WorkspaceService {
                             new WorkspaceViews.Entry(
                                     path.getFileName().toString(),
                                     Files.isDirectory(path) ? "dir" : "file",
-                                    Files.isDirectory(path) ? null : safeSize(path))));
+                                    Files.isDirectory(path) ? null : safeSize(path),
+                                    modifiedAt(path))));
         } catch (IOException error) {
             throw new ApiException(ErrorCode.WORKSPACE_PATH_INVALID, "目录读取失败", 400, Map.of());
         }
         return new WorkspaceViews.Tree(entries);
+    }
+
+    private Double modifiedAt(Path path) {
+        try {
+            return Files.getLastModifiedTime(path).toMillis() / 1000.0;
+        } catch (IOException error) {
+            return null;
+        }
     }
 
     private Long safeSize(Path path) {

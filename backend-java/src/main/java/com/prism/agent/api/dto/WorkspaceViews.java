@@ -33,7 +33,9 @@ public final class WorkspaceViews {
             String permissionMode,
             boolean isActive,
             String indexStatus,
-            int fileCount) {
+            String indexError,
+            int fileCount,
+            java.time.Instant indexedAt) {
 
         public static View from(Workspace workspace) {
             return new View(
@@ -44,11 +46,13 @@ public final class WorkspaceViews {
                     workspace.permissionMode(),
                     workspace.active(),
                     workspace.indexStatus(),
-                    workspace.fileCount());
+                    workspace.indexError(),
+                    workspace.fileCount(),
+                    workspace.indexedAt());
         }
     }
 
-    public record Entry(String name, String type, Long size) {
+    public record Entry(String name, String type, Long size, Double modifiedAt) {
     }
 
     public record Tree(List<Entry> items) {

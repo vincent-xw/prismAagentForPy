@@ -103,6 +103,7 @@ public class MyBatisWorkspaceRepository implements WorkspaceRepository {
         entity.setPermissionMode(workspace.permissionMode());
         entity.setIsActive(workspace.active() ? 1 : 0);
         entity.setIndexStatus(workspace.indexStatus());
+        entity.setIndexError(workspace.indexError());
         entity.setFileCount(workspace.fileCount());
         entity.setIndexedAt(
                 workspace.indexedAt() == null
@@ -123,6 +124,7 @@ public class MyBatisWorkspaceRepository implements WorkspaceRepository {
                 entity.getPermissionMode() == null ? "workspace_write" : entity.getPermissionMode(),
                 entity.getIsActive() != null && entity.getIsActive() == 1,
                 entity.getIndexStatus() == null ? "idle" : entity.getIndexStatus(),
+                entity.getIndexError(),
                 entity.getFileCount() == null ? 0 : entity.getFileCount(),
                 entity.getIndexedAt() == null ? null : entity.getIndexedAt().toInstant(ZoneOffset.UTC),
                 entity.getCreatedAt().toInstant(ZoneOffset.UTC),
