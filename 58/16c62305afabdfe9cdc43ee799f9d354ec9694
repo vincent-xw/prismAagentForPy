@@ -1,0 +1,16 @@
+backend/src/prism_agent_kit/core/compaction.py
+  h_c3a612a540ca0b 1-115
+backend/tests/core/test_compaction_selection.py
+  h_c3a612a540ca0b 1-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5816c62305afabdfe9cdc43ee799f9d354ec9694",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
