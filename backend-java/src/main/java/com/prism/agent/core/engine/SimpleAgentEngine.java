@@ -20,6 +20,9 @@ import com.prism.agent.persistence.repository.ToolCallRepository;
 import com.prism.agent.providers.ModelPorts;
 import com.prism.agent.providers.ProviderResolver;
 import com.prism.agent.core.context.ContextAssembler;
+import com.prism.agent.core.domain.Workspace;
+import com.prism.agent.persistence.repository.WorkspaceRepository;
+import com.prism.agent.tools.WorkspaceToolExecutor;
 import com.prism.agent.tools.ToolRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -45,6 +48,8 @@ public class SimpleAgentEngine implements AgentEngine {
     private final TransactionTemplate transactionTemplate;
     private final ProviderResolver providerResolver;
     private final ContextAssembler assembler;
+    private final WorkspaceRepository workspaces;
+    private final WorkspaceToolExecutor workspaceTools;
     private ModelPorts.Provider fixedProvider;
     private final ToolRegistry toolRegistry;
     private final int maxSteps;
@@ -59,6 +64,8 @@ public class SimpleAgentEngine implements AgentEngine {
             TransactionTemplate transactionTemplate,
             ProviderResolver providerResolver,
             ContextAssembler assembler,
+            WorkspaceRepository workspaces,
+            WorkspaceToolExecutor workspaceTools,
             ToolRegistry toolRegistry,
             int maxSteps,
             double remoteToolTimeoutSeconds) {
@@ -70,6 +77,8 @@ public class SimpleAgentEngine implements AgentEngine {
         this.transactionTemplate = transactionTemplate;
         this.providerResolver = providerResolver;
         this.assembler = assembler;
+        this.workspaces = workspaces;
+        this.workspaceTools = workspaceTools;
         this.toolRegistry = toolRegistry;
         this.maxSteps = maxSteps;
         this.remoteToolTimeoutSeconds = remoteToolTimeoutSeconds;
@@ -95,6 +104,8 @@ public class SimpleAgentEngine implements AgentEngine {
                 hub,
                 transactionTemplate,
                 (ProviderResolver) null,
+                null,
+                null,
                 null,
                 toolRegistry,
                 maxSteps,
@@ -185,6 +196,69 @@ public class SimpleAgentEngine implements AgentEngine {
             return cancelRun(run.id());
         }
         return persistTurn(run, response);
+    }
+
+    /** 本地工具：同一进程内执行、写回 tool 消息并回队，无需等待外部结果。 */
+    private void dispatchLocalTools(Run run) {
+        List<ToolCall> pending =
+                toolCalls.listForRun(run.id()).stream()
+                        .filter(call -> !call.status().isTerminal())
+                        .toList();
+        if (pending.isEmpty()
+                || pending.stream().anyMatch(call -> call.executionMode() != ExecutionMode.LOCAL)) {
+            return;
+        }
+        Workspace workspace =
+                run.workspaceId() == null ? null : workspaces.requireById(run.workspaceId());
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        List<RunEvent> events = new ArrayList<>();
+        transactionTemplate.executeWithoutResult(
+                status -> {
+                    for (ToolCall call : pending) {
+                        try {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> input =
+                                    mapper.convertValue(call.input(), Map.class);
+                            Map<String, Object> result =
+                                    workspaceTools.execute(call.toolName(), input, workspace);
+                            toolCalls.complete(call.id(), result);
+                            Message message =
+                                    messages.append(
+                                            new Message(
+                                                    null,
+                                                    run.sessionId(),
+                                                    run.id(),
+                                                    MessageRole.TOOL,
+                                                    MessageKind.TEXT,
+                                                    result,
+                                                    null,
+                                                    call.id(),
+                                                    Instant.now()));
+                            events.add(
+                                    this.events.append(
+                                            run.id(),
+                                            EventType.TOOL_COMPLETED,
+                                            Map.of(
+                                                    "call_id", call.id(),
+                                                    "tool_name", call.toolName(),
+                                                    "message_id", message.id())));
+                        } catch (ApiException error) {
+                            toolCalls.fail(call.id(), error.code().name(), error.getMessage());
+                            events.add(
+                                    this.events.append(
+                                            run.id(),
+                                            EventType.TOOL_FAILED,
+                                            Map.of(
+                                                    "call_id", call.id(),
+                                                    "tool_name", call.toolName(),
+                                                    "error_code", error.code().name(),
+                                                    "error_message", error.getMessage())));
+                        }
+                    }
+                    runs.transition(run.id(), RunStatus.QUEUED, null, null, null);
+                    events.add(this.events.append(run.id(), EventType.RUN_REQUEUED, Map.of()));
+                });
+        events.forEach(hub::publish);
     }
 
     private ModelPorts.Provider provider(Run run) {
@@ -314,6 +388,9 @@ public class SimpleAgentEngine implements AgentEngine {
 
         // execute(...) 返回后事务已提交，再广播
         toPublish.forEach(hub::publish);
+        if (outcome.kind() == EngineOutcome.Kind.WAITING_FOR_TOOLS) {
+            dispatchLocalTools(run);
+        }
         return outcome;
     }
 

@@ -17,7 +17,9 @@ public record PrismProperties(
         Integer workerConcurrency,
         Integer maxSteps,
         Double remoteToolTimeoutSeconds,
-        Double sseHeartbeatSeconds) {
+        Double sseHeartbeatSeconds,
+        String workspaceRoot,
+        String workspaceUser) {
 
     public PrismProperties {
         environment = environment == null || environment.isBlank() ? "development" : environment;
@@ -31,6 +33,11 @@ public record PrismProperties(
         remoteToolTimeoutSeconds =
                 remoteToolTimeoutSeconds == null || remoteToolTimeoutSeconds <= 0 ? 300.0 : remoteToolTimeoutSeconds;
         sseHeartbeatSeconds = sseHeartbeatSeconds == null || sseHeartbeatSeconds <= 0 ? 15.0 : sseHeartbeatSeconds;
+        workspaceRoot =
+                workspaceRoot == null || workspaceRoot.isBlank()
+                        ? System.getProperty("user.home") + "/prism-workspaces"
+                        : workspaceRoot;
+        workspaceUser = workspaceUser == null || workspaceUser.isBlank() ? "default" : workspaceUser;
     }
 
     private static String normalizePrefix(String value) {

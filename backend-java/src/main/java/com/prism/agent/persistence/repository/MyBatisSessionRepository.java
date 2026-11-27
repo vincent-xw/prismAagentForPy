@@ -66,6 +66,15 @@ public class MyBatisSessionRepository implements SessionRepository {
     }
 
     @Override
+    public void updateWorkspace(String id, String workspaceId) {
+        mapper.update(
+                null,
+                Wrappers.<SessionEntity>lambdaUpdate()
+                        .eq(SessionEntity::getId, id)
+                        .set(SessionEntity::getWorkspaceId, workspaceId));
+    }
+
+    @Override
     public void touch(String id, Instant at) {
         int updated =
                 mapper.update(

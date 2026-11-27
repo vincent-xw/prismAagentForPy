@@ -18,4 +18,6 @@ public interface SessionRepository {
     void touch(String id, Instant at);
 
     void updateTitle(String id, String title);
+
+    void updateWorkspace(String id, String workspaceId);
 }

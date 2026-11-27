@@ -26,6 +26,8 @@ public class EngineConfiguration {
             TransactionTemplate transactionTemplate,
             com.prism.agent.providers.ProviderResolver providerResolver,
             com.prism.agent.core.context.ContextAssembler contextAssembler,
+            com.prism.agent.persistence.repository.WorkspaceRepository workspaceRepository,
+            com.prism.agent.tools.WorkspaceToolExecutor workspaceToolExecutor,
             ToolRegistry toolRegistry,
             PrismProperties properties) {
         return new SimpleAgentEngine(
@@ -37,6 +39,8 @@ public class EngineConfiguration {
                 transactionTemplate,
                 providerResolver,
                 contextAssembler,
+                workspaceRepository,
+                workspaceToolExecutor,
                 toolRegistry,
                 properties.maxSteps(),
                 properties.remoteToolTimeoutSeconds());
