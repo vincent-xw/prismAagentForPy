@@ -1,0 +1,26 @@
+backend/src/prism_agent_kit/api/dependencies.py
+  h_c3a612a540ca0b 6,39-43,110
+backend/src/prism_agent_kit/api/routes/sessions.py
+  h_c3a612a540ca0b 4,68-75
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 9,150-154,416,463
+backend/src/prism_agent_kit/application/context_usage_service.py
+  h_c3a612a540ca0b 1-79
+backend/src/prism_agent_kit/application/mcp/adapter.py
+  h_c3a612a540ca0b 56
+backend/tests/api/conftest.py
+  h_c3a612a540ca0b 17,64,145-146,148-152,234
+backend/tests/api/test_context_usage.py
+  h_c3a612a540ca0b 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "766c41502939a6ba16bebae62af0ee64cf0e0156",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
