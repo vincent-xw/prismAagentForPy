@@ -1,0 +1,46 @@
+backend-java/src/main/java/com/prism/agent/api/controller/McpController.java
+  h_c3a612a540ca0b 1-67
+backend-java/src/main/java/com/prism/agent/api/dto/McpViews.java
+  h_c3a612a540ca0b 1-65
+backend-java/src/main/java/com/prism/agent/application/mcp/McpConfigService.java
+  h_c3a612a540ca0b 1-193
+backend-java/src/main/java/com/prism/agent/application/mcp/McpRuntime.java
+  h_c3a612a540ca0b 1-18
+backend-java/src/main/java/com/prism/agent/application/mcp/McpToolNaming.java
+  h_c3a612a540ca0b 1-45
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 35-42
+backend-java/src/main/java/com/prism/agent/core/domain/McpServer.java
+  h_c3a612a540ca0b 1-31
+backend-java/src/main/java/com/prism/agent/core/domain/McpStatus.java
+  h_c3a612a540ca0b 1-27
+backend-java/src/main/java/com/prism/agent/persistence/entity/McpServerEntity.java
+  h_c3a612a540ca0b 1-54
+backend-java/src/main/java/com/prism/agent/persistence/mapper/McpServerMapper.java
+  h_c3a612a540ca0b 1-9
+backend-java/src/main/java/com/prism/agent/persistence/repository/McpServerRepository.java
+  h_c3a612a540ca0b 1-24
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisMcpServerRepository.java
+  h_c3a612a540ca0b 1-176
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisRunRepository.java
+  h_c3a612a540ca0b 168-180
+backend-java/src/main/java/com/prism/agent/persistence/repository/RunRepository.java
+  h_c3a612a540ca0b 27-28
+backend-java/src/main/resources/db/migration/V6__mcp_servers.sql
+  h_c3a612a540ca0b 1-19
+backend-java/src/test/java/com/prism/agent/api/McpConfigApiTest.java
+  h_c3a612a540ca0b 1-134
+backend-java/src/test/java/com/prism/agent/support/MySqlTestBase.java
+  h_c3a612a540ca0b 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "12a7662195c6a9ec3a7b180feaf8428af26136fe",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
