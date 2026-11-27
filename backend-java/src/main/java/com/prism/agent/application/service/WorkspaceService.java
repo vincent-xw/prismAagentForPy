@@ -114,6 +114,12 @@ public class WorkspaceService {
         Workspace workspace = repository.requireById(id);
         Path root = Paths.get(workspace.rootPath()).toAbsolutePath().normalize();
         int count = 0;
+        try {
+            // 数据卷重建后目录可能尚未创建：允许按记录路径重建空目录
+            Files.createDirectories(root);
+        } catch (IOException error) {
+            throw new ApiException(ErrorCode.WORKSPACE_PATH_INVALID, "工作区目录创建失败", 400, Map.of());
+        }
         try (var stream = Files.walk(root, 8)) {
             count = (int) stream
                     .filter(Files::isRegularFile)
