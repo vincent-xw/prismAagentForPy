@@ -1,0 +1,24 @@
+tests/contract/README.md
+  h_c3a612a540ca0b 1-19
+tests/contract/conftest.py
+  h_c3a612a540ca0b 1-30
+tests/contract/pyproject.toml
+  h_c3a612a540ca0b 1-9
+tests/contract/test_auth.py
+  h_c3a612a540ca0b 1-17
+tests/contract/test_health.py
+  h_c3a612a540ca0b 1-15
+tests/contract/uv.lock
+  h_c3a612a540ca0b 1-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ecd74503e82377416b82dc0e31ad429dd056afd6",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
