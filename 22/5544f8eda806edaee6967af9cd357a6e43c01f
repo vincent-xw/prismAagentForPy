@@ -1,0 +1,28 @@
+backend-java/src/main/java/com/prism/agent/api/controller/RunController.java
+  h_c3a612a540ca0b 5-6,8,24,26,28,42-49
+backend-java/src/main/java/com/prism/agent/api/dto/ToolCallView.java
+  h_c3a612a540ca0b 1-27
+backend-java/src/main/java/com/prism/agent/api/dto/ToolResultRequest.java
+  h_c3a612a540ca0b 1-8
+backend-java/src/main/java/com/prism/agent/application/service/ToolResultService.java
+  h_c3a612a540ca0b 1-191
+backend-java/src/main/java/com/prism/agent/persistence/mapper/ToolCallMapper.java
+  h_c3a612a540ca0b 6-7,11-13
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisToolCallRepository.java
+  h_c3a612a540ca0b 64-96
+backend-java/src/main/java/com/prism/agent/persistence/repository/ToolCallRepository.java
+  h_c3a612a540ca0b 16-21
+backend-java/src/test/java/com/prism/agent/api/ToolResultApiTest.java
+  h_c3a612a540ca0b 1-159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "225544f8eda806edaee6967af9cd357a6e43c01f",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
