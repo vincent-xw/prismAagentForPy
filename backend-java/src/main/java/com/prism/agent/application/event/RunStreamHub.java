@@ -136,10 +136,14 @@ public class RunStreamHub implements RunEventPublisher {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("type", event.type().wire());
         data.put("run_id", event.runId());
-        if (event.payload() instanceof Map<?, ?> payload) {
-            payload.forEach((key, value) -> data.put(String.valueOf(key), value));
-        } else if (event.payload() != null) {
-            data.put("payload", event.payload());
+        Object payload = event.payload();
+        if (payload instanceof Map<?, ?> map) {
+            map.forEach((key, value) -> data.put(String.valueOf(key), value));
+        } else if (payload instanceof com.fasterxml.jackson.databind.JsonNode node && node.isObject()) {
+            // 从库里重放时 payload 是 JsonNode：必须平铺，否则 UI 拿不到 error_code 等顶层字段。
+            node.fields().forEachRemaining(entry -> data.put(entry.getKey(), objectMapper.convertValue(entry.getValue(), Object.class)));
+        } else if (payload != null) {
+            data.put("payload", payload);
         }
         try {
             return objectMapper.writeValueAsString(data);

@@ -117,7 +117,11 @@ class SseStreamTest extends MySqlTestBase {
 
         assertThat(frames).extracting(frame -> frame[0]).containsExactly("run.queued", "run.cancelled");
         assertThat(frames).extracting(frame -> frame[1]).containsExactly("1", "2");
-        assertThat(frames.get(0)[2]).contains("\"type\":\"run.queued\"").contains(runId);
+        assertThat(frames.get(0)[2])
+                .contains("\"type\":\"run.queued\"")
+                .contains(runId)
+                .contains("\"prompt_ref\"")
+                .doesNotContain("\"payload\"");
     }
 
     @Test
