@@ -1,0 +1,46 @@
+backend/migrations/versions/20261127_0009_workspace_permissions.py
+  h_c3a612a540ca0b 1-33
+backend/src/prism_agent_kit/api/routes/workspaces.py
+  h_c3a612a540ca0b 13,40-58
+backend/src/prism_agent_kit/api/schemas.py
+  h_c3a612a540ca0b 228-229,242-243,260,262-271
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 285-286
+backend/src/prism_agent_kit/application/workspace_service.py
+  h_c3a612a540ca0b 55-56,63-64,81-101,112-118,125-154,203-213
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 48-49
+backend/src/prism_agent_kit/core/engine.py
+  h_c3a612a540ca0b 193,196-197,412,713,730
+backend/src/prism_agent_kit/core/errors.py
+  h_c3a612a540ca0b 46-47
+backend/src/prism_agent_kit/core/ports.py
+  h_c3a612a540ca0b 86-87
+backend/src/prism_agent_kit/core/workspace.py
+  h_c3a612a540ca0b 16-18
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 235-237,254-256
+backend/src/prism_agent_kit/db/models.py
+  h_c3a612a540ca0b 29-31
+backend/src/prism_agent_kit/db/repositories/workspaces.py
+  h_c3a612a540ca0b 80-94
+backend/src/prism_agent_kit/tools/contracts.py
+  h_c3a612a540ca0b 27
+backend/src/prism_agent_kit/tools/workspace_tools.py
+  h_c3a612a540ca0b 106-166,270,274,295,297-298,307-311,367-375
+backend/tests/application/test_workspace_permissions.py
+  h_c3a612a540ca0b 1-49
+backend/tests/tools/test_file_tool_permissions.py
+  h_c3a612a540ca0b 1-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d8c26ae7e27147cdaaf735e00b01bdbc1eca0760",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
