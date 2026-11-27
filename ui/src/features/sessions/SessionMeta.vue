@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Check, ChevronDown, Copy, FolderClosed } from '@lucide/vue'
-import { ref } from 'vue'
+import { ChevronDown, FolderClosed } from '@lucide/vue'
 
 import {
   Select,
@@ -16,8 +15,6 @@ const props = defineProps<{
   workspaces: WorkspaceDto[]
 }>()
 const emit = defineEmits<{ bind: [workspaceId: string | null] }>()
-const copied = ref(false)
-
 function label(workspaceId: string | null): string {
   if (workspaceId === null) return '未绑定工作区'
   const workspace = props.workspaces.find((item) => item.id === workspaceId)
@@ -25,16 +22,6 @@ function label(workspaceId: string | null): string {
   return (
     workspace.label ?? workspace.root_path.split('/').filter(Boolean).pop() ?? workspace.root_path
   )
-}
-
-async function copySessionId(): Promise<void> {
-  try {
-    await navigator.clipboard.writeText(props.session.id)
-    copied.value = true
-    window.setTimeout(() => (copied.value = false), 1500)
-  } catch {
-    copied.value = false
-  }
 }
 
 function onSelect(value: unknown): void {
@@ -61,16 +48,5 @@ function onSelect(value: unknown): void {
         </SelectItem>
       </SelectContent>
     </Select>
-    <button
-      type="button"
-      class="group inline-flex h-7 items-center gap-1 rounded-full border px-2 text-[11px] text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
-      :aria-label="copied ? '已复制会话 ID' : '复制会话 ID'"
-      :title="copied ? '已复制' : `复制会话 ID：${session.id}`"
-      @click="copySessionId"
-    >
-      <Check v-if="copied" class="size-3.5 text-primary" />
-      <Copy v-else class="size-3.5" />
-      <span class="hidden sm:inline">{{ copied ? '已复制' : '复制 ID' }}</span>
-    </button>
   </div>
 </template>

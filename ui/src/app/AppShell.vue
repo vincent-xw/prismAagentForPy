@@ -13,7 +13,7 @@ import {
 import { useAppContext } from './context'
 import SessionSidebar from '@/features/sessions/SessionSidebar.vue'
 import SessionMeta from '@/features/sessions/SessionMeta.vue'
-import ContextUsageBar from '@/features/sessions/ContextUsageBar.vue'
+import SessionIdCopy from '@/features/sessions/SessionIdCopy.vue'
 import type { WorkspaceDto } from '@/lib/api/contracts'
 const context = useAppContext()
 const { conversation, connection, client } = context
@@ -168,17 +168,18 @@ onMounted(() => {
           class="text-muted-foreground hover:text-foreground"
           ><ArrowLeft class="size-4"
         /></RouterLink>
-        <h2 class="min-w-0 truncate text-[13px] font-medium">{{ title }}</h2>
+        <div class="min-w-0">
+          <h2 class="truncate text-[13px] font-medium">{{ title }}</h2>
+          <SessionIdCopy
+            v-if="currentSession !== null && !settings && !workspace"
+            :session-id="currentSession.id"
+          />
+        </div>
         <SessionMeta
           v-if="currentSession !== null && !settings && !workspace"
           :session="currentSession"
           :workspaces="workspaces"
           @bind="bindWorkspace"
-        />
-        <ContextUsageBar
-          v-if="client && currentSession !== null && !settings && !workspace"
-          :client="client"
-          :session-id="currentSession.id"
         />
         <nav
           v-if="currentSession !== null && !settings && !workspace"
