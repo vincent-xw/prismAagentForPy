@@ -1,0 +1,20 @@
+backend-java/src/main/java/com/prism/agent/config/EngineConfiguration.java
+  h_c3a612a540ca0b 31,45
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 26,54,71,85,114,228
+backend-java/src/main/java/com/prism/agent/tools/LocalToolInvoker.java
+  h_c3a612a540ca0b 1-33
+backend-java/src/test/java/com/prism/agent/tools/LocalToolDispatchTest.java
+  h_c3a612a540ca0b 1-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2f2ba0b89a9bce032e9aab741b66760d0742efc9",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
