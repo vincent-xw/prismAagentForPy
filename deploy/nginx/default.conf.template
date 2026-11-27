@@ -30,6 +30,11 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
+    # 入口 HTML 不缓存，保证发版后浏览器立刻拿到新的 asset 引用。
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+
     # SPA 回退：只有 /api/ 之外才回退到 index.html。
     location / {
         try_files $uri $uri/ /index.html;
