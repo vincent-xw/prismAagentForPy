@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import time
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import timedelta
 from pathlib import Path
@@ -248,6 +249,16 @@ class SimpleAgentEngine:
                         force=False,
                     )
 
+            await self._record_event(
+                run.id,
+                EventType.STEP_STARTED,
+                {
+                    "step_index": current.step_count,
+                    "model": current.model,
+                    "model_profile_id": current.model_profile_id,
+                },
+            )
+            step_started_at = time.perf_counter()
             retried_overflow = False
             while True:
                 try:
@@ -270,6 +281,19 @@ class SimpleAgentEngine:
                             max_output_tokens=max_output_tokens,
                         ),
                         on_delta=lambda chunk: self._publish_delta(run.id, chunk),
+                    )
+                    await self._record_event(
+                        run.id,
+                        EventType.STEP_COMPLETED,
+                        {
+                            "step_index": current.step_count,
+                            "usage": response.usage.model_dump()
+                            if response.usage is not None
+                            else None,
+                            "duration_ms": round((time.perf_counter() - step_started_at) * 1000, 2),
+                            "finish_reason": response.finish_reason,
+                            "tool_call_ids": [call.call_id for call in response.tool_calls],
+                        },
                     )
                     break
                 except asyncio.CancelledError:
@@ -295,6 +319,15 @@ class SimpleAgentEngine:
                             force=True,
                         )
                         continue
+                    await self._record_event(
+                        run.id,
+                        EventType.STEP_FAILED,
+                        {
+                            "step_index": current.step_count,
+                            "error_code": error.code.value,
+                            "duration_ms": round((time.perf_counter() - step_started_at) * 1000, 2),
+                        },
+                    )
                     if await self._is_cancel_requested(run.id, context.cancel):
                         return await self._cancel_run(run.id)
                     return await self._fail_run(run.id, error.code, error.message)

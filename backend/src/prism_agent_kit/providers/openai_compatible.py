@@ -8,6 +8,7 @@ from openai import (
     APIStatusError,
     APITimeoutError,
     AsyncOpenAI,
+    BadRequestError,
     RateLimitError,
 )
 from pydantic import SecretStr
@@ -142,6 +143,7 @@ class OpenAICompatibleProvider:
         reasoning_parts: list[str] = []
         calls: dict[int, dict[str, str]] = {}
         usage: TokenUsage | None = None
+        finish_reason: str | None = None
 
         async for chunk in stream:
             if chunk.usage is not None:
@@ -151,6 +153,8 @@ class OpenAICompatibleProvider:
                     total_tokens=chunk.usage.total_tokens,
                 )
             for choice in chunk.choices:
+                if choice.finish_reason is not None:
+                    finish_reason = choice.finish_reason
                 delta = choice.delta
                 text = delta.content or ""
                 reasoning = _reasoning_delta(delta)
@@ -217,6 +221,7 @@ class OpenAICompatibleProvider:
             reasoning=reasoning_text,
             tool_calls=tool_calls,
             usage=usage,
+            finish_reason=finish_reason,
         )
 
     def _require_client(self) -> AsyncOpenAI:
@@ -316,6 +321,22 @@ class OpenAICompatibleProvider:
                 "模型请求超时",
                 http_status=504,
             )
+        if isinstance(error, BadRequestError):
+            message = str(error).lower()
+            if any(
+                marker in message
+                for marker in (
+                    "context_length_exceeded",
+                    "maximum context",
+                    "too many tokens",
+                    "context window",
+                )
+            ):
+                return AgentKitError(
+                    ErrorCode.CONTEXT_OVERFLOW,
+                    "模型上下文超出窗口",
+                    http_status=422,
+                )
         if isinstance(error, RateLimitError):
             return AgentKitError(
                 ErrorCode.MODEL_RATE_LIMITED,
