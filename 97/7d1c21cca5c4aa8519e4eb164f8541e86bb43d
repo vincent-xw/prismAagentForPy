@@ -1,0 +1,20 @@
+.dockerignore
+  h_c3a612a540ca0b 1-14
+backend/.dockerignore
+  h_c3a612a540ca0b 1-9
+backend/Dockerfile
+  h_c3a612a540ca0b 1-37
+backend/docker/entrypoint.sh
+  h_c3a612a540ca0b 1-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "977d1c21cca5c4aa8519e4eb164f8541e86bb43d",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
