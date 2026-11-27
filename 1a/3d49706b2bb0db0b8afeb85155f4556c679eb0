@@ -1,0 +1,42 @@
+backend-java/pom.xml
+  h_c3a612a540ca0b 36-40
+backend-java/src/main/java/com/prism/agent/api/controller/SkillController.java
+  h_c3a612a540ca0b 1-29
+backend-java/src/main/java/com/prism/agent/api/dto/SkillViews.java
+  h_c3a612a540ca0b 1-21
+backend-java/src/main/java/com/prism/agent/application/service/SkillService.java
+  h_c3a612a540ca0b 1-34
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 35-39
+backend-java/src/main/java/com/prism/agent/config/PrismProperties.java
+  h_c3a612a540ca0b 22-27,46-58
+backend-java/src/main/java/com/prism/agent/config/SkillConfiguration.java
+  h_c3a612a540ca0b 1-33
+backend-java/src/main/java/com/prism/agent/core/skills/Frontmatter.java
+  h_c3a612a540ca0b 1-66
+backend-java/src/main/java/com/prism/agent/core/skills/SkillCatalog.java
+  h_c3a612a540ca0b 1-186
+backend-java/src/main/java/com/prism/agent/core/skills/SkillPackage.java
+  h_c3a612a540ca0b 1-8
+backend-java/src/main/java/com/prism/agent/core/skills/SkillResource.java
+  h_c3a612a540ca0b 1-4
+backend-java/src/main/java/com/prism/agent/core/skills/SkillSummary.java
+  h_c3a612a540ca0b 1-5
+backend-java/src/main/resources/application.yml
+  h_c3a612a540ca0b 45-49
+backend-java/src/test/java/com/prism/agent/api/SkillsApiTest.java
+  h_c3a612a540ca0b 1-72
+backend-java/src/test/java/com/prism/agent/core/skills/SkillCatalogTest.java
+  h_c3a612a540ca0b 1-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "1a3d49706b2bb0db0b8afeb85155f4556c679eb0",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
