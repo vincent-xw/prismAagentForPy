@@ -23,7 +23,7 @@ def test_mcp_server_crud(api_client) -> None:
     assert api_client.get("/api/v1/mcp/servers").json() == []
 
 
-def test_mcp_secret_rejected(api_client) -> None:
+def test_mcp_plaintext_secret_is_masked(api_client) -> None:
     response = api_client.post(
         "/api/v1/mcp/servers",
         json={
@@ -33,8 +33,11 @@ def test_mcp_secret_rejected(api_client) -> None:
             "env": {"API_KEY": "sk-abcdefghijklmnopqrstuvwxyz"},
         },
     )
-    assert response.status_code == 400
-    assert response.json()["error"]["code"] == "MCP_CONFIG_INVALID"
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["env"] == {"API_KEY": "***"}
+    assert body["env_keys"] == ["API_KEY"]
+    assert "sk-abcdefghijklmnopqrstuvwxyz" not in response.text
 
 
 def test_mcp_enable_tools_disable(api_client) -> None:
