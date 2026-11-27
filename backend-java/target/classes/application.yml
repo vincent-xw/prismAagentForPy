@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: prism-agent-java
+
+server:
+  port: ${PRISM_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      base-path: /internal/actuator
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
