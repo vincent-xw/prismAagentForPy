@@ -95,7 +95,7 @@ public class ContextAssembler {
         int budget = budget(run);
         int tokens = estimator.estimateMessages(pruned.messages());
         if (!force && tokens <= (int) (budget * TRIGGER_RATIO)) {
-            return new ContextBuild(pruned.messages(), false, null);
+            return ContextBuild.unchanged(pruned.messages());
         }
         return compact(run, pruned.messages(), tokens, budget);
     }
@@ -114,7 +114,7 @@ public class ContextAssembler {
         }
         if (cursor <= 0 || working.get(cursor).id() == null) {
             appendEvent(run.id(), EventType.COMPACTION_SKIPPED, Map.of("reason", "no_compressible_segment"));
-            return new ContextBuild(working, false, null);
+            return ContextBuild.unchanged(working);
         }
         List<Message> older = working.subList(0, cursor);
         List<Message> kept = new ArrayList<>(working.subList(cursor, working.size()));
@@ -132,7 +132,7 @@ public class ContextAssembler {
                     run.id(),
                     EventType.COMPACTION_FAILED,
                     Map.of("error_code", "COMPACTION_FAILED", "error", "摘要生成失败"));
-            return new ContextBuild(working, false, null);
+            return ContextBuild.unchanged(working);
         }
 
         String checkpointId = UUID.randomUUID().toString();
@@ -164,7 +164,7 @@ public class ContextAssembler {
                                             "tokens_after", tokensAfter));
                     hub.publish(event);
                 });
-        return new ContextBuild(assembled, true, checkpointId);
+        return new ContextBuild(assembled, true, checkpointId, tokensBefore, tokensAfter);
     }
 
     private Message syntheticCheckpoint(CompactionCheckpoint checkpoint) {

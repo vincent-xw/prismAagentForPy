@@ -19,6 +19,11 @@ public interface RunRepository {
 
     List<Run> listByStatus(RunStatus status);
 
+    /** 倒序取会话的 Run（轨迹用）。before 为 null 表示不限时间。 */
+    List<Run> listForSession(String sessionId, int limit, java.time.Instant before);
+
+    boolean hasActiveRun(String sessionId);
+
     Run markCancelRequested(String id);
 
     void updateStepCount(String id, int stepCount);

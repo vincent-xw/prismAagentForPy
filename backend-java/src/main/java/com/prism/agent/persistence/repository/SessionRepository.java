@@ -16,4 +16,6 @@ public interface SessionRepository {
     List<Session> listRecentFirst();
 
     void touch(String id, Instant at);
+
+    void updateTitle(String id, String title);
 }

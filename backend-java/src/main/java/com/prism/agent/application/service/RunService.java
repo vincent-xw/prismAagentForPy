@@ -45,6 +45,7 @@ public class RunService {
     private final PrismProperties properties;
     private final ModelProfileService profiles;
     private final ProfileCredentialResolver credentials;
+    private final SessionTitleService titleService;
 
     public RunService(
             RunRepository runs,
@@ -56,7 +57,8 @@ public class RunService {
             TransactionTemplate transactionTemplate,
             PrismProperties properties,
             ModelProfileService profiles,
-            ProfileCredentialResolver credentials) {
+            ProfileCredentialResolver credentials,
+            SessionTitleService titleService) {
         this.runs = runs;
         this.messages = messages;
         this.sessions = sessions;
@@ -67,6 +69,7 @@ public class RunService {
         this.properties = properties;
         this.profiles = profiles;
         this.credentials = credentials;
+        this.titleService = titleService;
     }
 
     public Run create(String sessionId, RunCreateRequest request) {
@@ -136,6 +139,7 @@ public class RunService {
                     });
             // 事务提交后再广播：订阅者读库时一定能看到事件行。
             publisher.publishAll(events.listAfter(stored.id(), null));
+            titleService.maybeGenerate(sessions.requireById(sessionId), stored);
             return stored;
         } catch (DuplicateKeyException error) {
             throw new ApiException(

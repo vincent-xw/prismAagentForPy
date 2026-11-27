@@ -143,6 +143,36 @@ public class MyBatisRunRepository implements RunRepository {
     }
 
     @Override
+    public List<Run> listForSession(String sessionId, int limit, java.time.Instant before) {
+        LocalDateTime beforeLocal =
+                before == null ? null : LocalDateTime.ofInstant(before, ZoneOffset.UTC);
+        return mapper
+                .selectList(
+                        Wrappers.<RunEntity>lambdaQuery()
+                                .eq(RunEntity::getSessionId, sessionId)
+                                .lt(beforeLocal != null, RunEntity::getCreatedAt, beforeLocal)
+                                .orderByDesc(RunEntity::getCreatedAt, RunEntity::getId)
+                                .last("LIMIT " + limit))
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public boolean hasActiveRun(String sessionId) {
+        return mapper.selectCount(
+                        Wrappers.<RunEntity>lambdaQuery()
+                                .eq(RunEntity::getSessionId, sessionId)
+                                .in(
+                                        RunEntity::getStatus,
+                                        RunStatus.QUEUED.wire(),
+                                        RunStatus.RUNNING.wire(),
+                                        RunStatus.WAITING_FOR_TOOL.wire(),
+                                        RunStatus.WAITING_FOR_APPROVAL.wire()))
+                > 0;
+    }
+
+    @Override
     public Run markCancelRequested(String id) {
         mapper.update(
                 null,
