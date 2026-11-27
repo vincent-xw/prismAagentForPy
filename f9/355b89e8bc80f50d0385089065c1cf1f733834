@@ -1,0 +1,26 @@
+tests/contract/test_workspaces.py
+  h_c3a612a540ca0b 1-71
+ui/src/features/workspace/WorkspacePage.vue
+  h_c3a612a540ca0b 11-17,111-148
+ui/src/features/workspace/workspace.ts
+  h_c3a612a540ca0b 4,35-36,101,109,115-140,189-190
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 29-34,184-191
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 82-83,227-233
+ui/tests/unit/session-meta.test.ts
+  h_c3a612a540ca0b 19-20
+ui/tests/unit/workspace.test.ts
+  h_c3a612a540ca0b 10-11,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f9355b89e8bc80f50d0385089065c1cf1f733834",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
