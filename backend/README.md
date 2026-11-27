@@ -89,7 +89,7 @@ cp .env.example .env
 
 模型 HTTP 客户端遵循 `HTTP_PROXY`、`HTTPS_PROXY` 与 `ALL_PROXY` 环境变量；依赖已包含 `httpx[socks]`，可直接使用 `socks5://` 代理。
 
-模型密钥只从环境变量读取，不写入 SQLite、日志、SSE 或错误响应。`.env` 不应提交到 Git。
+模型密钥可通过 UI 配置并保存在本地数据库（仅本机可读；**备份即密钥备份**）；未配置时回退到 `api_key_env` 指向的环境变量。任何 API 响应、日志、SSE 与错误 details 都只暴露 `has_key`，不出现密钥值。`.env` 不应提交到 Git。
 
 ### 3. 初始化数据库
 

@@ -1,5 +1,8 @@
 package com.prism.agent.support;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -14,6 +17,24 @@ import org.springframework.test.context.DynamicPropertySource;
  * Phase 2 引入 Compose 后由 {@code mysql-java} 服务承担同一职责。
  */
 public abstract class MySqlTestBase {
+
+    /**
+     * 测试类之间共享同一个库：基座统一清表，避免"某个类留下激活档案"污染其它类的
+     * Run 创建（激活档案缺密钥时创建 Run 会 422，属正确行为，不是缺陷）。
+     */
+    @Autowired
+    protected JdbcTemplate jdbc;
+
+    @BeforeEach
+    void resetBusinessTables() {
+        jdbc.update("delete from run_events");
+        jdbc.update("delete from tool_calls");
+        jdbc.update("delete from messages");
+        jdbc.update("delete from runs");
+        jdbc.update("delete from model_profiles");
+        jdbc.update("delete from sessions");
+    }
+
 
     private static final String JDBC_URL =
             "jdbc:mysql://127.0.0.1:13306/prism_test"
