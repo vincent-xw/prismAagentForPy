@@ -1,0 +1,36 @@
+backend-java/src/main/java/com/prism/agent/config/EngineConfiguration.java
+  h_c3a612a540ca0b 28,39
+backend-java/src/main/java/com/prism/agent/core/context/CompactionSummarizer.java
+  h_c3a612a540ca0b 1-62
+backend-java/src/main/java/com/prism/agent/core/context/ContextAssembler.java
+  h_c3a612a540ca0b 1-197
+backend-java/src/main/java/com/prism/agent/core/context/ContextBuild.java
+  h_c3a612a540ca0b 1-7
+backend-java/src/main/java/com/prism/agent/core/domain/CompactionCheckpoint.java
+  h_c3a612a540ca0b 1-14
+backend-java/src/main/java/com/prism/agent/core/domain/EventType.java
+  h_c3a612a540ca0b 23-28
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 22,47,61,72,98,131-134,140,145-172,194-222
+backend-java/src/main/java/com/prism/agent/persistence/entity/CompactionCheckpointEntity.java
+  h_c3a612a540ca0b 1-37
+backend-java/src/main/java/com/prism/agent/persistence/mapper/CompactionCheckpointMapper.java
+  h_c3a612a540ca0b 1-9
+backend-java/src/main/java/com/prism/agent/persistence/repository/CompactionCheckpointRepository.java
+  h_c3a612a540ca0b 1-14
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisCompactionCheckpointRepository.java
+  h_c3a612a540ca0b 1-75
+backend-java/src/test/java/com/prism/agent/application/CompactionTest.java
+  h_c3a612a540ca0b 1-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f530b935725da6ad8f0a98a05ec817161d11df59",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
