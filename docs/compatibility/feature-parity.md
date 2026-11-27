@@ -27,7 +27,7 @@
 | 上下文使用量展示 | Verified | Implemented | **Contract Passed** | Pending | Pending | `GET /sessions/{id}/context` 双端通过；估算器差异按相对值断言 |
 | Workspace / 文件工具 / 权限档位 | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_workspaces.py` 双端通过；逐工具审批按 K-09 不启用 |
 | MCP Client | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_mcp.py` 双端通过；Java 官方 SDK（stdio + Streamable HTTP） |
-| Skills | Verified | Pending | Pending | Pending | Pending | Phase 6 |
+| Skills | Verified | Implemented | **Contract Passed** | Pending | Pending | Phase 6：列表/详情、Run 注入、skill 工具；示例技能 prism-demo |
 | 命名工作区（V1.5 扩展） | Not started | Not started | Pending | Pending | Pending | 两端同时实现 |
 
 `Python = Verified` 表示已有语言内测试与运行验证；跨语言一致性仍需 Phase 2 起的契约与 parity 测试证明。
