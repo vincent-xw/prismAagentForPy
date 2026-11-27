@@ -60,3 +60,21 @@ test('打开目录会加载条目', async () => {
   expect(client.getTree).toHaveBeenCalledWith('w1', 'docs')
   expect(controller.state.currentPath).toBe('docs')
 })
+
+test('full_access 需要二次确认，取消则不调用 PATCH', async () => {
+  const client = fakeClient()
+  const controller = createWorkspaceController({ client: client as unknown as CoreClient })
+  const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+  const changed = await controller.setPermission('w1', 'full_access')
+
+  expect(changed).toBe(false)
+  expect(confirmSpy).toHaveBeenCalledTimes(1)
+  expect(client.updateWorkspace).not.toHaveBeenCalled()
+
+  confirmSpy.mockReturnValue(true)
+  const accepted = await controller.setPermission('w1', 'full_access')
+  expect(accepted).toBe(true)
+  expect(client.updateWorkspace).toHaveBeenCalledWith('w1', { permission_mode: 'full_access' })
+  confirmSpy.mockRestore()
+})
