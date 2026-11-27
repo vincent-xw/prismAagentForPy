@@ -54,7 +54,7 @@ curl http://127.0.0.1:8080/api/v1/health
 ./mvnw verify
 ```
 
-集成测试连接 `127.0.0.1:13306` 的开发库（见上），因此运行前需要隧道在线；每个测试类自行清理写入的数据。
+集成测试连接 `127.0.0.1:13306` 上的**独立测试库 `prism_test`**（与开发库 `prism` 隔离，见 `src/test/resources/application.properties`），因此运行前需要隧道在线；每个测试类自行清理写入的数据。`JsonContractTest` 只加载 Jackson 自动配置，不依赖数据库。
 
 ## 当前范围
 

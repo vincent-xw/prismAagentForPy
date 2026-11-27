@@ -1,8 +1,9 @@
-# 本地 IDE 调试：先启动 MySQL（docker run -d --name prism-mysql -e MYSQL_DATABASE=prism -e MYSQL_ROOT_PASSWORD=prism -p 3307:3306 mysql:8.4）
+# 本地 IDE 调试：开发库跑在内网服务器（不使用本机 Docker）。
+# 先建立隧道：ssh -N -L 13306:127.0.0.1:13306 srv
 spring:
   datasource:
-    url: jdbc:mysql://127.0.0.1:3307/prism?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
-    username: root
+    url: jdbc:mysql://127.0.0.1:13306/prism?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+    username: prism
     password: prism
 
 prism:

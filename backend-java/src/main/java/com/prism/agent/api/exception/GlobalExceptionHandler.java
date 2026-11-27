@@ -11,8 +11,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -44,6 +47,21 @@ public class GlobalExceptionHandler {
                 "请求方法不允许",
                 request,
                 null);
+    }
+
+    @ExceptionHandler({HttpMessageNotReadableException.class, HttpMediaTypeNotSupportedException.class})
+    public ResponseEntity<Map<String, Object>> handleUnreadableBody(
+            Exception exception, HttpServletRequest request) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("loc", List.of("body"));
+        item.put("msg", "请求体无法解析");
+        item.put("type", "value_error");
+        return envelope(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                ErrorCode.VALIDATION_ERROR,
+                "请求参数校验失败",
+                request,
+                Map.of("errors", List.of(item)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -97,8 +115,9 @@ public class GlobalExceptionHandler {
         error.put("message", message);
         error.put("request_id", requestId);
         error.put("details", details == null ? Map.of() : details);
+        // 响应头由 RequestIdFilter 统一写入；这里再写一次会产生重复头（客户端会拼成 "id, id"）。
         return ResponseEntity.status(status)
-                .header(RequestIdFilter.HEADER, requestId)
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(Map.of("error", error));
     }
 
@@ -108,4 +127,5 @@ public class GlobalExceptionHandler {
                 ? value
                 : java.util.UUID.randomUUID().toString();
     }
+
 }

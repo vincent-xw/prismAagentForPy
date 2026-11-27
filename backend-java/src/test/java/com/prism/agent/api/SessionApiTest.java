@@ -123,6 +123,7 @@ class SessionApiTest extends MySqlTestBase {
         JsonNode items = response.getBody().get("items");
         assertThat(items.isArray()).isTrue();
         assertThat(items.size()).isEqualTo(2);
-        assertThat(items.get(0).get("title").asText()).isNotBlank();
+        assertThat(items.get(0).get("title").asText()).isEqualTo("b");
+        assertThat(items.get(1).get("title").asText()).isEqualTo("a");
     }
 }

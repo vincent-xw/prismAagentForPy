@@ -6,9 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+/**
+ * 只加载 Jackson 自动配置：序列化契约必须在没有数据库、没有 Web 容器的情况下也能验证，
+ * 这样 CI 里可以单独跑它。
+ */
+@SpringBootTest(classes = JacksonAutoConfiguration.class)
 class JsonContractTest {
 
     @Autowired
