@@ -54,11 +54,6 @@ async function refresh(): Promise<void> {
   if (state.active !== null && state.entries.length === 0) await controller.openDirectory('.')
 }
 
-async function choose(): Promise<void> {
-  await controller.chooseDirectory()
-  syncPolling()
-}
-
 async function bind(): Promise<void> {
   if (manualPath.value.trim() === '') return
   await controller.bindPath(manualPath.value.trim())
@@ -84,13 +79,12 @@ onUnmounted(stopPolling)
             当前工作区<span class="ml-1">（用于新建会话，已有会话保持原绑定）</span>
           </p>
           <p class="truncate text-sm font-medium">
-            {{ state.active?.root_path ?? '尚未选择目录' }}
+            {{ state.active?.root_path ?? '尚未创建工作区' }}
           </p>
         </div>
         <span class="rounded border px-2 py-0.5 text-[11px] text-muted-foreground">{{
           statusLabel
         }}</span>
-        <Button size="sm" :disabled="state.loading" @click="choose">选择目录</Button>
         <Button
           variant="outline"
           size="sm"
