@@ -6,6 +6,10 @@ spring:
     serialization:
       write-dates-as-timestamps: false
     default-property-inclusion: always
+  mvc:
+    async:
+      # SSE 长连接不允许被容器默认 30s 超时切断
+      request-timeout: -1
   datasource:
     url: ${PRISM_DB_URL:jdbc:mysql://127.0.0.1:3307/prism?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true}
     username: ${PRISM_DB_USER:prism}
