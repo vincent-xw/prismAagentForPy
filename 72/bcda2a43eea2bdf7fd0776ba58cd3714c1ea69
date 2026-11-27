@@ -1,0 +1,16 @@
+docs/superpowers/plans/2026-11-27-java-runtime-parity-phase3b1.md
+  h_c3a612a540ca0b 1-348
+docs/superpowers/specs/2026-11-27-java-runtime-v14-parity-phase3b-design.md
+  h_c3a612a540ca0b 1-123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "72bcda2a43eea2bdf7fd0776ba58cd3714c1ea69",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
