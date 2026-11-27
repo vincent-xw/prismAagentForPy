@@ -1,0 +1,30 @@
+backend/migrations/versions/20261127_0007_v14_compaction_profiles.py
+  h_c3a612a540ca0b 1-73
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 57-63
+backend/src/prism_agent_kit/core/enums.py
+  h_c3a612a540ca0b 50
+backend/src/prism_agent_kit/core/errors.py
+  h_c3a612a540ca0b 60-66
+backend/src/prism_agent_kit/core/models.py
+  h_c3a612a540ca0b 43-45,103-130
+backend/src/prism_agent_kit/db/mappers.py
+  h_c3a612a540ca0b 81-83,108-110
+backend/src/prism_agent_kit/db/models.py
+  h_c3a612a540ca0b 101-106,197-241
+backend/tests/core/test_config.py
+  h_c3a612a540ca0b 65-76
+backend/tests/db/test_migration.py
+  h_c3a612a540ca0b 279-295
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "33630c5dc115aaab9d50d0fa8a2a48081c2899f6",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
