@@ -1,0 +1,28 @@
+backend-java/README.md
+  h_c3a612a540ca0b 57
+backend-java/src/main/java/com/prism/agent/api/exception/GlobalExceptionHandler.java
+  h_c3a612a540ca0b 14,16,18,52-66,118,120,130
+backend-java/src/main/resources/application-local.yml
+  h_c3a612a540ca0b 1-2,5-6
+backend-java/src/test/java/com/prism/agent/api/ContractHardeningTest.java
+  h_c3a612a540ca0b 1-78
+backend-java/src/test/java/com/prism/agent/api/SessionApiTest.java
+  h_c3a612a540ca0b 126-127
+backend-java/src/test/java/com/prism/agent/config/JsonContractTest.java
+  h_c3a612a540ca0b 9,12-16
+backend-java/src/test/java/com/prism/agent/support/MySqlTestBase.java
+  h_c3a612a540ca0b 7,9-11,13-14,19-21,26
+backend-java/src/test/resources/application.properties
+  h_c3a612a540ca0b 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2fb6aacc085f09d45f9fcf04a7b5d94d1d5950c5",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
