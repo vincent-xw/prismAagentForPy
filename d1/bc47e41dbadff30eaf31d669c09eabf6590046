@@ -1,0 +1,26 @@
+backend-java/src/main/java/com/prism/agent/application/service/RunService.java
+  h_c3a612a540ca0b 10-11,51,64-65,77,90-95,117,132-150,215-227
+backend-java/src/main/java/com/prism/agent/tools/LocalToolInvoker.java
+  h_c3a612a540ca0b 17,19-20,23,27-31
+backend-java/src/main/java/com/prism/agent/tools/SkillTool.java
+  h_c3a612a540ca0b 1-86
+backend-java/src/main/java/com/prism/agent/tools/SkillToolRegistrar.java
+  h_c3a612a540ca0b 1-28
+backend-java/src/test/java/com/prism/agent/application/RunSkillInjectionTest.java
+  h_c3a612a540ca0b 1-96
+backend-java/src/test/java/com/prism/agent/tools/LocalToolDispatchTest.java
+  h_c3a612a540ca0b 20-21
+backend-java/src/test/java/com/prism/agent/tools/SkillToolTest.java
+  h_c3a612a540ca0b 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d1bc47e41dbadff30eaf31d669c09eabf6590046",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
