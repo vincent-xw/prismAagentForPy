@@ -36,3 +36,13 @@ def client(base_url: str, token: str) -> httpx.Client:
         timeout=30.0,
     ) as http:
         yield http
+
+
+def pytest_collection_modifyitems(config, items):
+    """未设置 UI 地址时跳过 UI 反代用例：后端契约与 UI 契约各自独立成链。"""
+    if os.environ.get("PRISM_CONTRACT_UI_BASE_URL"):
+        return
+    skip = pytest.mark.skip(reason="未设置 PRISM_CONTRACT_UI_BASE_URL，跳过 UI 反代用例")
+    for item in items:
+        if "ui_base_url" in getattr(item, "fixturenames", ()):
+            item.add_marker(skip)
