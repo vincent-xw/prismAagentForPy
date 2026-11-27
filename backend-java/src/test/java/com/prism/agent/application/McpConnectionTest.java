@@ -51,8 +51,10 @@ class McpConnectionTest extends MySqlTestBase {
                 .extracting(tool -> tool.name())
                 .contains("mcp__stdio-demo__echo", "mcp__stdio-demo__slow", "mcp__stdio-demo__boom");
 
-        Object result = manager.callTool(server.id(), "echo", Map.of("text", "hi"));
-        assertThat(result).isEqualTo(Map.of("text", "hi", "truncated", false));
+        @SuppressWarnings("unchecked")
+        var result = (java.util.Map<String, Object>) manager.callTool(server.id(), "echo", Map.of("text", "hi"));
+        assertThat(result.get("text")).isEqualTo("hi");
+        assertThat(result.get("truncated")).isEqualTo(false);
 
         manager.disable(server.id());
 
@@ -83,8 +85,10 @@ class McpConnectionTest extends MySqlTestBase {
             assertThat(manager.toolsOf(server.id()))
                     .extracting(tool -> tool.name())
                     .contains("mcp__http-demo__echo");
-            Object result = manager.callTool(server.id(), "echo", Map.of("text", "hello"));
-            assertThat(result).isEqualTo(Map.of("text", "hello", "truncated", false));
+            @SuppressWarnings("unchecked")
+            var result = (java.util.Map<String, Object>) manager.callTool(server.id(), "echo", Map.of("text", "hello"));
+            assertThat(result.get("text")).isEqualTo("hello");
+            assertThat(result.get("truncated")).isEqualTo(false);
 
             manager.disable(server.id());
         } finally {

@@ -57,7 +57,7 @@ public final class McpViews {
     public record Tool(String name, String description, Map<String, Object> inputSchema) {
     }
 
-    public record Tools(List<Tool> items) {
+    public record Tools(String serverId, List<Tool> tools) {
     }
 
     public record Probe(String id, Instant createdAt) {

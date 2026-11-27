@@ -62,6 +62,6 @@ public class McpController {
 
     @GetMapping("/servers/{id}/tools")
     public McpViews.Tools tools(@PathVariable String id) {
-        return new McpViews.Tools(service.toolsOf(id));
+        return new McpViews.Tools(id, service.toolsOf(id));
     }
 }

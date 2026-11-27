@@ -50,8 +50,8 @@ def test_masked_patch_keeps_secret(client):
 
 def test_invalid_transport_is_400(client):
     response = client.post("/api/v1/mcp/servers", json={"name": _name(), "transport": "grpc"})
-    assert response.status_code == 400, response.text
-    assert response.json()["error"]["code"] == "MCP_CONFIG_INVALID"
+    assert response.status_code == 422, response.text
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
 
 
 def test_duplicate_name_is_400(client):
@@ -71,6 +71,7 @@ def test_tools_empty_for_disabled_server(client):
     try:
         tools = client.get(f"/api/v1/mcp/servers/{created['id']}/tools")
         assert tools.status_code == 200, tools.text
-        assert tools.json()["items"] == []
+        assert tools.json()["server_id"] == created["id"]
+        assert tools.json()["tools"] == []
     finally:
         client.delete(f"/api/v1/mcp/servers/{created['id']}")

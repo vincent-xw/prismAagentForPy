@@ -161,7 +161,11 @@ public class McpConfigService {
             throw invalid("服务名不能为空，且不超过 64 个字符");
         }
         if (!"stdio".equals(request.getTransport()) && !"http".equals(request.getTransport())) {
-            throw invalid("transport 必须是 stdio 或 http");
+            // Python 侧 transport 是 Literal，非法值走 422 VALIDATION_ERROR
+            throw new ApiException(
+                    ErrorCode.VALIDATION_ERROR, "transport 必须是 stdio 或 http", 422,
+                    Map.of("errors", List.of(Map.of(
+                            "loc", List.of("body", "transport"), "msg", "must be stdio or http"))));
         }
         if ("stdio".equals(request.getTransport())
                 && (request.getCommand() == null || request.getCommand().isBlank())) {

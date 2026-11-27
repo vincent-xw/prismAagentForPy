@@ -81,8 +81,8 @@ class McpConfigApiTest extends MySqlTestBase {
         Map<String, Object> body = Map.of("name", "bad", "transport", "grpc");
         ResponseEntity<JsonNode> response = call(HttpMethod.POST, "/api/v1/mcp/servers", body);
 
-        assertThat(response.getStatusCode().value()).isEqualTo(400);
-        assertThat(response.getBody().at("/error/code").asText()).isEqualTo("MCP_CONFIG_INVALID");
+        assertThat(response.getStatusCode().value()).isEqualTo(422);
+        assertThat(response.getBody().at("/error/code").asText()).isEqualTo("VALIDATION_ERROR");
     }
 
     @Test
@@ -135,7 +135,7 @@ class McpConfigApiTest extends MySqlTestBase {
 
         JsonNode tools = call(HttpMethod.GET, "/api/v1/mcp/servers/" + id + "/tools", null).getBody();
 
-        assertThat(tools.get("items")).isEmpty();
-        assertThat(List.of(tools.get("items").isArray())).contains(true);
+        assertThat(tools.get("server_id").asText()).isEqualTo(id);
+        assertThat(tools.get("tools")).isEmpty();
     }
 }

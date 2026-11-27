@@ -192,6 +192,18 @@ public class McpConnectionManager implements McpRuntime {
         Map<String, Object> output = new LinkedHashMap<>();
         output.put("text", text);
         output.put("truncated", truncated);
+        if (result.structuredContent() != null) {
+            try {
+                String raw = objectMapper.writeValueAsString(result.structuredContent());
+                if (raw.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_RESULT_BYTES) {
+                    output.put("structured", Map.of("truncated", true));
+                } else {
+                    output.put("structured", result.structuredContent());
+                }
+            } catch (com.fasterxml.jackson.core.JsonProcessingException error) {
+                output.put("structured", Map.of("truncated", true));
+            }
+        }
         if (!images.isEmpty()) {
             output.put("images", images);
         }
