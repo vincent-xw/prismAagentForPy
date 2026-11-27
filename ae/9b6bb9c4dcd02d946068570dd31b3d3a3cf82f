@@ -1,0 +1,44 @@
+backend-java/src/main/java/com/prism/agent/api/controller/SessionCompactionController.java
+  h_c3a612a540ca0b 1-24
+backend-java/src/main/java/com/prism/agent/api/controller/TrajectoryController.java
+  h_c3a612a540ca0b 1-43
+backend-java/src/main/java/com/prism/agent/api/dto/CompactionResultView.java
+  h_c3a612a540ca0b 1-9
+backend-java/src/main/java/com/prism/agent/api/dto/TrajectoryViews.java
+  h_c3a612a540ca0b 1-23
+backend-java/src/main/java/com/prism/agent/application/service/RunService.java
+  h_c3a612a540ca0b 48,60-61,72,142
+backend-java/src/main/java/com/prism/agent/application/service/SessionCompactionService.java
+  h_c3a612a540ca0b 1-45
+backend-java/src/main/java/com/prism/agent/application/service/SessionTitleService.java
+  h_c3a612a540ca0b 1-76
+backend-java/src/main/java/com/prism/agent/application/service/TrajectoryService.java
+  h_c3a612a540ca0b 1-129
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 27
+backend-java/src/main/java/com/prism/agent/core/context/ContextAssembler.java
+  h_c3a612a540ca0b 98,117,135,167
+backend-java/src/main/java/com/prism/agent/core/context/ContextBuild.java
+  h_c3a612a540ca0b 6-11
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisRunRepository.java
+  h_c3a612a540ca0b 145-174
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisSessionRepository.java
+  h_c3a612a540ca0b 59-67
+backend-java/src/main/java/com/prism/agent/persistence/repository/RunRepository.java
+  h_c3a612a540ca0b 22-26
+backend-java/src/main/java/com/prism/agent/persistence/repository/SessionRepository.java
+  h_c3a612a540ca0b 19-20
+backend-java/src/test/java/com/prism/agent/api/TrajectoryApiTest.java
+  h_c3a612a540ca0b 1-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ae9b6bb9c4dcd02d946068570dd31b3d3a3cf82f",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
