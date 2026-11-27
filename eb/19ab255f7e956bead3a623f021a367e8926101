@@ -1,0 +1,16 @@
+tests/contract/test_runs.py
+  h_c3a612a540ca0b 1-43
+tests/mock-model/server.py
+  h_c3a612a540ca0b 1-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "eb19ab255f7e956bead3a623f021a367e8926101",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
