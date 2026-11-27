@@ -24,6 +24,7 @@
 | 轨迹投影 | Verified | Implemented | **Contract Passed** | Pending | Pending | `tests/contract/test_trajectory.py` 双端通过 |
 | Model Profile | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_model_profiles.py` 双端通过；密钥只写、只回 `has_key` |
 | 会话标题生成 | Verified | Implemented | Pending | Pending | Pending | 依赖模型 Provider，无密钥时仅告警 |
+| 上下文使用量展示 | Verified | Implemented | **Contract Passed** | Pending | Pending | `GET /sessions/{id}/context` 双端通过；估算器差异按相对值断言 |
 | Workspace / 文件工具 / 权限档位 | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_workspaces.py` 双端通过；逐工具审批按 K-09 不启用 |
 | MCP Client | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_mcp.py` 双端通过；Java 官方 SDK（stdio + Streamable HTTP） |
 | Skills | Verified | Pending | Pending | Pending | Pending | Phase 6 |
