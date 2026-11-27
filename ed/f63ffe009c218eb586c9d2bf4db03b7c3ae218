@@ -1,0 +1,22 @@
+deploy/nginx/default.conf.template
+  h_c3a612a540ca0b 1-33
+tests/contract/conftest.py
+  h_c3a612a540ca0b 23-30
+tests/contract/test_ui_proxy.py
+  h_c3a612a540ca0b 1-31
+ui/.dockerignore
+  h_c3a612a540ca0b 1-4
+ui/Dockerfile
+  h_c3a612a540ca0b 1-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "edf63ffe009c218eb586c9d2bf4db03b7c3ae218",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
