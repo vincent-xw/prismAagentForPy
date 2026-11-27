@@ -1,0 +1,14 @@
+docs/superpowers/specs/2026-11-28-phase6-skills-design.md
+  h_c3a612a540ca0b 34,36,49,55,60,67,80,92-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a59de443baf599e3d1f43b6314a0a3bf1606d5a9",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
