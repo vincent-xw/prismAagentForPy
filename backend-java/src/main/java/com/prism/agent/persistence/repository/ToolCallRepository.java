@@ -13,5 +13,11 @@ public interface ToolCallRepository {
 
     List<ToolCall> listForSession(String sessionId);
 
+    ToolCall lockById(String callId);
+
+    void complete(String callId, Object output);
+
+    void fail(String callId, String errorCode, String errorMessage);
+
     void markClosed(String callId, com.prism.agent.core.domain.ToolCallStatus status, String errorCode, String errorMessage);
 }

@@ -62,6 +62,39 @@ public class MyBatisToolCallRepository implements ToolCallRepository {
     }
 
     @Override
+    public ToolCall lockById(String callId) {
+        ToolCallEntity entity = mapper.lockById(callId);
+        if (entity == null) {
+            throw new ApiException(
+                    ErrorCode.TOOL_CALL_NOT_FOUND, "ToolCall 不存在", 404, Map.of("call_id", callId));
+        }
+        return toDomain(entity);
+    }
+
+    @Override
+    public void complete(String callId, Object output) {
+        mapper.update(
+                null,
+                Wrappers.<ToolCallEntity>lambdaUpdate()
+                        .eq(ToolCallEntity::getId, callId)
+                        .set(ToolCallEntity::getStatus, ToolCallStatus.SUCCEEDED.wire())
+                        .set(ToolCallEntity::getOutput, writeJson(output))
+                        .set(ToolCallEntity::getFinishedAt, toLocal(Instant.now())));
+    }
+
+    @Override
+    public void fail(String callId, String errorCode, String errorMessage) {
+        mapper.update(
+                null,
+                Wrappers.<ToolCallEntity>lambdaUpdate()
+                        .eq(ToolCallEntity::getId, callId)
+                        .set(ToolCallEntity::getStatus, ToolCallStatus.FAILED.wire())
+                        .set(ToolCallEntity::getErrorCode, errorCode)
+                        .set(ToolCallEntity::getErrorMessage, errorMessage)
+                        .set(ToolCallEntity::getFinishedAt, toLocal(Instant.now())));
+    }
+
+    @Override
     public void markClosed(String callId, ToolCallStatus status, String errorCode, String errorMessage) {
         mapper.update(
                 null,
