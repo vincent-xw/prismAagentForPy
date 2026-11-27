@@ -6,8 +6,9 @@
 
 ```bash
 # 本机
-rsync -az --delete --exclude .git --exclude 'backend-java/target' \
-  --exclude 'ui/node_modules' --exclude '.superpowers' ./ srv:~/prism-agent/
+rsync -az --delete --exclude .git --exclude '.env' \
+  --exclude 'backend-java/target' --exclude 'ui/node_modules' \
+  --exclude '.superpowers' ./ srv:~/prism-agent/
 
 # 服务器
 cd ~/prism-agent
@@ -68,10 +69,16 @@ cd backend-java && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 
 ## 5. 数据备份
 
+先停库再打包（运行中直接 tar InnoDB 文件可能得到不可恢复的备份）：
+
 ```bash
+docker compose stop mysql-java
 docker run --rm -v prism-agent_mysql-data:/var/lib/mysql:ro -v /tmp:/backup alpine \
   tar czf /backup/mysql-$(date +%F).tgz -C /var/lib/mysql .
+docker compose start mysql-java
 ```
+
+或不停库，用逻辑备份：`docker compose exec mysql-java mysqldump --single-transaction -uroot -p"$MYSQL_ROOT_PASSWORD" prism > backup.sql`。
 
 SQLite 直接备份卷里的 `agent.db`（先停 `backend-python`）。
 
@@ -80,7 +87,7 @@ SQLite 直接备份卷里的 `agent.db`（先停 `backend-python`）。
 | 现象 | 先看 |
 |---|---|
 | 502/504 且 UI 打不开 | `docker compose ps` 里对应 backend 是否 healthy；`logs backend-*` |
-| 健康检查一直 starting | 模型配置缺失会让 Python 启动失败（日志有明确报错） |
+| 健康检查一直 starting | 模型配置缺失会让 Python 启动失败（日志有明确报错）；`MODEL_BASE_URL` 指向 localhost 会被 entrypoint 直接拒绝 |
 | Java 连不上库 | `mysql-java` 是否 healthy；`PRISM_DB_URL` 是否指向服务名而非 localhost |
 | SSE 卡住 | nginx 模板是否被改回默认（`proxy_buffering off` 必须保留） |
 | 端口冲突 | 服务器 8080 已被其他项目占用，本项目刻意避开 |

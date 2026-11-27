@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1.7
 FROM --platform=$BUILDPLATFORM node:22-slim AS build
+# 构建期必需；不能依赖未入库的 ui/.env（否则干净检出无法构建）
+ENV VITE_API_BASE_PATH=/api/v1
 RUN corepack enable
 WORKDIR /app
 COPY ui/package.json ui/pnpm-lock.yaml ui/.npmrc ./

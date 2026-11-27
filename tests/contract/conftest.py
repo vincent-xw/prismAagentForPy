@@ -39,10 +39,19 @@ def client(base_url: str, token: str) -> httpx.Client:
 
 
 def pytest_collection_modifyitems(config, items):
-    """未设置 UI 地址时跳过 UI 反代用例：后端契约与 UI 契约各自独立成链。"""
+    """UI 反代用例只能被显式跳过（PRISM_CONTRACT_SKIP_UI=1）。
+
+    默认行为是"没配 UI 地址就视为失败"，避免 CI 忘记变量时静默变绿。
+    """
     if os.environ.get("PRISM_CONTRACT_UI_BASE_URL"):
         return
-    skip = pytest.mark.skip(reason="未设置 PRISM_CONTRACT_UI_BASE_URL，跳过 UI 反代用例")
-    for item in items:
-        if "ui_base_url" in getattr(item, "fixturenames", ()):
-            item.add_marker(skip)
+    if os.environ.get("PRISM_CONTRACT_SKIP_UI") == "1":
+        skip = pytest.mark.skip(reason="PRISM_CONTRACT_SKIP_UI=1，显式跳过 UI 反代用例")
+        for item in items:
+            if "ui_base_url" in getattr(item, "fixturenames", ()):
+                item.add_marker(skip)
+        return
+    pytest.fail(
+        "缺少 PRISM_CONTRACT_UI_BASE_URL：要么提供 UI 地址，要么显式设置 PRISM_CONTRACT_SKIP_UI=1",
+        pytrace=False,
+    )

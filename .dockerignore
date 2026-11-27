@@ -10,5 +10,6 @@
 **/target
 **/dist
 **/test-results
-.env
+**/.env
+!**/.env.example
 **/*.db

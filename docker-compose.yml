@@ -52,7 +52,8 @@ services:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/v1/health"]
       interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 5
+      start_period: 45s
     logging: *logging
     restart: unless-stopped
 
@@ -77,10 +78,17 @@ services:
       mysql-java:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/api/v1/health"]
+      # readiness 含 db：MySQL 掉线后必须变 unhealthy，而不是"健康但全 500"
+      test:
+        - CMD-SHELL
+        - >-
+          curl -fsS -H "Authorization: Bearer $$PRISM_API_TOKEN"
+          http://127.0.0.1:8080/internal/actuator/health/readiness
+          | grep -q '"status":"UP"'
       interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 3
+      start_period: 60s
     logging: *logging
     restart: unless-stopped
 
@@ -98,10 +106,12 @@ services:
       backend-python:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      # 必须验证 API 反代可达：只测静态页会让错误的 API_TARGET 保持 healthy
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/v1/health"]
       interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 3
+      start_period: 15s
     logging: *logging
     restart: unless-stopped
 
@@ -115,10 +125,12 @@ services:
       backend-java:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      # 必须验证 API 反代可达：只测静态页会让错误的 API_TARGET 保持 healthy
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/v1/health"]
       interval: 10s
       timeout: 5s
-      retries: 12
+      retries: 3
+      start_period: 15s
     logging: *logging
     restart: unless-stopped
 
