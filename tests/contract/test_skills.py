@@ -30,7 +30,7 @@ def test_skill_detail_has_resources(client):
 def test_unknown_skill_is_rejected(client):
     response = client.get("/api/v1/skills/no-such-skill")
 
-    assert response.status_code == 400, response.text
+    assert response.status_code == 404, response.text
     assert response.json()["error"]["code"] == "SKILL_NOT_FOUND"
 
 

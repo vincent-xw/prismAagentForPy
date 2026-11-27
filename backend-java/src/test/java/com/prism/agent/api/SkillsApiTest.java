@@ -63,10 +63,10 @@ class SkillsApiTest extends MySqlTestBase {
     }
 
     @Test
-    void unknownSkillIs400() {
+    void unknownSkillIs404() {
         ResponseEntity<JsonNode> response = get("/api/v1/skills/nope");
 
-        assertThat(response.getStatusCode().value()).isEqualTo(400);
+        assertThat(response.getStatusCode().value()).isEqualTo(404);
         assertThat(response.getBody().at("/error/code").asText()).isEqualTo("SKILL_NOT_FOUND");
     }
 }

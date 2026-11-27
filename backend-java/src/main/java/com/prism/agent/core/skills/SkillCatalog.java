@@ -53,7 +53,7 @@ public class SkillCatalog {
                 winners().stream().filter(item -> item.name().equals(name)).findFirst();
         if (summary.isEmpty()) {
             throw new ApiException(
-                    ErrorCode.SKILL_NOT_FOUND, "技能不存在: " + name, 400, Map.of("skill_name", name));
+                    ErrorCode.SKILL_NOT_FOUND, "技能不存在: " + name, 404, Map.of("name", name));
         }
         return load(Path.of(summary.get().path()));
     }

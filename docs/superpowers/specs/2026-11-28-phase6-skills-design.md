@@ -94,7 +94,7 @@
 | 场景 | 状态码 | code |
 |---|---|---|
 | 技能包解析/路径/过大/非 UTF-8 | 400 | `SKILL_INVALID` / `SKILL_PATH_INVALID` / `SKILL_RESOURCE_TOO_LARGE` |
-| `/skills/{name}` 未找到 | 400 | `SKILL_NOT_FOUND` |
+| `/skills/{name}` 未找到 | 404 | `SKILL_NOT_FOUND`（details.name） |
 | 创建 Run 引用未知技能 | 422 | `SKILL_NOT_FOUND`（details.skill_name） |
 | 技能目录未装配 | 503 | `SKILL_CATALOG_UNAVAILABLE` |
 
