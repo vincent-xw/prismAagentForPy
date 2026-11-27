@@ -21,7 +21,7 @@ class ErrorEnvelopeTest {
 
     @Test
     void unknownRouteReturnsEnvelopeWithRequestId() throws Exception {
-        mvc.perform(get("/api/v1/does-not-exist"))
+        mvc.perform(get("/api/v1/does-not-exist").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.error.message").isNotEmpty())
@@ -32,14 +32,16 @@ class ErrorEnvelopeTest {
 
     @Test
     void postUnknownRouteAlsoReturnsEnvelope() throws Exception {
-        mvc.perform(post("/api/v1/does-not-exist"))
+        mvc.perform(post("/api/v1/does-not-exist").header("Authorization", "Bearer test-token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("NOT_FOUND"));
     }
 
     @Test
     void incomingRequestIdIsEchoed() throws Exception {
-        mvc.perform(get("/api/v1/does-not-exist").header("X-Request-ID", "req-123"))
+        mvc.perform(get("/api/v1/does-not-exist")
+                        .header("Authorization", "Bearer test-token")
+                        .header("X-Request-ID", "req-123"))
                 .andExpect(header().string("X-Request-ID", "req-123"))
                 .andExpect(jsonPath("$.error.request_id").value("req-123"));
     }

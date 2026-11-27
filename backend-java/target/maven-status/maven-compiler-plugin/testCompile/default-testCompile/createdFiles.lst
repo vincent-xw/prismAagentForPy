@@ -1,4 +1,5 @@
 com/prism/agent/PrismAgentApplicationTests.class
 com/prism/agent/config/JsonContractTest$Probe.class
+com/prism/agent/api/ApiTokenFilterTest.class
 com/prism/agent/api/ErrorEnvelopeTest.class
 com/prism/agent/config/JsonContractTest.class
