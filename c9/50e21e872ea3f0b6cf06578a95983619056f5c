@@ -1,0 +1,24 @@
+backend/src/prism_agent_kit/core/compaction.py
+  h_c3a612a540ca0b 6,116-140
+backend/src/prism_agent_kit/core/context.py
+  h_c3a612a540ca0b 41-69,157-163
+backend/src/prism_agent_kit/db/repositories/checkpoints.py
+  h_c3a612a540ca0b 1-37
+backend/src/prism_agent_kit/db/uow.py
+  h_c3a612a540ca0b 6,33,47
+backend/tests/core/test_context_checkpoint.py
+  h_c3a612a540ca0b 1-40
+backend/tests/db/test_checkpoints_repository.py
+  h_c3a612a540ca0b 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "c950e21e872ea3f0b6cf06578a95983619056f5c",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
