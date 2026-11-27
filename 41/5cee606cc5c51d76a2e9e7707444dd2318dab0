@@ -1,0 +1,18 @@
+contracts/openapi/prism-agent-api.yaml
+  h_c3a612a540ca0b 1516-1520,1536,1585-1587,1598
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 20-26
+tests/contract/test_runs.py
+  h_c3a612a540ca0b 4,41-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "415cee606cc5c51d76a2e9e7707444dd2318dab0",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
