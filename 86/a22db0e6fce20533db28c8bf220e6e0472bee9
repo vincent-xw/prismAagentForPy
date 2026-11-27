@@ -1,0 +1,20 @@
+backend-java/src/main/java/com/prism/agent/core/skills/SkillCatalog.java
+  h_c3a612a540ca0b 56
+backend-java/src/test/java/com/prism/agent/api/SkillsApiTest.java
+  h_c3a612a540ca0b 66,69
+docs/superpowers/specs/2026-11-28-phase6-skills-design.md
+  h_c3a612a540ca0b 97
+tests/contract/test_skills.py
+  h_c3a612a540ca0b 33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "86a22db0e6fce20533db28c8bf220e6e0472bee9",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
