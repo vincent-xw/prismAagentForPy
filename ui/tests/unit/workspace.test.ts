@@ -78,3 +78,15 @@ test('full_access 需要二次确认，取消则不调用 PATCH', async () => {
   expect(client.updateWorkspace).toHaveBeenCalledWith('w1', { permission_mode: 'full_access' })
   confirmSpy.mockRestore()
 })
+
+test('按名称创建项目会调用创建接口并带上档位', async () => {
+  const client = fakeClient()
+  const controller = createWorkspaceController({ client: client as unknown as CoreClient })
+
+  await controller.createNamed('demo', 'workspace_write')
+
+  expect(client.createWorkspace).toHaveBeenCalledWith({
+    name: 'demo',
+    permission_mode: 'workspace_write',
+  })
+})

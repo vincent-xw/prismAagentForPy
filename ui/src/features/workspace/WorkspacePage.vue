@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createWorkspaceController } from './workspace'
 
-const { client } = useAppContext()
+const { client, conversation } = useAppContext()
 const controller = createWorkspaceController({ client })
 const namedWorkspace = ref('')
 const workspaceMode = ref<'read_only' | 'workspace_write' | 'full_access'>('workspace_write')
@@ -16,7 +16,6 @@ const MODES = [
   { value: 'full_access', label: '完全权限' },
 ] as const
 const state = controller.state
-const manualPath = ref('')
 const timer = ref<number | null>(null)
 
 const statusLabel = computed(() => {
@@ -54,10 +53,14 @@ async function refresh(): Promise<void> {
   if (state.active !== null && state.entries.length === 0) await controller.openDirectory('.')
 }
 
-async function bind(): Promise<void> {
-  if (manualPath.value.trim() === '') return
-  await controller.bindPath(manualPath.value.trim())
-  manualPath.value = ''
+async function createProject(): Promise<void> {
+  const name = namedWorkspace.value.trim()
+  if (name === '') return
+  await controller.createNamed(name, workspaceMode.value)
+  const workspaceId = controller.state.active?.id
+  const sessionId = conversation.value?.state.selectedSessionId ?? null
+  if (workspaceId && sessionId) await client.setSessionWorkspace(sessionId, workspaceId)
+  namedWorkspace.value = ''
   syncPolling()
 }
 
@@ -93,20 +96,12 @@ onUnmounted(stopPolling)
           >重建索引</Button
         >
       </div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <Input
-          v-model="manualPath"
-          class="max-w-md"
-          placeholder="或直接输入绝对路径，例如 /Users/me/project"
-          @keyup.enter="bind"
-        />
-        <Button variant="outline" size="sm" :disabled="state.loading" @click="bind">绑定</Button>
-      </div>
       <div class="mt-3 flex flex-wrap items-center gap-2">
         <Input
           v-model="namedWorkspace"
           class="max-w-xs"
-          placeholder="新建工作区名称（重名自动加后缀）"
+          placeholder="新建项目目录名，例如 my-project"
+          @keyup.enter="createProject"
         />
         <select v-model="workspaceMode" class="rounded-lg border bg-background px-2 py-1 text-sm">
           <option v-for="mode in MODES" :key="mode.value" :value="mode.value">
@@ -117,9 +112,9 @@ onUnmounted(stopPolling)
           variant="outline"
           size="sm"
           :disabled="state.loading || namedWorkspace.trim() === ''"
-          @click="controller.createNamed(namedWorkspace.trim(), workspaceMode)"
+          @click="createProject"
         >
-          创建工作区
+          创建并绑定项目
         </Button>
         <span v-if="state.active !== null" class="text-xs text-muted-foreground">
           当前档位
