@@ -1,4 +1,8 @@
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/PrismAgentApplication.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/controller/SessionController.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/SessionCreateRequest.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/SessionListResponse.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/SessionView.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/exception/GlobalExceptionHandler.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/security/ApiTokenFilter.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/security/RequestIdFilter.java

@@ -6,6 +6,7 @@ import com.prism.agent.persistence.entity.SessionEntity;
 import com.prism.agent.persistence.mapper.SessionMapper;
 import com.prism.agent.support.MySqlTestBase;
 import java.time.LocalDateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +20,11 @@ class SessionMapperTest extends MySqlTestBase {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @BeforeEach
+    void cleanSessions() {
+        jdbc.update("delete from sessions");
+    }
 
     @Test
     void flywayBaselineApplied() {

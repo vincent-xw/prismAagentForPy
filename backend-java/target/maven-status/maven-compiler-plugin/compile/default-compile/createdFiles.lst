@@ -1,10 +1,14 @@
 com/prism/agent/persistence/mapper/SessionMapper.class
 com/prism/agent/core/domain/Session.class
 com/prism/agent/config/PrismProperties.class
+com/prism/agent/api/dto/SessionListResponse.class
 com/prism/agent/api/exception/GlobalExceptionHandler.class
 com/prism/agent/common/ErrorCode.class
+com/prism/agent/api/dto/SessionView.class
 com/prism/agent/common/ApiException.class
 com/prism/agent/api/security/ApiTokenFilter.class
+com/prism/agent/api/controller/SessionController.class
+com/prism/agent/api/dto/SessionCreateRequest.class
 com/prism/agent/PrismAgentApplication.class
 com/prism/agent/application/service/SessionService.class
 com/prism/agent/api/security/RequestIdFilter.class

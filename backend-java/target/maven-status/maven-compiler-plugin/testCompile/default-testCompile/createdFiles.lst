@@ -3,6 +3,7 @@ com/prism/agent/application/SessionServiceTest.class
 com/prism/agent/config/JsonContractTest.class
 com/prism/agent/persistence/SessionMapperTest.class
 com/prism/agent/config/JsonContractTest$Probe.class
+com/prism/agent/api/SessionApiTest.class
 com/prism/agent/api/ApiTokenFilterTest.class
 com/prism/agent/api/ErrorEnvelopeTest.class
 com/prism/agent/support/MySqlTestBase.class

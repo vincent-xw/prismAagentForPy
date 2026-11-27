@@ -9,15 +9,25 @@ import com.prism.agent.common.ErrorCode;
 import com.prism.agent.core.domain.Session;
 import com.prism.agent.support.MySqlTestBase;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @SpringBootTest
 class SessionServiceTest extends MySqlTestBase {
 
     @Autowired
     SessionService service;
+
+    @Autowired
+    JdbcTemplate jdbc;
+
+    @BeforeEach
+    void cleanSessions() {
+        jdbc.update("delete from sessions");
+    }
 
     @Test
     void createAssignsUuidAndTimestamps() {
