@@ -1,17 +1,18 @@
 import asyncio
-from collections.abc import Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import cast
 
 from pydantic import JsonValue
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.model_profile_service import ModelProfileService
 from prism_agent_kit.application.session_title_service import SessionTitleService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
 from prism_agent_kit.application.skills.package import SkillError, render_skill_content
 from prism_agent_kit.core.enums import EventType, MessageKind, MessageRole, RunStatus
 from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.models import Message, Run, RunEvent
-from prism_agent_kit.core.ports import EventEnvelope, EventPublisher
+from prism_agent_kit.core.ports import EventEnvelope, EventPublisher, ModelProvider
 from prism_agent_kit.core.prompts import Prompt, PromptRegistry
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 
@@ -38,6 +39,8 @@ class RunService:
         title_service: SessionTitleService | None = None,
         skill_catalog: SkillCatalog | None = None,
         skills_max_context_chars: int = 20_000,
+        profiles: ModelProfileService | None = None,
+        provider_resolver: Callable[[Run], Awaitable[ModelProvider]] | None = None,
     ) -> None:
         self._uow_factory = uow_factory
         self._prompt_registry = prompt_registry
@@ -48,6 +51,8 @@ class RunService:
         self._title_service = title_service
         self._skill_catalog = skill_catalog
         self._skills_max_context_chars = skills_max_context_chars
+        self._profiles = profiles
+        self._provider_resolver = provider_resolver
 
     async def create(
         self,
@@ -77,6 +82,10 @@ class RunService:
                     http_status=422,
                     details={"skill_name": skill_name},
                 ) from error
+        profile = await self._profiles.active() if self._profiles is not None else None
+        model_name = profile.model if profile is not None else self._model_name
+        model_context_window = profile.context_window if profile is not None else None
+        model_max_output_tokens = profile.max_output_tokens if profile is not None else None
         system_prompt = prompt.content
         if self._skill_catalog is not None:
             catalog_block = await asyncio.to_thread(self._skill_catalog.render_catalog)
@@ -93,7 +102,10 @@ class RunService:
                     prompt_name=prompt.name,
                     prompt_version=prompt.version,
                     system_prompt=system_prompt,
-                    model=self._model_name,
+                    model=model_name,
+                    model_profile_id=profile.id if profile is not None else None,
+                    model_context_window=model_context_window,
+                    model_max_output_tokens=model_max_output_tokens,
                     skill_name=skill_name,
                 )
             )
@@ -134,10 +146,14 @@ class RunService:
             )
             await uow.commit()
         if self._title_service is not None and session.title is None:
+            title_provider = (
+                await self._provider_resolver(run) if self._provider_resolver is not None else None
+            )
             await self._title_service.generate_and_store(
                 session_id=session.id,
                 run_id=run.id,
                 input_text=input_text,
+                provider=title_provider,
             )
         return run
 

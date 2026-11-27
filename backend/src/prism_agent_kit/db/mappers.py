@@ -11,11 +11,21 @@ from prism_agent_kit.core.enums import (
     ToolCallStatus,
 )
 from prism_agent_kit.core.mcp import McpServer, McpStatus
-from prism_agent_kit.core.models import Message, Run, RunEvent, Session, ToolCall
+from prism_agent_kit.core.models import (
+    CompactionCheckpoint,
+    Message,
+    ModelProfile,
+    Run,
+    RunEvent,
+    Session,
+    ToolCall,
+)
 from prism_agent_kit.core.workspace import Workspace
 from prism_agent_kit.db.models import (
+    CompactionCheckpointRow,
     McpServerRow,
     MessageRow,
+    ModelProfileRow,
     RunEventRow,
     RunRow,
     SessionRow,
@@ -283,4 +293,64 @@ def mcp_server_to_domain(row: McpServerRow) -> McpServer:
         last_error=row.last_error,
         created_at=_from_storage(row.created_at),
         updated_at=_from_storage(row.updated_at),
+    )
+
+
+def model_profile_to_row(profile: ModelProfile) -> ModelProfileRow:
+    """把 ModelProfile 转换为 ORM 行。"""
+    return ModelProfileRow(
+        id=profile.id,
+        name=profile.name,
+        base_url=profile.base_url,
+        model=profile.model,
+        api_key_env=profile.api_key_env,
+        context_window=profile.context_window,
+        max_output_tokens=profile.max_output_tokens,
+        is_active=1 if profile.is_active else 0,
+        created_at=_to_storage(profile.created_at),
+        updated_at=_to_storage(profile.updated_at),
+    )
+
+
+def model_profile_to_domain(row: ModelProfileRow) -> ModelProfile:
+    """把 ModelProfile ORM 行转换为领域模型。"""
+    return ModelProfile(
+        id=row.id,
+        name=row.name,
+        base_url=row.base_url,
+        model=row.model,
+        api_key_env=row.api_key_env,
+        context_window=row.context_window,
+        max_output_tokens=row.max_output_tokens,
+        is_active=row.is_active == 1,
+        created_at=_from_storage(row.created_at),
+        updated_at=_from_storage(row.updated_at),
+    )
+
+
+def checkpoint_to_row(checkpoint: CompactionCheckpoint) -> CompactionCheckpointRow:
+    """把 CompactionCheckpoint 转换为 ORM 行。"""
+    return CompactionCheckpointRow(
+        id=checkpoint.id,
+        session_id=checkpoint.session_id,
+        summary=checkpoint.summary,
+        first_kept_message_id=checkpoint.first_kept_message_id,
+        tokens_before=checkpoint.tokens_before,
+        tokens_after=checkpoint.tokens_after,
+        pruned_chars=checkpoint.pruned_chars,
+        created_at=_to_storage(checkpoint.created_at),
+    )
+
+
+def checkpoint_to_domain(row: CompactionCheckpointRow) -> CompactionCheckpoint:
+    """把 CompactionCheckpoint ORM 行转换为领域模型。"""
+    return CompactionCheckpoint(
+        id=row.id,
+        session_id=row.session_id,
+        summary=row.summary,
+        first_kept_message_id=row.first_kept_message_id,
+        tokens_before=row.tokens_before,
+        tokens_after=row.tokens_after,
+        pruned_chars=row.pruned_chars,
+        created_at=_from_storage(row.created_at),
     )

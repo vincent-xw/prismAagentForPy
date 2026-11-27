@@ -41,6 +41,7 @@ class SessionTitleService:
         session_id: str,
         run_id: str,
         input_text: str,
+        provider: ModelProvider | None = None,
     ) -> str | None:
         """生成标题并写入仍为空的会话；任何失败都不影响主流程。"""
         async with self._uow_factory() as uow:
@@ -49,7 +50,7 @@ class SessionTitleService:
             return existing.title
         try:
             title = await asyncio.wait_for(
-                self._generate(session_id, run_id, input_text),
+                self._generate(session_id, run_id, input_text, provider),
                 timeout=self._timeout,
             )
         except Exception:
@@ -65,7 +66,13 @@ class SessionTitleService:
             await uow.commit()
             return updated.title
 
-    async def _generate(self, session_id: str, run_id: str, input_text: str) -> str | None:
+    async def _generate(
+        self,
+        session_id: str,
+        run_id: str,
+        input_text: str,
+        provider: ModelProvider | None = None,
+    ) -> str | None:
         text = input_text.strip()
         if text == "":
             return None
@@ -81,7 +88,7 @@ class SessionTitleService:
             ],
             max_output_tokens=64,
         )
-        response = await self._provider.stream(request)
+        response = await (provider or self._provider).stream(request)
         return _clean_title(response.text, self._max_chars)
 
 

@@ -3,12 +3,15 @@ import logging
 from pathlib import Path
 
 from filelock import FileLock, Timeout
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.event_bus import ReplayLoader, RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.mcp.config_service import McpConfigService
 from prism_agent_kit.application.mcp.manager import McpServerManager
+from prism_agent_kit.application.model_profile_service import ModelProfileService
+from prism_agent_kit.application.provider_factory import ProviderFactory
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.run_worker import RunWorker
 from prism_agent_kit.application.session_service import SessionService
@@ -23,7 +26,8 @@ from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.core.context import ContextAssembler
 from prism_agent_kit.core.engine import SimpleAgentEngine
-from prism_agent_kit.core.models import RunEvent
+from prism_agent_kit.core.errors import AgentKitError
+from prism_agent_kit.core.models import Run, RunEvent
 from prism_agent_kit.core.ports import EventEnvelope, ModelProvider
 from prism_agent_kit.core.prompts import (
     DEFAULT_PROMPT_NAME,
@@ -80,6 +84,7 @@ class ApplicationContainer:
         self._mcp_config_service: McpConfigService | None = None
         self._mcp_manager: McpServerManager | None = None
         self._skill_catalog: SkillCatalog | None = None
+        self._provider_factory: ProviderFactory | None = None
 
     @property
     def database(self) -> Database:
@@ -179,7 +184,6 @@ class ApplicationContainer:
         """获取进程锁并按依赖顺序启动数据库与 Worker。"""
         if self._started:
             return
-        self._validate_model_configuration()
         # filelock 会按需创建父目录, 必须先建好私有目录再获取锁。
         ensure_private_directory(self.settings.resolved_database_path.parent)
         await self._acquire_database_lock()
@@ -261,17 +265,36 @@ class ApplicationContainer:
                 cancellation_registry=cancellation_registry,
             )
 
+            provider_factory = ProviderFactory(self.settings)
+            try:
+                async with uow_factory() as uow:
+                    active_profile = await uow.model_profiles.active()
+            except (OperationalError, ProgrammingError):
+                # 迁移尚未执行（例如仅验证启动行为的测试）时按无档案处理。
+                active_profile = None
             model_provider = self._provided_model_provider
             if model_provider is None:
-                owned_model_provider = OpenAICompatibleProvider.from_settings(self.settings)
-                model_provider = owned_model_provider
-            context_window = self._require_positive_int(
-                "MODEL_CONTEXT_WINDOW",
-                self.settings.model_context_window,
+                if active_profile is not None:
+                    model_provider = provider_factory.build(active_profile)
+                else:
+                    self._validate_model_configuration()
+                    owned_model_provider = provider_factory.build_default()
+                    model_provider = owned_model_provider
+            context_window = (
+                active_profile.context_window
+                if active_profile is not None
+                else self._require_positive_int(
+                    "MODEL_CONTEXT_WINDOW",
+                    self.settings.model_context_window,
+                )
             )
-            max_output_tokens = self._require_positive_int(
-                "MODEL_MAX_OUTPUT_TOKENS",
-                self.settings.model_max_output_tokens,
+            max_output_tokens = (
+                active_profile.max_output_tokens
+                if active_profile is not None
+                else self._require_positive_int(
+                    "MODEL_MAX_OUTPUT_TOKENS",
+                    self.settings.model_max_output_tokens,
+                )
             )
             encoding_name = self._require_text(
                 "MODEL_TOKEN_ENCODING",
@@ -284,9 +307,29 @@ class ApplicationContainer:
                     f"PRISM_AGENT_KIT_MODEL_TOKEN_ENCODING 无效: {encoding_name}"
                 ) from error
 
+            async def resolve_provider(run: Run) -> ModelProvider:
+                if run.model_profile_id is None:
+                    return model_provider
+                async with uow_factory() as uow:
+                    try:
+                        profile = await uow.model_profiles.get(run.model_profile_id)
+                    except AgentKitError:
+                        return model_provider
+                return provider_factory.build(profile)
+
+            def make_assembler(run: Run) -> ContextAssembler:
+                return ContextAssembler(
+                    estimator,
+                    context_window=run.model_context_window or context_window,
+                    max_output_tokens=run.model_max_output_tokens or max_output_tokens,
+                    safety_margin_tokens=self.settings.context_safety_margin_tokens,
+                )
+
             engine = SimpleAgentEngine(
                 uow_factory=uow_factory,
                 model_provider=model_provider,
+                provider_resolver=resolve_provider,
+                assembler_factory=make_assembler,
                 tool_registry=tool_registry,
                 tool_executor=LocalToolExecutor(),
                 context_assembler=ContextAssembler(
@@ -313,15 +356,17 @@ class ApplicationContainer:
             run_service = RunService(
                 uow_factory=uow_factory,
                 prompt_registry=prompts,
-                model_name=self._require_text(
-                    "MODEL_NAME",
-                    self.settings.model_name,
+                model_name=(
+                    self.settings.model_name
+                    or (active_profile.model if active_profile is not None else "")
                 ),
                 default_prompt_ref=self.settings.default_prompt_ref,
                 event_publisher=event_bus,
                 cancellation_registry=cancellation_registry,
                 skill_catalog=skill_catalog,
                 skills_max_context_chars=self.settings.skills_max_context_chars,
+                profiles=ModelProfileService(uow_factory),
+                provider_resolver=resolve_provider,
                 title_service=(
                     SessionTitleService(
                         uow_factory=uow_factory,
@@ -357,6 +402,7 @@ class ApplicationContainer:
             self._tool_approval_service = tool_approval_service
             self._index_tasks = index_tasks
             self._skill_catalog = skill_catalog
+            self._provider_factory = provider_factory
             self._mcp_config_service = mcp_config_service
             self._mcp_manager = mcp_manager
             self._started = True
@@ -387,6 +433,9 @@ class ApplicationContainer:
             return
         self._started = False
         try:
+            if self._provider_factory is not None:
+                await self._provider_factory.aclose()
+                self._provider_factory = None
             if self._mcp_manager is not None:
                 await self._mcp_manager.stop()
                 self._mcp_manager = None

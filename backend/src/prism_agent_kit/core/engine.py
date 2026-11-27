@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from collections.abc import Awaitable, Callable
 from datetime import timedelta
 from pathlib import Path
 from typing import Literal, Protocol, cast
@@ -100,6 +101,8 @@ class SimpleAgentEngine:
         *,
         uow_factory: UnitOfWorkFactory,
         model_provider: ModelProvider,
+        provider_resolver: Callable[[Run], Awaitable[ModelProvider]] | None = None,
+        assembler_factory: Callable[[Run], ContextAssembler] | None = None,
         tool_registry: ToolRegistry,
         tool_executor: LocalToolExecutor,
         context_assembler: ContextAssembler,
@@ -114,6 +117,8 @@ class SimpleAgentEngine:
     ) -> None:
         self._uow_factory = uow_factory
         self._model_provider = model_provider
+        self._provider_resolver = provider_resolver
+        self._assembler_factory = assembler_factory
         self._tool_registry = tool_registry
         self._tool_executor = tool_executor
         self._context_assembler = context_assembler
@@ -153,6 +158,18 @@ class SimpleAgentEngine:
         if context.cancel.is_set() or run.cancel_requested_at is not None:
             return await self._cancel_run(run.id)
 
+        provider = (
+            await self._provider_resolver(run)
+            if self._provider_resolver is not None
+            else self._model_provider
+        )
+        assembler = (
+            self._assembler_factory(run)
+            if self._assembler_factory is not None
+            else self._context_assembler
+        )
+        max_output_tokens = run.model_max_output_tokens or self._max_output_tokens
+
         await self._emit_started(run.id)
         workspace_root = None
         if self._workspace_locator is not None:
@@ -177,7 +194,7 @@ class SimpleAgentEngine:
                 )
 
             try:
-                assembly = self._context_assembler.assemble(
+                assembly = assembler.assemble(
                     system_prompt=current.system_prompt,
                     messages=messages,
                     tool_calls=history_calls,
@@ -187,13 +204,13 @@ class SimpleAgentEngine:
                 return await self._fail_run(run.id, error.code, error.message)
 
             try:
-                response = await self._model_provider.stream(
+                response = await provider.stream(
                     ModelRequest(
                         system_prompt=current.system_prompt,
                         messages=assembly.messages,
                         tool_calls=history_calls,
                         tools=tool_schemas,
-                        max_output_tokens=self._max_output_tokens,
+                        max_output_tokens=max_output_tokens,
                     ),
                     on_delta=lambda chunk: self._publish_delta(run.id, chunk),
                 )
