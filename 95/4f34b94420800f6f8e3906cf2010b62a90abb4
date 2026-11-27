@@ -1,0 +1,38 @@
+backend-java/src/main/java/com/prism/agent/application/worker/RunWorker.java
+  h_c3a612a540ca0b 1-195
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 19
+backend-java/src/main/java/com/prism/agent/config/EngineConfiguration.java
+  h_c3a612a540ca0b 1-42
+backend-java/src/main/java/com/prism/agent/config/PrismProperties.java
+  h_c3a612a540ca0b 16-20,29-33
+backend-java/src/main/java/com/prism/agent/core/engine/AgentEngine.java
+  h_c3a612a540ca0b 1-15
+backend-java/src/main/java/com/prism/agent/core/engine/EngineOutcome.java
+  h_c3a612a540ca0b 1-29
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 1-345
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisToolCallRepository.java
+  h_c3a612a540ca0b 1-136
+backend-java/src/main/java/com/prism/agent/persistence/repository/ToolCallRepository.java
+  h_c3a612a540ca0b 1-17
+backend-java/src/main/java/com/prism/agent/tools/ToolRegistry.java
+  h_c3a612a540ca0b 1-51
+backend-java/src/main/resources/application.yml
+  h_c3a612a540ca0b 39-42
+backend-java/src/test/java/com/prism/agent/application/EngineLoopTest.java
+  h_c3a612a540ca0b 1-206
+backend-java/src/test/resources/application.properties
+  h_c3a612a540ca0b 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "954f34b94420800f6f8e3906cf2010b62a90abb4",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
