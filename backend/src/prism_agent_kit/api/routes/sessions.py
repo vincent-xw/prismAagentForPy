@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from prism_agent_kit.api.dependencies import (
+    ContextUsageServiceDependency,
     ManualCompactionServiceDependency,
     SessionServiceDependency,
 )
@@ -63,6 +64,14 @@ def create_sessions_router() -> APIRouter:
     ) -> MessageListResponse:
         messages = await service.list_messages(session_id)
         return MessageListResponse(items=[MessageView.from_domain(item) for item in messages])
+
+    @router.get("/sessions/{session_id}/context")
+    async def get_context_usage(
+        session_id: str,
+        service: ContextUsageServiceDependency,
+    ) -> dict[str, object]:
+        """返回当前会话的上下文使用量与压缩阈值。"""
+        return await service.get(session_id)
 
     @router.post("/sessions/{session_id}/compact")
     async def compact_session(

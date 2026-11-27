@@ -1,0 +1,153 @@
+name: prism-agent
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  mysql-java:
+    image: mysql:8.4
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    environment:
+      MYSQL_DATABASE: ${PRISM_JAVA_DB_NAME:-prism}
+      MYSQL_USER: ${PRISM_JAVA_DB_USER:-prism}
+      MYSQL_PASSWORD: ${PRISM_JAVA_DB_PASSWORD:-prism}
+      MYSQL_ROOT_PASSWORD: ${PRISM_JAVA_DB_ROOT_PASSWORD:-prism}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    logging: *logging
+    restart: unless-stopped
+
+  backend-python:
+    image: prism-backend-python:${PRISM_VERSION:-dev}
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      platforms: [linux/amd64]
+    environment:
+      PRISM_AGENT_KIT_ENVIRONMENT: production
+      PRISM_AGENT_KIT_API_TOKEN: ${PRISM_API_TOKEN:?set PRISM_API_TOKEN}
+      PRISM_AGENT_KIT_DATABASE_PATH: /data/agent.db
+      PRISM_AGENT_KIT_PRISM_HOME: /skills
+      PRISM_AGENT_KIT_WORKSPACE_ROOT: /workspaces
+      PRISM_AGENT_KIT_MODEL_BASE_URL: ${MODEL_BASE_URL:?set MODEL_BASE_URL}
+      PRISM_AGENT_KIT_MODEL_API_KEY: ${MODEL_API_KEY:?set MODEL_API_KEY}
+      PRISM_AGENT_KIT_MODEL_NAME: ${MODEL_NAME:?set MODEL_NAME}
+      PRISM_AGENT_KIT_MODEL_CONTEXT_WINDOW: ${MODEL_CONTEXT_WINDOW:-65536}
+      PRISM_AGENT_KIT_MODEL_MAX_OUTPUT_TOKENS: ${MODEL_MAX_OUTPUT_TOKENS:-8192}
+      PRISM_AGENT_KIT_MODEL_TOKEN_ENCODING: ${MODEL_TOKEN_ENCODING:-cl100k_base}
+    ports:
+      - "${PRISM_PORT_BACKEND_PYTHON:-8000}:8000"
+    volumes:
+      - python-data:/data
+      - workspace-python:/workspaces
+      - ./skills:/skills:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    logging: *logging
+    restart: unless-stopped
+
+  backend-java:
+    image: prism-backend-java:${PRISM_VERSION:-dev}
+    build:
+      context: .
+      dockerfile: backend-java/Dockerfile
+      platforms: [linux/amd64]
+    environment:
+      PRISM_DB_URL: jdbc:mysql://mysql-java:3306/${PRISM_JAVA_DB_NAME:-prism}?connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true
+      PRISM_DB_USER: ${PRISM_JAVA_DB_USER:-prism}
+      PRISM_DB_PASSWORD: ${PRISM_JAVA_DB_PASSWORD:-prism}
+      PRISM_API_TOKEN: ${PRISM_API_TOKEN:?set PRISM_API_TOKEN}
+      PRISM_ENVIRONMENT: production
+      PRISM_MODEL_BASE_URL: ${MODEL_BASE_URL:?set MODEL_BASE_URL}
+      PRISM_MODEL_API_KEY: ${MODEL_API_KEY:?set MODEL_API_KEY}
+      PRISM_MODEL_NAME: ${MODEL_NAME:?set MODEL_NAME}
+      PRISM_MODEL_CONTEXT_WINDOW: ${MODEL_CONTEXT_WINDOW:-65536}
+      PRISM_MODEL_MAX_OUTPUT_TOKENS: ${MODEL_MAX_OUTPUT_TOKENS:-8192}
+      PRISM_WORKSPACE_ROOT: /workspaces
+      PRISM_PRISM_HOME: /skills
+      PRISM_SKILLS_PATHS: ${PRISM_JAVA_SKILLS_PATHS:-}
+      PRISM_SKILLS_CATALOG_MAX_CHARS: ${PRISM_SKILLS_CATALOG_MAX_CHARS:-8000}
+      PRISM_SKILLS_MAX_CONTEXT_CHARS: ${PRISM_SKILLS_MAX_CONTEXT_CHARS:-20000}
+      PRISM_SKILLS_MAX_TOOL_RESULT_CHARS: ${PRISM_SKILLS_MAX_TOOL_RESULT_CHARS:-60000}
+    ports:
+      - "${PRISM_PORT_BACKEND_JAVA:-8001}:8080"
+    volumes:
+      - workspace-java:/workspaces
+      - ./skills:/skills:ro
+    depends_on:
+      mysql-java:
+        condition: service_healthy
+    healthcheck:
+      # readiness 含 db：MySQL 掉线后必须变 unhealthy，而不是"健康但全 500"
+      test:
+        - CMD-SHELL
+        - >-
+          curl -fsS -H "Authorization: Bearer $$PRISM_API_TOKEN"
+          http://127.0.0.1:8080/internal/actuator/health/readiness
+          | grep -q '"status":"UP"'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    logging: *logging
+    restart: unless-stopped
+
+  ui-python:
+    image: prism-agent-ui:${PRISM_VERSION:-dev}
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+      platforms: [linux/amd64]
+    environment:
+      API_TARGET: http://backend-python:8000
+    ports:
+      - "${PRISM_PORT_UI_PYTHON:-3000}:8080"
+    depends_on:
+      backend-python:
+        condition: service_healthy
+    healthcheck:
+      # 必须验证 API 反代可达：只测静态页会让错误的 API_TARGET 保持 healthy
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging: *logging
+    restart: unless-stopped
+
+  ui-java:
+    image: prism-agent-ui:${PRISM_VERSION:-dev}
+    environment:
+      API_TARGET: http://backend-java:8080
+    ports:
+      - "${PRISM_PORT_UI_JAVA:-3001}:8080"
+    depends_on:
+      backend-java:
+        condition: service_healthy
+    healthcheck:
+      # 必须验证 API 反代可达：只测静态页会让错误的 API_TARGET 保持 healthy
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging: *logging
+    restart: unless-stopped
+
+volumes:
+  python-data:
+  workspace-python:
+  workspace-java:
+  mysql-data:

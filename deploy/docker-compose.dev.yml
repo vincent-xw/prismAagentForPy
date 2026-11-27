@@ -1,0 +1,5 @@
+# 开发覆盖：把 Java 的 MySQL 暴露到服务器回环，供宿主机 IDE 调试。
+services:
+  mysql-java:
+    ports:
+      - "127.0.0.1:13306:3306"

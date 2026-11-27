@@ -45,7 +45,8 @@ def test_workspace_defaults() -> None:
     assert settings.workspace_index_max_file_bytes == 1_048_576
     assert settings.workspace_index_max_files == 20_000
     assert settings.workspace_tool_approval_timeout_seconds == 1_800
-    assert settings.workspace_require_write_approval is True
+    # K-09：权限档位取代逐工具审批，默认关闭审批
+    assert settings.workspace_require_write_approval is False
 
 
 def test_mcp_defaults() -> None:

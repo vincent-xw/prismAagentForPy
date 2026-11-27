@@ -44,7 +44,10 @@ class Settings(BaseSettings):
     workspace_index_max_file_bytes: int = 1_048_576
     workspace_index_max_files: int = 20_000
     workspace_tool_approval_timeout_seconds: int = 1_800
-    workspace_require_write_approval: bool = True
+    # K-09：权限档位即策略，默认不再逐工具审批
+    workspace_require_write_approval: bool = False
+    workspace_root: Path = Field(default_factory=lambda: Path.home() / "prism-workspaces")
+    workspace_user: str = "default"
     mcp_connect_timeout_seconds: float = 10.0
     mcp_tool_timeout_seconds: float = 30.0
     mcp_max_result_bytes: int = 204_800

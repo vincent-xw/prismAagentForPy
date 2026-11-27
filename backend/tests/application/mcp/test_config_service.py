@@ -11,18 +11,17 @@ def make_service(
     return McpConfigService(uow_factory, parent_env=env or {})
 
 
-async def test_rejects_plaintext_secret(uow_factory: UnitOfWorkFactory) -> None:
+async def test_accepts_plaintext_secret(uow_factory: UnitOfWorkFactory) -> None:
     service = make_service(uow_factory)
-    with pytest.raises(AgentKitError) as error:
-        await service.create(
-            McpServerInput(
-                name="demo",
-                transport="stdio",
-                command="python",
-                env={"API_KEY": "sk-1234567890abcdef"},
-            )
+    server = await service.create(
+        McpServerInput(
+            name="demo",
+            transport="stdio",
+            command="python",
+            env={"API_KEY": "sk-1234567890abcdef"},
         )
-    assert error.value.code is ErrorCode.MCP_CONFIG_INVALID
+    )
+    assert server.env == {"API_KEY": "sk-1234567890abcdef"}
 
 
 async def test_requires_transport_fields(uow_factory: UnitOfWorkFactory) -> None:
@@ -92,7 +91,7 @@ async def test_enable_and_list(uow_factory: UnitOfWorkFactory) -> None:
     assert [item.id for item in await service.list_servers()] == [server.id]
 
 
-async def test_resolved_secret_rejected(uow_factory: UnitOfWorkFactory) -> None:
+async def test_plaintext_secret_allowed(uow_factory: UnitOfWorkFactory) -> None:
     service = make_service(uow_factory, {"MY_TOKEN": "sk-abcdefghijklmnopqrstuvwxyz"})
     server = await service.create(
         McpServerInput(
@@ -102,9 +101,8 @@ async def test_resolved_secret_rejected(uow_factory: UnitOfWorkFactory) -> None:
             headers={"Authorization": "Bearer ${MY_TOKEN}"},
         )
     )
-    with pytest.raises(AgentKitError) as error:
-        await service.build_connection(server)
-    assert error.value.code is ErrorCode.MCP_CONFIG_INVALID
+    connection = await service.build_connection(server)
+    assert connection.params["headers"]["Authorization"] == "Bearer sk-abcdefghijklmnopqrstuvwxyz"
 
 
 async def test_name_allows_underscore(uow_factory: UnitOfWorkFactory) -> None:

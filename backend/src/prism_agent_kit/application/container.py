@@ -6,6 +6,7 @@ from filelock import FileLock, Timeout
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.context_usage_service import ContextUsageService
 from prism_agent_kit.application.event_bus import ReplayLoader, RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
@@ -147,6 +148,11 @@ class ApplicationContainer:
         return self._workspace_fts_supported
 
     @property
+    def context_usage_service(self) -> ContextUsageService:
+        """返回上下文使用量估算服务。"""
+        return self._context_usage_service
+
+    @property
     def tool_result_service(self) -> ToolResultService:
         """返回远端工具结果服务。"""
         if self._tool_result_service is None:
@@ -282,6 +288,8 @@ class ApplicationContainer:
             )
             await index_tasks.reset_interrupted()
             workspace_service = WorkspaceService(
+                workspace_root=self.settings.workspace_root,
+                workspace_user=self.settings.workspace_user,
                 uow_factory=uow_factory,
                 index_tasks=index_tasks,
                 max_file_bytes=self.settings.workspace_index_max_file_bytes,
@@ -340,10 +348,14 @@ class ApplicationContainer:
                     self.settings.model_max_output_tokens,
                 )
             )
-            encoding_name = self._require_text(
-                "MODEL_TOKEN_ENCODING",
-                self.settings.model_token_encoding,
-            )
+            if active_profile is not None and not self.settings.model_token_encoding:
+                # 有激活档案时不再强制一行 env；默认 cl100k_base。
+                encoding_name = "cl100k_base"
+            else:
+                encoding_name = self._require_text(
+                    "MODEL_TOKEN_ENCODING",
+                    self.settings.model_token_encoding,
+                )
             try:
                 estimator = TiktokenEstimator(encoding_name)
             except ValueError as error:
@@ -401,6 +413,7 @@ class ApplicationContainer:
                     timeout_seconds=self.settings.compaction_timeout_seconds,
                 ),
             )
+            context_usage_service = ContextUsageService(uow_factory, self.settings, estimator)
             session_service = SessionService(
                 uow_factory,
                 workspace_service=workspace_service,
@@ -447,6 +460,7 @@ class ApplicationContainer:
             self._owned_model_provider = owned_model_provider
             self._tool_registry = tool_registry
             self._session_service = session_service
+            self._context_usage_service = context_usage_service
             self._run_service = run_service
             self._tool_result_service = tool_result_service
             self._worker = worker

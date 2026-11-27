@@ -58,8 +58,8 @@ export function createAppContext() {
   }
   resetConversation()
   async function initialize() {
-    const stored = connection.getToken()
-    if (stored !== null) await connection.verifyAccess(stored)
+    // 内置凭据默认可用：启动时不再做访问验证，直接进入工作台。
+    return
   }
   function dispose() {
     conversation.value?.dispose()

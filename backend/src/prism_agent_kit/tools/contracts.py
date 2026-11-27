@@ -24,6 +24,7 @@ class ToolExecutionContext(BaseModel):
     call_id: str
     cancel: asyncio.Event
     workspace_root: Path | None = None
+    permission_mode: str | None = None
     workspace_id: str | None = None
     search: Callable[[str, int], Awaitable[list[Any]]] | None = None
     progress: ProgressCallback | None = None

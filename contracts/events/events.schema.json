@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prism.local/contracts/events.schema.json",
+  "title": "Prism Run SSE Events",
+  "description": "27 类事件（25 持久 + 2 临时）。持久事件的 SSE id 必须是纯数字且随 Run 单调递增；message.delta/reasoning.delta 不得带 id。",
+  "x-invariants": [
+    "持久事件的 SSE `id` 为纯数字，按 Run 单调递增",
+    "message.delta 与 reasoning.delta 不得带 `id`",
+    "终态事件 run.succeeded/run.failed/run.cancelled 之后服务端关闭流",
+    "每条事件的 run_id 必须等于订阅的 Run",
+    "data 为 payload 平铺 {type,run_id,...}"
+  ],
+  "$defs": {
+    "run.queued": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.queued"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.started": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.started"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "assistant.completed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "assistant.completed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.requested": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.requested"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.completed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.completed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.failed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.failed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.expired": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.expired"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.waiting_for_tool": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.waiting_for_tool"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.waiting_for_approval": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.waiting_for_approval"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.approval_required": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.approval_required"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.approved": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.approved"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "tool.rejected": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "tool.rejected"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.requeued": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.requeued"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "context.trimmed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "context.trimmed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "context.pruned": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "context.pruned"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "step.started": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "step.started"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "step.completed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "step.completed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "step.failed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "step.failed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "compaction.started": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "compaction.started"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "compaction.completed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "compaction.completed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "compaction.failed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "compaction.failed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "compaction.skipped": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "compaction.skipped"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.succeeded": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.succeeded"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.failed": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.failed"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "run.cancelled": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "run.cancelled"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "message.delta": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "message.delta"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    },
+    "reasoning.delta": {
+      "type": "object",
+      "required": [
+        "type",
+        "run_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "reasoning.delta"
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

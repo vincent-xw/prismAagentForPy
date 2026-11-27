@@ -103,6 +103,67 @@ def _root(context: ToolExecutionContext) -> Path:
     return context.workspace_root
 
 
+def _permission(context: ToolExecutionContext) -> str:
+    return context.permission_mode or "workspace_write"
+
+
+def _require_writable(context: ToolExecutionContext, raw_path: str) -> None:
+    if _permission(context) == "read_only":
+        raise AgentKitError(
+            ErrorCode.WORKSPACE_READ_ONLY,
+            "工作区当前为只读档位，不能修改文件",
+            http_status=403,
+            details={"path": raw_path},
+        )
+
+
+def _resolve_target(context: ToolExecutionContext, raw_path: str) -> Path:
+    """full_access 允许根外路径；其余档位必须在工作区根内。"""
+    root = _root(context)
+    if _permission(context) == "full_access":
+        candidate = Path(raw_path).expanduser()
+        return (candidate if candidate.is_absolute() else root / candidate).resolve(strict=False)
+    return resolve_in_workspace(root, raw_path)
+
+
+class FileDeleteInput(BaseModel):
+    """删除文件或空目录的入参。"""
+
+    path: str
+
+
+class FileDeleteOutput(BaseModel):
+    """删除结果。"""
+
+    path: str
+    deleted: bool
+    type: Literal["file", "dir"]
+
+
+def _delete_path(target: Path) -> FileDeleteOutput:
+    if not target.exists():
+        raise AgentKitError(
+            ErrorCode.WORKSPACE_FILE_NOT_FOUND,
+            "要删除的路径不存在",
+            http_status=404,
+            details={"path": str(target)},
+        )
+    resolved = target.resolve()
+    if resolved.is_dir():
+        try:
+            resolved.rmdir()
+        except OSError as error:
+            raise AgentKitError(
+                ErrorCode.WORKSPACE_DIR_NOT_EMPTY,
+                "目录非空，拒绝删除",
+                http_status=409,
+                details={"path": str(target)},
+            ) from error
+        return FileDeleteOutput(path=str(target), deleted=True, type="dir")
+    resolved.unlink()
+    return FileDeleteOutput(path=str(target), deleted=True, type="file")
+
+
 def _list_entries(target: Path) -> FileListOutput:
     from prism_agent_kit.core.workspace_paths import EXCLUDED_DIR_NAMES
 
@@ -206,13 +267,11 @@ def build_workspace_tools(*, require_approval: bool = True) -> list[ToolDefiniti
     """构造四个工作区工具定义。"""
 
     async def file_list(raw: FileListInput, context: ToolExecutionContext) -> FileListOutput:
-        root = _root(context)
-        target = resolve_in_workspace(root, raw.path)
+        target = _resolve_target(context, raw.path)
         return await asyncio.to_thread(_list_entries, target)
 
     async def file_read(raw: FileReadInput, context: ToolExecutionContext) -> FileReadOutput:
-        root = _root(context)
-        target = resolve_in_workspace(root, raw.path)
+        target = _resolve_target(context, raw.path)
         return await asyncio.to_thread(_read_file, target, raw.max_bytes)
 
     async def file_search(raw: FileSearchInput, context: ToolExecutionContext) -> FileSearchOutput:
@@ -233,9 +292,10 @@ def build_workspace_tools(*, require_approval: bool = True) -> list[ToolDefiniti
         return FileSearchOutput(hits=hits)
 
     async def file_write(raw: FileWriteInput, context: ToolExecutionContext) -> FileWriteOutput:
+        _require_writable(context, raw.path)
         root = _root(context)
-        target = resolve_in_workspace(root, raw.path)
-        if ".git" in target.relative_to(root).parts:
+        target = _resolve_target(context, raw.path)
+        if root in target.parents and ".git" in target.relative_to(root).parts:
             raise AgentKitError(
                 ErrorCode.WORKSPACE_PATH_INVALID,
                 "不允许写入 .git 目录",
@@ -243,6 +303,11 @@ def build_workspace_tools(*, require_approval: bool = True) -> list[ToolDefiniti
                 details={"path": raw.path},
             )
         return await asyncio.to_thread(_write_file, target, raw.content, raw.mode)
+
+    async def file_delete(raw: FileDeleteInput, context: ToolExecutionContext) -> FileDeleteOutput:
+        _require_writable(context, raw.path)
+        target = _resolve_target(context, raw.path)
+        return await asyncio.to_thread(_delete_path, target)
 
     def definition(
         name: str,
@@ -297,6 +362,15 @@ def build_workspace_tools(*, require_approval: bool = True) -> list[ToolDefiniti
             FileWriteOutput,
             file_write,
             30,
+            requires_approval=require_approval,
+        ),
+        definition(
+            "file_delete",
+            "删除工作区内的文件或空目录（非空目录会被拒绝）。",
+            FileDeleteInput,
+            FileDeleteOutput,
+            file_delete,
+            15,
             requires_approval=require_approval,
         ),
     ]

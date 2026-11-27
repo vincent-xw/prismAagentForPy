@@ -79,6 +79,8 @@ export const workspaceSchema = z.object({
   id,
   root_path: z.string(),
   label: z.string().nullable(),
+  name: z.string().nullable(),
+  permission_mode: z.enum(['read_only', 'workspace_write', 'full_access']),
   is_active: z.boolean(),
   index_status: z.enum(['idle', 'indexing', 'ready', 'failed']),
   index_error: z.string().nullable(),
@@ -222,6 +224,13 @@ export function isTerminal(run: RunDto): boolean {
 
 export type ToolCallDto = z.infer<typeof toolCallSchema>
 export type WorkspaceDto = z.infer<typeof workspaceSchema>
+export type WorkspacePermissionMode = WorkspaceDto['permission_mode']
+export interface WorkspaceCreatePayload {
+  path?: string
+  name?: string
+  label?: string | null
+  permission_mode?: WorkspacePermissionMode
+}
 export type TreeEntryDto = z.infer<typeof treeResponseSchema>['items'][number]
 export type FileDto = z.infer<typeof fileResponseSchema>
 export type SearchHitDto = z.infer<typeof searchResponseSchema>['items'][number]
@@ -297,6 +306,7 @@ export const modelProfileSchema = z.object({
   context_window: z.number().int().positive(),
   max_output_tokens: z.number().int().positive(),
   is_active: z.boolean(),
+  has_key: z.boolean(),
 })
 export const modelProfilesSchema = z.array(modelProfileSchema)
 export const modelProfileProbeSchema = z.object({
@@ -310,9 +320,30 @@ export interface ModelProfilePayload {
   base_url: string
   model: string
   api_key_env: string
+  /** 只写字段：省略=不修改，空串=清除 */
+  api_key?: string
   context_window: number
   max_output_tokens: number
 }
+
+export const contextUsageSchema = z.object({
+  context_window: z.number().int().positive(),
+  max_output_tokens: z.number().int().nonnegative(),
+  budget_tokens: z.number().int().positive(),
+  used_tokens: z.number().int().nonnegative(),
+  percent: z.number(),
+  threshold: z.number(),
+  needs_compaction: z.boolean(),
+  compactable: z.boolean(),
+  last_compaction: z
+    .object({
+      tokens_before: z.number().int(),
+      tokens_after: z.number().int(),
+      at: z.string(),
+    })
+    .nullable(),
+})
+export type ContextUsageDto = z.infer<typeof contextUsageSchema>
 
 export const compactResultSchema = z.object({
   compacted: z.boolean(),

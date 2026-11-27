@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 
 import type { CoreClient } from '@/lib/api/client'
-import type { TreeEntryDto, WorkspaceDto } from '@/lib/api/contracts'
+import type { TreeEntryDto, WorkspaceDto, WorkspacePermissionMode } from '@/lib/api/contracts'
 
 export interface WorkspaceFileState {
   path: string
@@ -32,6 +32,8 @@ export interface WorkspaceController {
   pollOnce: () => Promise<void>
   chooseDirectory: () => Promise<void>
   bindPath: (path: string) => Promise<void>
+  createNamed: (name: string, mode: WorkspacePermissionMode) => Promise<void>
+  setPermission: (id: string, mode: WorkspacePermissionMode) => Promise<boolean>
   activate: (id: string) => Promise<void>
   reindex: () => Promise<void>
   openDirectory: (path: string) => Promise<void>
@@ -96,7 +98,7 @@ export function createWorkspaceController({ client }: { client: CoreClient }): W
   async function chooseDirectory(): Promise<void> {
     await run(async () => {
       const picked = await client.pickWorkspace()
-      await client.createWorkspace(picked.path, null)
+      await client.createWorkspace({ path: picked.path, label: null })
       await refreshActive()
       await openDirectory('.')
     })
@@ -104,10 +106,36 @@ export function createWorkspaceController({ client }: { client: CoreClient }): W
 
   async function bindPath(path: string): Promise<void> {
     await run(async () => {
-      await client.createWorkspace(path, null)
+      await client.createWorkspace({ path, label: null })
       await refreshActive()
       await openDirectory('.')
     })
+  }
+
+  async function createNamed(name: string, mode: WorkspacePermissionMode): Promise<void> {
+    await run(async () => {
+      if (
+        mode === 'full_access' &&
+        !window.confirm('完全权限允许读写工作区之外的路径，确认启用？')
+      ) {
+        return
+      }
+      await client.createWorkspace({ name, permission_mode: mode })
+      await refreshActive()
+    })
+  }
+
+  async function setPermission(id: string, mode: WorkspacePermissionMode): Promise<boolean> {
+    if (mode === 'full_access' && !window.confirm('完全权限允许读写工作区之外的路径，确认切换？')) {
+      return false
+    }
+    let changed = false
+    await run(async () => {
+      await client.updateWorkspace(id, { permission_mode: mode })
+      await refreshActive()
+      changed = true
+    })
+    return changed
   }
 
   async function activate(id: string): Promise<void> {
@@ -158,6 +186,8 @@ export function createWorkspaceController({ client }: { client: CoreClient }): W
     pollOnce,
     chooseDirectory,
     bindPath,
+    createNamed,
+    setPermission,
     activate,
     reindex,
     openDirectory,

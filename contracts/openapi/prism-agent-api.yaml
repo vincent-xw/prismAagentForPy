@@ -1,0 +1,2254 @@
+openapi: 3.1.0
+info:
+  title: PrismAgentKit API
+  version: 1.4.0
+paths:
+  /api/v1/health:
+    get:
+      tags:
+      - system
+      summary: 健康检查
+      operationId: read_health_api_v1_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v1/sessions:
+    get:
+      tags:
+      - sessions
+      summary: 列出 Session
+      operationId: list_sessions_api_v1_sessions_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
+    post:
+      tags:
+      - sessions
+      summary: 创建 Session
+      operationId: create_session_api_v1_sessions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/workspace:
+    post:
+      tags:
+      - sessions
+      summary: 绑定会话工作区
+      operationId: bind_session_workspace_api_v1_sessions__session_id__workspace_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionWorkspaceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}:
+    get:
+      tags:
+      - sessions
+      summary: 获取 Session
+      operationId: get_session_api_v1_sessions__session_id__get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/messages:
+    get:
+      tags:
+      - sessions
+      summary: 获取 Session 消息
+      operationId: list_messages_api_v1_sessions__session_id__messages_get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/context:
+    get:
+      tags:
+      - sessions
+      summary: Get Context Usage
+      description: 返回当前会话的上下文使用量与压缩阈值。
+      operationId: get_context_usage_api_v1_sessions__session_id__context_get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Context Usage Api V1 Sessions  Session Id  Context
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/compact:
+    post:
+      tags:
+      - sessions
+      summary: Compact Session
+      description: 手动压缩空闲会话的上下文。
+      operationId: compact_session_api_v1_sessions__session_id__compact_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Compact Session Api V1 Sessions  Session Id  Compact
+                  Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/runs:
+    post:
+      tags:
+      - runs
+      summary: 创建 Run
+      operationId: create_run_api_v1_sessions__session_id__runs_post
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RunCreate'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}:
+    get:
+      tags:
+      - runs
+      summary: 获取 Run
+      operationId: get_run_api_v1_runs__run_id__get
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/cancel:
+    post:
+      tags:
+      - runs
+      summary: 取消 Run
+      operationId: cancel_run_api_v1_runs__run_id__cancel_post
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/tool-calls/{call_id}/result:
+    post:
+      tags:
+      - runs
+      summary: 提交远端工具结果
+      operationId: submit_tool_result_api_v1_runs__run_id__tool_calls__call_id__result_post
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Call Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolResultRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolCallView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/tool-calls/{call_id}/preview:
+    get:
+      tags:
+      - runs
+      summary: 获取写入预览
+      operationId: preview_tool_call_api_v1_runs__run_id__tool_calls__call_id__preview_get
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Call Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalPreviewView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/tool-calls/{call_id}/approval:
+    post:
+      tags:
+      - runs
+      summary: 审批写入
+      operationId: decide_approval_api_v1_runs__run_id__tool_calls__call_id__approval_post
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: call_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Call Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/runs/{run_id}/events:
+    get:
+      tags:
+      - runs
+      summary: 订阅 Run 事件流
+      operationId: stream_run_events_api_v1_runs__run_id__events_get
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Run Id
+      - name: once
+        in: query
+        required: false
+        schema:
+          type: boolean
+          default: false
+          title: Once
+      - name: Last-Event-ID
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last-Event-Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/tools:
+    get:
+      tags:
+      - tools
+      summary: 列出工具
+      operationId: list_tools_api_v1_tools_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolListResponse'
+  /api/v1/workspaces:
+    get:
+      tags:
+      - workspaces
+      summary: 列出工作区
+      operationId: list_workspaces_api_v1_workspaces_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceListResponse'
+    post:
+      tags:
+      - workspaces
+      summary: 绑定并激活工作区
+      operationId: create_workspace_api_v1_workspaces_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspaces/pick:
+    post:
+      tags:
+      - workspaces
+      summary: 选择目录
+      operationId: pick_workspace_api_v1_workspaces_pick_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspacePickResponse'
+  /api/v1/workspaces/{workspace_id}:
+    patch:
+      tags:
+      - workspaces
+      summary: 更新工作区档位
+      operationId: update_workspace_api_v1_workspaces__workspace_id__patch
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceUpdate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+      - workspaces
+      summary: 获取工作区
+      operationId: get_workspace_api_v1_workspaces__workspace_id__get
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - workspaces
+      summary: 删除工作区绑定
+      operationId: delete_workspace_api_v1_workspaces__workspace_id__delete
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspaces/{workspace_id}/activate:
+    post:
+      tags:
+      - workspaces
+      summary: 切换活跃工作区
+      operationId: activate_workspace_api_v1_workspaces__workspace_id__activate_post
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspaces/{workspace_id}/reindex:
+    post:
+      tags:
+      - workspaces
+      summary: 重建索引
+      operationId: reindex_workspace_api_v1_workspaces__workspace_id__reindex_post
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspaces/{workspace_id}/tree:
+    get:
+      tags:
+      - workspaces
+      summary: 列出目录
+      operationId: read_tree_api_v1_workspaces__workspace_id__tree_get
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      - name: path
+        in: query
+        required: false
+        schema:
+          type: string
+          default: .
+          title: Path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspaces/{workspace_id}/file:
+    get:
+      tags:
+      - workspaces
+      summary: 读取文本文件
+      operationId: read_file_api_v1_workspaces__workspace_id__file_get
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      - name: path
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Path
+      - name: max_bytes
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 65536
+          title: Max Bytes
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspaces/{workspace_id}/search:
+    get:
+      tags:
+      - workspaces
+      summary: 检索工作区
+      operationId: search_workspace_api_v1_workspaces__workspace_id__search_get
+      parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Workspace Id
+      - name: q
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Q
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 20
+          title: Limit
+      - name: path_prefix
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Path Prefix
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/servers:
+    get:
+      tags:
+      - mcp
+      summary: List Servers
+      description: 返回全部 MCP 服务与工具数量。
+      operationId: list_servers_api_v1_mcp_servers_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/McpServerView'
+                type: array
+                title: Response List Servers Api V1 Mcp Servers Get
+    post:
+      tags:
+      - mcp
+      summary: Create Server
+      description: 新增 MCP 服务。
+      operationId: create_server_api_v1_mcp_servers_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/McpServerCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/servers/{server_id}:
+    patch:
+      tags:
+      - mcp
+      summary: Update Server
+      description: 更新 MCP 服务配置。
+      operationId: update_server_api_v1_mcp_servers__server_id__patch
+      parameters:
+      - name: server_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Server Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/McpServerCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - mcp
+      summary: Delete Server
+      description: 删除 MCP 服务：先断开连接并释放工具。
+      operationId: delete_server_api_v1_mcp_servers__server_id__delete
+      parameters:
+      - name: server_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Server Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/servers/{server_id}/enable:
+    post:
+      tags:
+      - mcp
+      summary: Enable Server
+      description: 启用并连接 MCP 服务。
+      operationId: enable_server_api_v1_mcp_servers__server_id__enable_post
+      parameters:
+      - name: server_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Server Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/servers/{server_id}/disable:
+    post:
+      tags:
+      - mcp
+      summary: Disable Server
+      description: 禁用并断开 MCP 服务。
+      operationId: disable_server_api_v1_mcp_servers__server_id__disable_post
+      parameters:
+      - name: server_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Server Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/servers/{server_id}/reconnect:
+    post:
+      tags:
+      - mcp
+      summary: Reconnect Server
+      description: 重连 MCP 服务并刷新工具。
+      operationId: reconnect_server_api_v1_mcp_servers__server_id__reconnect_post
+      parameters:
+      - name: server_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Server Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpServerView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/mcp/servers/{server_id}/tools:
+    get:
+      tags:
+      - mcp
+      summary: List Server Tools
+      description: 返回该服务当前已注册的工具目录。
+      operationId: list_server_tools_api_v1_mcp_servers__server_id__tools_get
+      parameters:
+      - name: server_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Server Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/McpToolsView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/skills:
+    get:
+      tags:
+      - skills
+      summary: List Skills
+      description: 返回全部技能条目（含被同名遮蔽项）。
+      operationId: list_skills_api_v1_skills_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillsView'
+  /api/v1/skills/{name}:
+    get:
+      tags:
+      - skills
+      summary: Get Skill
+      description: 返回单个技能的正文与资源清单。
+      operationId: get_skill_api_v1_skills__name__get
+      parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Name
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillDetailView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/model-profiles:
+    get:
+      tags:
+      - model-profiles
+      summary: List Profiles
+      description: 返回全部档案与激活标记。
+      operationId: list_profiles_api_v1_model_profiles_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ModelProfileView'
+                type: array
+                title: Response List Profiles Api V1 Model Profiles Get
+    post:
+      tags:
+      - model-profiles
+      summary: Create Profile
+      description: 新增模型档案。
+      operationId: create_profile_api_v1_model_profiles_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelProfileCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelProfileView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/model-profiles/{profile_id}:
+    patch:
+      tags:
+      - model-profiles
+      summary: Update Profile
+      description: 更新模型档案。
+      operationId: update_profile_api_v1_model_profiles__profile_id__patch
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Profile Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelProfileCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelProfileView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - model-profiles
+      summary: Delete Profile
+      description: 删除模型档案（激活中的档案需先切换）。
+      operationId: delete_profile_api_v1_model_profiles__profile_id__delete
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Profile Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/model-profiles/{profile_id}/activate:
+    post:
+      tags:
+      - model-profiles
+      summary: Activate Profile
+      description: 全局切换到该档案；下一次请求起生效。
+      operationId: activate_profile_api_v1_model_profiles__profile_id__activate_post
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Profile Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelProfileView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/model-profiles/{profile_id}/probe:
+    post:
+      tags:
+      - model-profiles
+      summary: Probe Profile
+      description: 用目标档案发一次最小请求，验证连通性。
+      operationId: probe_profile_api_v1_model_profiles__profile_id__probe_post
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Profile Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelProfileProbeView'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/trajectory:
+    get:
+      tags:
+      - trajectory
+      summary: Get Trajectory
+      description: 按 Turn → Step → Tool 返回轨迹投影。
+      operationId: get_trajectory_api_v1_sessions__session_id__trajectory_get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          default: 50
+          title: Limit
+      - name: before
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Before
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Trajectory Api V1 Sessions  Session Id  Trajectory
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    ApprovalPreviewView:
+      properties:
+        kind:
+          type: string
+          title: Kind
+        path:
+          type: string
+          title: Path
+        mode:
+          type: string
+          title: Mode
+        bytes:
+          type: integer
+          title: Bytes
+        exists:
+          type: boolean
+          title: Exists
+        diff:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Diff
+        truncated:
+          type: boolean
+          title: Truncated
+        input_preview:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Input Preview
+      type: object
+      required:
+      - kind
+      - path
+      - mode
+      - bytes
+      - exists
+      - diff
+      - truncated
+      title: ApprovalPreviewView
+      description: 审批预览视图：文件类给 diff，其他工具给输入预览。
+    ApprovalRequest:
+      properties:
+        decision:
+          type: string
+          title: Decision
+        reason:
+          anyOf:
+          - type: string
+            maxLength: 200
+          - type: 'null'
+          title: Reason
+      type: object
+      required:
+      - decision
+      title: ApprovalRequest
+      description: 审批请求。
+    ApprovalResponse:
+      properties:
+        call:
+          $ref: '#/components/schemas/ToolCallView'
+        run:
+          $ref: '#/components/schemas/RunView'
+      type: object
+      required:
+      - call
+      - run
+      title: ApprovalResponse
+      description: 审批结果，同时返回调用与 Run 的最新状态。
+    ExecutionMode:
+      type: string
+      enum:
+      - local
+      - remote
+      title: ExecutionMode
+      description: 工具由本地执行器还是远端宿主执行。
+    FileView:
+      properties:
+        path:
+          type: string
+          title: Path
+        content:
+          type: string
+          title: Content
+        truncated:
+          type: boolean
+          title: Truncated
+        size:
+          type: integer
+          title: Size
+      type: object
+      required:
+      - path
+      - content
+      - truncated
+      - size
+      title: FileView
+      description: 文件读取视图。
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+        service:
+          type: string
+          title: Service
+        version:
+          type: string
+          title: Version
+        environment:
+          type: string
+          title: Environment
+        workspace_fts:
+          type: string
+          enum:
+          - ok
+          - unsupported
+          title: Workspace Fts
+      type: object
+      required:
+      - status
+      - service
+      - version
+      - environment
+      - workspace_fts
+      title: HealthResponse
+    JsonValue: {}
+    McpServerCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        transport:
+          type: string
+          enum:
+          - stdio
+          - http
+          title: Transport
+        command:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Command
+        args:
+          items:
+            type: string
+          type: array
+          title: Args
+        env:
+          additionalProperties:
+            type: string
+          type: object
+          title: Env
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        headers:
+          additionalProperties:
+            type: string
+          type: object
+          title: Headers
+        enabled:
+          type: boolean
+          title: Enabled
+          default: false
+      type: object
+      required:
+      - name
+      - transport
+      title: McpServerCreate
+      description: 新增或更新 MCP 服务的入参。
+    McpServerView:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        transport:
+          type: string
+          enum:
+          - stdio
+          - http
+          title: Transport
+        command:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Command
+        args:
+          items:
+            type: string
+          type: array
+          title: Args
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        enabled:
+          type: boolean
+          title: Enabled
+        status:
+          type: string
+          title: Status
+        last_error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Error
+        tool_count:
+          type: integer
+          title: Tool Count
+        env_keys:
+          items:
+            type: string
+          type: array
+          title: Env Keys
+        header_keys:
+          items:
+            type: string
+          type: array
+          title: Header Keys
+        env:
+          additionalProperties:
+            type: string
+          type: object
+          title: Env
+        headers:
+          additionalProperties:
+            type: string
+          type: object
+          title: Headers
+      type: object
+      required:
+      - id
+      - name
+      - transport
+      - command
+      - args
+      - url
+      - enabled
+      - status
+      - last_error
+      - tool_count
+      - env_keys
+      - header_keys
+      - env
+      - headers
+      title: McpServerView
+      description: MCP 服务视图；密钥只暴露键名。
+    McpToolView:
+      properties:
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        input_schema:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Input Schema
+      type: object
+      required:
+      - name
+      - description
+      - input_schema
+      title: McpToolView
+      description: MCP 工具目录条目。
+    McpToolsView:
+      properties:
+        server_id:
+          type: string
+          title: Server Id
+        tools:
+          items:
+            $ref: '#/components/schemas/McpToolView'
+          type: array
+          title: Tools
+      type: object
+      required:
+      - server_id
+      - tools
+      title: McpToolsView
+      description: 单个 MCP 服务的工具目录。
+    MessageKind:
+      type: string
+      enum:
+      - text
+      - skill_context
+      - checkpoint
+      title: MessageKind
+      description: 消息用途：普通文本或技能加载上下文。
+    MessageListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/MessageView'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: MessageListResponse
+      description: 消息列表响应。
+    MessageRole:
+      type: string
+      enum:
+      - user
+      - assistant
+      - tool
+      title: MessageRole
+      description: 模型可见历史中的消息角色。
+    MessageView:
+      properties:
+        id:
+          type: integer
+          title: Id
+        session_id:
+          type: string
+          title: Session Id
+        run_id:
+          type: string
+          title: Run Id
+        role:
+          $ref: '#/components/schemas/MessageRole'
+        kind:
+          $ref: '#/components/schemas/MessageKind'
+        content:
+          $ref: '#/components/schemas/JsonValue'
+        reasoning:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reasoning
+        tool_call_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Tool Call Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - session_id
+      - run_id
+      - role
+      - kind
+      - content
+      - reasoning
+      - tool_call_id
+      - created_at
+      title: MessageView
+      description: 对外返回的消息视图。
+    ModelProfileCreate:
+      properties:
+        name:
+          type: string
+          title: Name
+        base_url:
+          type: string
+          title: Base Url
+        model:
+          type: string
+          title: Model
+        api_key_env:
+          type: string
+          title: Api Key Env
+        api_key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Api Key
+        context_window:
+          type: integer
+          title: Context Window
+        max_output_tokens:
+          type: integer
+          title: Max Output Tokens
+      type: object
+      required:
+      - name
+      - base_url
+      - model
+      - api_key_env
+      - context_window
+      - max_output_tokens
+      title: ModelProfileCreate
+      description: 新增/更新模型档案的入参。api_key 只写不读，省略表示不修改。
+    ModelProfileProbeView:
+      properties:
+        ok:
+          type: boolean
+          title: Ok
+        latency_ms:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Latency Ms
+        error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error
+      type: object
+      required:
+      - ok
+      - latency_ms
+      - error
+      title: ModelProfileProbeView
+      description: 档案连通性探测结果。
+    ModelProfileView:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        base_url:
+          type: string
+          title: Base Url
+        model:
+          type: string
+          title: Model
+        api_key_env:
+          type: string
+          title: Api Key Env
+        context_window:
+          type: integer
+          title: Context Window
+        max_output_tokens:
+          type: integer
+          title: Max Output Tokens
+        is_active:
+          type: boolean
+          title: Is Active
+        has_key:
+          type: boolean
+          title: Has Key
+      type: object
+      required:
+      - id
+      - name
+      - base_url
+      - model
+      - api_key_env
+      - context_window
+      - max_output_tokens
+      - is_active
+      - has_key
+      title: ModelProfileView
+      description: 模型档案视图；不回显任何密钥值。
+    RunCreate:
+      properties:
+        input:
+          type: string
+          title: Input
+        prompt_ref:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prompt Ref
+        metadata:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Metadata
+        skill_name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Skill Name
+      type: object
+      required:
+      - input
+      title: RunCreate
+      description: 创建 Run 的请求。
+    RunStatus:
+      type: string
+      enum:
+      - queued
+      - running
+      - waiting_for_tool
+      - waiting_for_approval
+      - succeeded
+      - failed
+      - cancelled
+      title: RunStatus
+      description: Run 生命周期状态。
+    RunView:
+      properties:
+        id:
+          type: string
+          title: Id
+        session_id:
+          type: string
+          title: Session Id
+        workspace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Id
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        input:
+          type: string
+          title: Input
+        prompt_ref:
+          type: string
+          title: Prompt Ref
+        model:
+          type: string
+          title: Model
+        step_count:
+          type: integer
+          title: Step Count
+        output:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Output
+        error_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Code
+        error_message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Message
+        cancel_requested_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Cancel Requested At
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        started_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Started At
+        finished_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Finished At
+      type: object
+      required:
+      - id
+      - session_id
+      - workspace_id
+      - status
+      - input
+      - prompt_ref
+      - model
+      - step_count
+      - output
+      - error_code
+      - error_message
+      - cancel_requested_at
+      - created_at
+      - started_at
+      - finished_at
+      title: RunView
+      description: 对外返回的 Run 视图。
+    SearchHitView:
+      properties:
+        path:
+          type: string
+          title: Path
+        snippet:
+          type: string
+          title: Snippet
+      type: object
+      required:
+      - path
+      - snippet
+      title: SearchHitView
+      description: 检索命中视图。
+    SearchResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SearchHitView'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: SearchResponse
+      description: 检索结果。
+    SessionCreate:
+      properties:
+        title:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Title
+      type: object
+      title: SessionCreate
+      description: 创建 Session 的请求。
+    SessionListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SessionView'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: SessionListResponse
+      description: Session 列表响应。
+    SessionView:
+      properties:
+        id:
+          type: string
+          title: Id
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        workspace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - id
+      - title
+      - workspace_id
+      - created_at
+      - updated_at
+      title: SessionView
+      description: 对外返回的 Session 视图。
+    SessionWorkspaceUpdate:
+      properties:
+        workspace_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Workspace Id
+      type: object
+      title: SessionWorkspaceUpdate
+      description: 会话绑定工作区请求；workspace_id 为空表示解绑。
+    SkillDetailView:
+      properties:
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        content:
+          type: string
+          title: Content
+        resources:
+          items:
+            additionalProperties:
+              $ref: '#/components/schemas/JsonValue'
+            type: object
+          type: array
+          title: Resources
+      type: object
+      required:
+      - name
+      - description
+      - content
+      - resources
+      title: SkillDetailView
+      description: 技能详情响应。
+    SkillView:
+      properties:
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        path:
+          type: string
+          title: Path
+        root:
+          type: string
+          title: Root
+        shadowed:
+          type: boolean
+          title: Shadowed
+      type: object
+      required:
+      - name
+      - description
+      - path
+      - root
+      - shadowed
+      title: SkillView
+      description: 技能清单条目。
+    SkillsView:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/SkillView'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: SkillsView
+      description: 技能清单响应。
+    ToolCallStatus:
+      type: string
+      enum:
+      - pending
+      - running
+      - awaiting_approval
+      - succeeded
+      - failed
+      - expired
+      - cancelled
+      title: ToolCallStatus
+      description: 单次工具调用状态。
+    ToolCallView:
+      properties:
+        id:
+          type: string
+          title: Id
+        run_id:
+          type: string
+          title: Run Id
+        tool_name:
+          type: string
+          title: Tool Name
+        status:
+          $ref: '#/components/schemas/ToolCallStatus'
+        output:
+          $ref: '#/components/schemas/JsonValue'
+        error_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Code
+        error_message:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Error Message
+        expires_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Expires At
+      type: object
+      required:
+      - id
+      - run_id
+      - tool_name
+      - status
+      - output
+      - error_code
+      - error_message
+      - expires_at
+      title: ToolCallView
+      description: 对外返回的 ToolCall 视图。
+    ToolListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ToolView'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: ToolListResponse
+      description: 工具列表响应。
+    ToolResultErrorPayload:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - code
+      - message
+      title: ToolResultErrorPayload
+      description: 远端工具失败结果。
+    ToolResultRequest:
+      properties:
+        ok:
+          type: boolean
+          title: Ok
+        input_digest:
+          type: string
+          title: Input Digest
+        output:
+          $ref: '#/components/schemas/JsonValue'
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ToolResultErrorPayload'
+          - type: 'null'
+      type: object
+      required:
+      - ok
+      - input_digest
+      title: ToolResultRequest
+      description: 远端宿主回填工具结果的请求。
+    ToolView:
+      properties:
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        execution_mode:
+          $ref: '#/components/schemas/ExecutionMode'
+        input_schema:
+          additionalProperties:
+            $ref: '#/components/schemas/JsonValue'
+          type: object
+          title: Input Schema
+        output_schema:
+          anyOf:
+          - additionalProperties:
+              $ref: '#/components/schemas/JsonValue'
+            type: object
+          - type: 'null'
+          title: Output Schema
+      type: object
+      required:
+      - name
+      - description
+      - execution_mode
+      - input_schema
+      - output_schema
+      title: ToolView
+      description: 工具发现结果。
+    TreeEntryView:
+      properties:
+        name:
+          type: string
+          title: Name
+        type:
+          type: string
+          title: Type
+        size:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Size
+        modified_at:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Modified At
+      type: object
+      required:
+      - name
+      - type
+      title: TreeEntryView
+      description: 目录项视图。
+    TreeResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/TreeEntryView'
+          type: array
+          title: Items
+      type: object
+      required:
+      - items
+      title: TreeResponse
+      description: 目录列表。
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+    WorkspaceCreate:
+      properties:
+        path:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Path
+        label:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Label
+        name:
+          anyOf:
+          - type: string
+            maxLength: 128
+          - type: 'null'
+          title: Name
+        permission_mode:
+          type: string
+          title: Permission Mode
+          default: workspace_write
+      type: object
+      title: WorkspaceCreate
+      description: 绑定工作区请求：path 绑定已有目录；name 创建 <root>/<user>/<name>。
+    WorkspaceListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/WorkspaceView'
+          type: array
+          title: Items
+        active_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Active Id
+      type: object
+      required:
+      - items
+      - active_id
+      title: WorkspaceListResponse
+      description: 工作区列表。
+    WorkspacePickResponse:
+      properties:
+        path:
+          type: string
+          title: Path
+      type: object
+      required:
+      - path
+      title: WorkspacePickResponse
+      description: 原生目录选择结果。
+    WorkspaceUpdate:
+      properties:
+        permission_mode:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Permission Mode
+        label:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Label
+      type: object
+      title: WorkspaceUpdate
+      description: 更新工作区档位/标签。
+    WorkspaceView:
+      properties:
+        id:
+          type: string
+          title: Id
+        root_path:
+          type: string
+          title: Root Path
+        label:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Label
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        permission_mode:
+          type: string
+          title: Permission Mode
+        is_active:
+          type: boolean
+          title: Is Active
+        index_status:
+          type: string
+          title: Index Status
+        index_error:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Index Error
+        file_count:
+          type: integer
+          title: File Count
+        indexed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Indexed At
+      type: object
+      required:
+      - id
+      - root_path
+      - label
+      - permission_mode
+      - is_active
+      - index_status
+      - index_error
+      - file_count
+      - indexed_at
+      title: WorkspaceView
+      description: 对外返回的工作区视图。

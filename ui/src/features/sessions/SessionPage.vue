@@ -6,6 +6,7 @@ import { isTerminal } from '@/lib/api/contracts'
 import { Button } from '@/components/ui/button'
 import MessageList from './MessageList.vue'
 import MessageComposer from './MessageComposer.vue'
+import ContextUsageBar from './ContextUsageBar.vue'
 import { compactNotice } from './compaction'
 import ApprovalCard from '@/features/runs/ApprovalCard.vue'
 const { conversation, connection, client } = useAppContext()
@@ -201,6 +202,12 @@ const labels = {
         "
         @send="handleSend"
         @stop="active && conversation!.cancel(active.run.id)"
+      />
+      <ContextUsageBar
+        v-if="client && state.selectedSessionId"
+        class="mt-2 justify-center"
+        :client="client"
+        :session-id="state.selectedSessionId"
       />
     </section>
   </div>

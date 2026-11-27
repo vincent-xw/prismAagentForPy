@@ -10,6 +10,7 @@ from prism_agent_kit.api.schemas import (
     WorkspaceCreate,
     WorkspaceListResponse,
     WorkspacePickResponse,
+    WorkspaceUpdate,
     WorkspaceView,
 )
 
@@ -36,7 +37,25 @@ def create_workspaces_router() -> APIRouter:
         payload: WorkspaceCreate,
         service: WorkspaceServiceDependency,
     ) -> WorkspaceView:
-        workspace = await service.create(payload.path, label=payload.label)
+        workspace = await service.create(
+            payload.path,
+            label=payload.label,
+            name=payload.name,
+            permission_mode=payload.permission_mode,
+        )
+        return WorkspaceView.from_domain(workspace)
+
+    @router.patch(
+        "/workspaces/{workspace_id}", response_model=WorkspaceView, summary="更新工作区档位"
+    )
+    async def update_workspace(
+        workspace_id: str,
+        payload: WorkspaceUpdate,
+        service: WorkspaceServiceDependency,
+    ) -> WorkspaceView:
+        workspace = await service.get(workspace_id)
+        if payload.permission_mode is not None:
+            workspace = await service.update_permission(workspace_id, payload.permission_mode)
         return WorkspaceView.from_domain(workspace)
 
     @router.get("/workspaces/{workspace_id}", response_model=WorkspaceView, summary="获取工作区")

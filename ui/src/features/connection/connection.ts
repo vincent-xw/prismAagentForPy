@@ -3,6 +3,9 @@ import { CoreApiError, createCoreClient } from '@/lib/api/client'
 import type { HealthDto, ToolDto } from '@/lib/api/contracts'
 
 const tokenKey = 'prism-ui.api-token'
+
+// 桌面/内网单用户部署：内置凭据，打开即可用，不再要求用户手填 Token。
+export const DEFAULT_API_TOKEN = 'change-me'
 export type AccessStatus =
   'unverified' | 'checking' | 'ready' | 'unauthorized' | 'unreachable' | 'protocol-error'
 
@@ -18,10 +21,10 @@ export function createConnection({
   storage: Storage
   onCredentialsChanged: () => void
 }) {
-  let token: string | null = null
+  let token: string | null = DEFAULT_API_TOKEN
   let verification = 0
   const state = reactive({
-    status: 'unverified' as AccessStatus,
+    status: 'ready' as AccessStatus,
     health: null as HealthDto | null,
     healthChecking: false,
     healthError: null as string | null,
@@ -31,7 +34,7 @@ export function createConnection({
     basePath,
   })
   try {
-    token = storage.getItem(tokenKey)
+    token = storage.getItem(tokenKey) ?? DEFAULT_API_TOKEN
   } catch {
     state.storageError = '无法读取凭据，本次连接仅在当前页面生效。'
   }

@@ -12,6 +12,7 @@ const profile = {
   context_window: 128000,
   max_output_tokens: 4096,
   is_active: false,
+  has_key: false,
 }
 
 test('加载档案列表', async () => {

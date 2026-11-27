@@ -7,6 +7,8 @@ const workspace = {
   id: 'w1',
   root_path: '/tmp/proj',
   label: 'proj',
+  name: null,
+  permission_mode: 'workspace_write',
   is_active: true,
   index_status: 'indexing' as const,
   index_error: null,
@@ -20,6 +22,7 @@ function fakeClient() {
     getWorkspace: vi.fn(async () => workspace),
     activateWorkspace: vi.fn(async () => ({ ...workspace, id: 'w2' })),
     createWorkspace: vi.fn(async () => workspace),
+    updateWorkspace: vi.fn(async () => workspace),
     pickWorkspace: vi.fn(async () => ({ path: '/tmp/proj' })),
     reindexWorkspace: vi.fn(async () => workspace),
     getTree: vi.fn(async () => ({ items: [] })),
@@ -56,4 +59,34 @@ test('打开目录会加载条目', async () => {
   await controller.openDirectory('docs')
   expect(client.getTree).toHaveBeenCalledWith('w1', 'docs')
   expect(controller.state.currentPath).toBe('docs')
+})
+
+test('full_access 需要二次确认，取消则不调用 PATCH', async () => {
+  const client = fakeClient()
+  const controller = createWorkspaceController({ client: client as unknown as CoreClient })
+  const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+
+  const changed = await controller.setPermission('w1', 'full_access')
+
+  expect(changed).toBe(false)
+  expect(confirmSpy).toHaveBeenCalledTimes(1)
+  expect(client.updateWorkspace).not.toHaveBeenCalled()
+
+  confirmSpy.mockReturnValue(true)
+  const accepted = await controller.setPermission('w1', 'full_access')
+  expect(accepted).toBe(true)
+  expect(client.updateWorkspace).toHaveBeenCalledWith('w1', { permission_mode: 'full_access' })
+  confirmSpy.mockRestore()
+})
+
+test('按名称创建项目会调用创建接口并带上档位', async () => {
+  const client = fakeClient()
+  const controller = createWorkspaceController({ client: client as unknown as CoreClient })
+
+  await controller.createNamed('demo', 'workspace_write')
+
+  expect(client.createWorkspace).toHaveBeenCalledWith({
+    name: 'demo',
+    permission_mode: 'workspace_write',
+  })
 })

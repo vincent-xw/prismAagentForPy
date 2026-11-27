@@ -77,6 +77,21 @@ class WorkspaceRepository:
         await self._session.refresh(row)
         return workspace_to_domain(row)
 
+    async def update_permission(self, workspace_id: str, permission_mode: str) -> Workspace:
+        row = await self._session.get(WorkspaceRow, workspace_id)
+        if row is None:
+            raise AgentKitError(
+                ErrorCode.WORKSPACE_NOT_FOUND,
+                "工作区不存在",
+                http_status=404,
+                details={"workspace_id": workspace_id},
+            )
+        row.permission_mode = permission_mode
+        row.updated_at = utc_now().replace(tzinfo=None)
+        await self._session.flush()
+        await self._session.refresh(row)
+        return workspace_to_domain(row)
+
     async def update_index_state(
         self,
         workspace_id: str,

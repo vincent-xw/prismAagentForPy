@@ -14,4 +14,9 @@ def echo(text: str) -> str:
 
 
 if __name__ == "__main__":
-    server.run(transport="streamable-http", port=int(os.environ["PORT"]), stateless_http=True)
+    server.run(
+        transport="streamable-http",
+        host=os.environ.get("HOST", "127.0.0.1"),
+        port=int(os.environ["PORT"]),
+        stateless_http=True,
+    )

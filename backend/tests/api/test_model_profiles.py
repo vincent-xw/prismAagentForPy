@@ -48,3 +48,46 @@ def test_invalid_profile_rejected(api_client) -> None:
     )
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "MODEL_PROFILE_INVALID"
+
+
+def test_stored_api_key_is_write_only(api_client) -> None:
+    created = api_client.post(
+        "/api/v1/model-profiles", json=profile_payload(api_key="sk-secret-value")
+    )
+    assert created.status_code == 200, created.text
+    body = created.json()
+    assert body["has_key"] is True
+    assert "api_key" not in body
+    assert "sk-secret-value" not in created.text
+
+    listed = api_client.get("/api/v1/model-profiles")
+    assert "sk-secret-value" not in listed.text
+
+
+def test_patch_without_api_key_keeps_stored_key(api_client) -> None:
+    created = api_client.post(
+        "/api/v1/model-profiles", json=profile_payload(api_key="sk-secret-value")
+    ).json()
+
+    patched = api_client.patch(
+        f"/api/v1/model-profiles/{created['id']}", json=profile_payload(model="model-b")
+    )
+
+    assert patched.status_code == 200
+    assert patched.json()["has_key"] is True
+    assert patched.json()["model"] == "model-b"
+
+
+def test_patch_with_empty_string_clears_key(api_client, monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    created = api_client.post(
+        "/api/v1/model-profiles", json=profile_payload(api_key="sk-secret-value")
+    ).json()
+    assert created["has_key"] is True
+
+    cleared = api_client.patch(
+        f"/api/v1/model-profiles/{created['id']}", json=profile_payload(api_key="")
+    )
+
+    assert cleared.status_code == 200
+    assert cleared.json()["has_key"] is False

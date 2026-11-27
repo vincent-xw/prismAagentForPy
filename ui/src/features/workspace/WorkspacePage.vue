@@ -6,10 +6,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { createWorkspaceController } from './workspace'
 
-const { client } = useAppContext()
+const { client, conversation } = useAppContext()
 const controller = createWorkspaceController({ client })
+const namedWorkspace = ref('')
+const workspaceMode = ref<'read_only' | 'workspace_write' | 'full_access'>('workspace_write')
+const MODES = [
+  { value: 'read_only', label: '仅可查看' },
+  { value: 'workspace_write', label: '工作区内修改' },
+  { value: 'full_access', label: '完全权限' },
+] as const
 const state = controller.state
-const manualPath = ref('')
 const timer = ref<number | null>(null)
 
 const statusLabel = computed(() => {
@@ -47,15 +53,14 @@ async function refresh(): Promise<void> {
   if (state.active !== null && state.entries.length === 0) await controller.openDirectory('.')
 }
 
-async function choose(): Promise<void> {
-  await controller.chooseDirectory()
-  syncPolling()
-}
-
-async function bind(): Promise<void> {
-  if (manualPath.value.trim() === '') return
-  await controller.bindPath(manualPath.value.trim())
-  manualPath.value = ''
+async function createProject(): Promise<void> {
+  const name = namedWorkspace.value.trim()
+  if (name === '') return
+  await controller.createNamed(name, workspaceMode.value)
+  const workspaceId = controller.state.active?.id
+  const sessionId = conversation.value?.state.selectedSessionId ?? null
+  if (workspaceId && sessionId) await client.setSessionWorkspace(sessionId, workspaceId)
+  namedWorkspace.value = ''
   syncPolling()
 }
 
@@ -77,13 +82,12 @@ onUnmounted(stopPolling)
             当前工作区<span class="ml-1">（用于新建会话，已有会话保持原绑定）</span>
           </p>
           <p class="truncate text-sm font-medium">
-            {{ state.active?.root_path ?? '尚未选择目录' }}
+            {{ state.active?.root_path ?? '尚未创建工作区' }}
           </p>
         </div>
         <span class="rounded border px-2 py-0.5 text-[11px] text-muted-foreground">{{
           statusLabel
         }}</span>
-        <Button size="sm" :disabled="state.loading" @click="choose">选择目录</Button>
         <Button
           variant="outline"
           size="sm"
@@ -92,14 +96,44 @@ onUnmounted(stopPolling)
           >重建索引</Button
         >
       </div>
-      <div class="mt-3 flex flex-wrap gap-2">
+      <div class="mt-3 flex flex-wrap items-center gap-2">
         <Input
-          v-model="manualPath"
-          class="max-w-md"
-          placeholder="或直接输入绝对路径，例如 /Users/me/project"
-          @keyup.enter="bind"
+          v-model="namedWorkspace"
+          class="max-w-xs"
+          placeholder="新建项目目录名，例如 my-project"
+          @keyup.enter="createProject"
         />
-        <Button variant="outline" size="sm" :disabled="state.loading" @click="bind">绑定</Button>
+        <select v-model="workspaceMode" class="rounded-lg border bg-background px-2 py-1 text-sm">
+          <option v-for="mode in MODES" :key="mode.value" :value="mode.value">
+            {{ mode.label }}
+          </option>
+        </select>
+        <Button
+          variant="outline"
+          size="sm"
+          :disabled="state.loading || namedWorkspace.trim() === ''"
+          @click="createProject"
+        >
+          创建并绑定项目
+        </Button>
+        <span v-if="state.active !== null" class="text-xs text-muted-foreground">
+          当前档位
+          <select
+            class="ml-1 rounded border bg-background px-1 py-0.5"
+            :value="state.active.permission_mode"
+            @change="
+              controller.setPermission(
+                state.active!.id,
+                ($event.target as HTMLSelectElement).value as
+                  'read_only' | 'workspace_write' | 'full_access',
+              )
+            "
+          >
+            <option v-for="mode in MODES" :key="mode.value" :value="mode.value">
+              {{ mode.label }}
+            </option>
+          </select>
+        </span>
       </div>
       <p v-if="state.error !== null" class="mt-2 text-xs text-destructive">{{ state.error }}</p>
     </section>

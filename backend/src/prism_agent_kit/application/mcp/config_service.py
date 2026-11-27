@@ -37,6 +37,14 @@ class McpServerInput(BaseModel):
     enabled: bool = False
 
 
+def _restore_masked(incoming: dict[str, str], existing: dict[str, str]) -> dict[str, str]:
+    """`***` 表示前端未修改的掩码值，更新时还原为库内原值。"""
+    return {
+        key: (existing.get(key, value) if value == "***" else value)
+        for key, value in incoming.items()
+    }
+
+
 @dataclass(frozen=True)
 class McpConnection:
     """连接一个 MCP 服务所需的参数。"""
@@ -77,16 +85,16 @@ class McpConfigService:
         fields = self._validate(payload)
         await self._ensure_unique_slug(fields["name"], exclude_id=server_id)
         async with self._uow_factory() as uow:
-            await uow.mcp_servers.get(server_id)
+            current = await uow.mcp_servers.get(server_id)
             updated = await uow.mcp_servers.update(
                 server_id,
                 name=fields["name"],
                 transport=fields["transport"],
                 command=fields["command"],
                 args=fields["args"],
-                env=fields["env"],
+                env=_restore_masked(fields["env"], current.env),
                 url=fields["url"],
-                headers=fields["headers"],
+                headers=_restore_masked(fields["headers"], current.headers),
                 enabled=fields["enabled"],
             )
             await uow.commit()
@@ -113,9 +121,6 @@ class McpConfigService:
         """把配置解析为可用的连接参数。"""
         if server.transport == "stdio":
             env = self._build_env(server.env)
-            self._reject_secrets(
-                {k: v for k, v in env.items() if k in server.env}, allow_placeholders=False
-            )
             if server.command is None:
                 raise _invalid("stdio 服务缺少 command")
             return McpConnection(
@@ -127,7 +132,6 @@ class McpConfigService:
                 ),
             )
         headers = self.resolve_placeholders(server.headers)
-        self._reject_secrets(headers, allow_placeholders=False)
         if server.url is None:
             raise _invalid("http 服务缺少 url")
         return McpConnection(
@@ -159,8 +163,6 @@ class McpConfigService:
             raise _invalid("stdio 服务必须提供 command")
         if payload.transport == "http" and not payload.url:
             raise _invalid("http 服务必须提供 url")
-        self._reject_secrets(payload.env, allow_placeholders=True)
-        self._reject_secrets(payload.headers, allow_placeholders=True)
         return {
             "name": name,
             "transport": payload.transport,

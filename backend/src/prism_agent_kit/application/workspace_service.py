@@ -52,12 +52,16 @@ class WorkspaceService:
         max_file_bytes: int = 1_048_576,
         max_files: int = 20_000,
         data_dir: Path | None = None,
+        workspace_root: Path | None = None,
+        workspace_user: str = "default",
     ) -> None:
         self._uow_factory = uow_factory
         self._index_tasks = index_tasks
         self._max_file_bytes = max_file_bytes
         self._max_files = max_files
         self._data_dir = data_dir.resolve() if data_dir is not None else None
+        self._workspace_root = (workspace_root or Path.home() / "prism-workspaces").expanduser()
+        self._workspace_user = workspace_user or "default"
 
     async def list_workspaces(self) -> list[Workspace]:
         """返回全部工作区。"""
@@ -74,9 +78,27 @@ class WorkspaceService:
         async with self._uow_factory() as uow:
             return await uow.workspaces.get(workspace_id)
 
-    async def create(self, path: str, label: str | None = None) -> Workspace:
-        """绑定并激活一个本地目录。"""
-        root = await asyncio.to_thread(self._resolve_root_path, path)
+    async def create(
+        self,
+        path: str | None = None,
+        label: str | None = None,
+        *,
+        name: str | None = None,
+        permission_mode: str = "workspace_write",
+    ) -> Workspace:
+        """绑定并激活工作区。给定 name 时在 <root>/<user>/<name> 下创建（同名自动加后缀）。"""
+        self._validate_mode(permission_mode)
+        if name:
+            root = await asyncio.to_thread(self._create_named_dir, name)
+        elif path:
+            root = await asyncio.to_thread(self._resolve_root_path, path)
+        else:
+            raise AgentKitError(
+                ErrorCode.WORKSPACE_PATH_INVALID,
+                "必须提供 path 或 name",
+                http_status=400,
+                details={},
+            )
         self._reject_data_dir_overlap(root)
 
         async with self._uow_factory() as uow:
@@ -87,12 +109,48 @@ class WorkspaceService:
                 await self._submit_index(activated.id)
                 return activated
             workspace = await uow.workspaces.create(
-                Workspace(root_path=str(root), label=label or root.name)
+                Workspace(
+                    root_path=str(root),
+                    label=label or (name or root.name),
+                    name=name,
+                    user=self._workspace_user if name else None,
+                    permission_mode=permission_mode,
+                )
             )
             workspace = await uow.workspaces.activate(workspace.id)
             await uow.commit()
         await self._submit_index(workspace.id)
         return workspace
+
+    async def update_permission(self, workspace_id: str, permission_mode: str) -> Workspace:
+        """切换权限档位；read_only / workspace_write / full_access。"""
+        self._validate_mode(permission_mode)
+        async with self._uow_factory() as uow:
+            workspace = await uow.workspaces.update_permission(workspace_id, permission_mode)
+            await uow.commit()
+            return workspace
+
+    @staticmethod
+    def _validate_mode(permission_mode: str) -> None:
+        if permission_mode not in {"read_only", "workspace_write", "full_access"}:
+            raise AgentKitError(
+                ErrorCode.VALIDATION_ERROR,
+                "permission_mode 必须是 read_only/workspace_write/full_access",
+                http_status=422,
+                details={"permission_mode": permission_mode},
+            )
+
+    def _create_named_dir(self, name: str) -> Path:
+        """在 <root>/<user>/ 下创建目录；同名时依次尝试 name-2、name-3…"""
+        base = (self._workspace_root / self._workspace_user).expanduser()
+        base.mkdir(parents=True, exist_ok=True)
+        candidate = base / name
+        suffix = 1
+        while candidate.exists():
+            suffix += 1
+            candidate = base / f"{name}-{suffix}"
+        candidate.mkdir(parents=False, exist_ok=False)
+        return candidate.resolve()
 
     def _resolve_root_path(self, path: str) -> Path:
         """同步校验并规范化工作区根路径, 避免在事件循环里做阻塞 IO。"""
@@ -141,6 +199,17 @@ class WorkspaceService:
         workspace = await self.get(workspace_id)
         await self._submit_index(workspace.id)
         return workspace
+
+    async def permission_for(self, workspace_id: str | None) -> str | None:
+        """返回工作区权限档位；未绑定返回 None。"""
+        if workspace_id is None:
+            return None
+        async with self._uow_factory() as uow:
+            try:
+                workspace = await uow.workspaces.get(workspace_id)
+            except AgentKitError:
+                return None
+        return workspace.permission_mode
 
     async def root_for(self, workspace_id: str | None) -> Path | None:
         """把工作区 ID 解析为根路径；未绑定或已删除返回 None。"""

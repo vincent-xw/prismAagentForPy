@@ -14,7 +14,7 @@ def make_server() -> McpServer:
     return McpServer(name="demo", transport="stdio", command="python")
 
 
-async def test_definition_passes_schema_and_requires_approval() -> None:
+async def test_definition_passes_schema_and_skips_approval() -> None:
     captured: dict[str, object] = {}
 
     async def invoke(name: str, arguments: dict[str, object]) -> dict[str, object]:
@@ -34,7 +34,8 @@ async def test_definition_passes_schema_and_requires_approval() -> None:
     )
 
     assert definition.name == "mcp__demo__search"
-    assert definition.requires_approval is True
+    # K-09：权限档位即策略，MCP 工具默认免审批
+    assert definition.requires_approval is False
     assert definition.to_model_schema()["function"]["parameters"]["$defs"] == {}
     output = await definition.handler(definition.input_model(query="x"), None)
     assert output == {"ok": True}

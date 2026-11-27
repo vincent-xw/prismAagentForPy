@@ -3,6 +3,7 @@ import {
   approvalPreviewSchema,
   approvalResponseSchema,
   compactResultSchema,
+  contextUsageSchema,
   errorSchema,
   fileResponseSchema,
   healthSchema,
@@ -26,7 +27,12 @@ import {
   workspacePickSchema,
   workspaceSchema,
 } from './contracts'
-import type { McpServerPayload, ModelProfilePayload } from './contracts'
+import type {
+  McpServerPayload,
+  ModelProfilePayload,
+  WorkspaceCreatePayload,
+  WorkspacePermissionMode,
+} from './contracts'
 
 export class CoreApiError extends Error {
   // 业务错误字段仅在服务实际返回时赋值，不补造 code 或 request_id。
@@ -176,8 +182,14 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
       request('/workspaces', workspaceListSchema, 'GET', undefined, signal),
     pickWorkspace: (signal?: AbortSignal) =>
       request('/workspaces/pick', workspacePickSchema, 'POST', undefined, signal),
-    createWorkspace: (path: string, label: string | null, signal?: AbortSignal) =>
-      request('/workspaces', workspaceSchema, 'POST', { path, label }, signal),
+    createWorkspace: (payload: WorkspaceCreatePayload, signal?: AbortSignal) =>
+      request('/workspaces', workspaceSchema, 'POST', payload, signal),
+    updateWorkspace: (
+      id: string,
+      payload: { permission_mode?: WorkspacePermissionMode; label?: string | null },
+      signal?: AbortSignal,
+    ) =>
+      request(`/workspaces/${encodeURIComponent(id)}`, workspaceSchema, 'PATCH', payload, signal),
     getWorkspace: (id: string, signal?: AbortSignal) =>
       request(`/workspaces/${encodeURIComponent(id)}`, workspaceSchema, 'GET', undefined, signal),
     activateWorkspace: (id: string, signal?: AbortSignal) =>
@@ -226,6 +238,14 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
           before === undefined ? '' : `?before=${encodeURIComponent(before)}`
         }`,
         trajectorySchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    getContextUsage: (sessionId: string, signal?: AbortSignal) =>
+      request(
+        `/sessions/${encodeURIComponent(sessionId)}/context`,
+        contextUsageSchema,
         'GET',
         undefined,
         signal,
