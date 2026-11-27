@@ -1,0 +1,20 @@
+ui/src/app/context.ts
+  h_c3a612a540ca0b 61-62
+ui/src/features/connection/connection.ts
+  h_c3a612a540ca0b 6-8,24,27,37
+ui/src/features/settings/SettingsPage.vue
+  h_c3a612a540ca0b 7,70-71
+ui/tests/unit/connection.test.ts
+  h_c3a612a540ca0b 25-27,30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "0a8bf827b1a4622eeafe035c1574beb430d8d1c7",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
