@@ -1,0 +1,20 @@
+AGENTS.md
+  h_c3a612a540ca0b 84-94
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 1-32
+docs/compatibility/java-dependency-matrix.md
+  h_c3a612a540ca0b 1-52
+docs/java-learning/04-spring-boot-startup.md
+  h_c3a612a540ca0b 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9bfcfd8731680a430cbd4409c31f2cdc865a1c28",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
