@@ -1,0 +1,28 @@
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 392-394,396-404
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 18,20-22,24,27-28,30
+tests/mock-model/server.py
+  h_c3a612a540ca0b 15,53
+tests/parity/helpers.py
+  h_c3a612a540ca0b 12
+tests/parity/test_behavior.py
+  h_c3a612a540ca0b 60,83-85
+tests/parity/uv.lock
+  h_c3a612a540ca0b 1-156
+ui/playwright.ui-parity.config.ts
+  h_c3a612a540ca0b 1-15
+ui/tests/e2e/parity.live.spec.ts
+  h_c3a612a540ca0b 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9537aa721af672c6104d5d9abf19476c2e7972a9",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
