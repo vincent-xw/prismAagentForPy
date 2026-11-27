@@ -40,6 +40,13 @@ def test_usage_grows_after_a_run(client):
     session_id = _session(client)
     run = client.post(f"/api/v1/sessions/{session_id}/runs", json={"input": "上下文测试"})
     assert run.status_code == 202, run.text
+    import time
+
+    for _ in range(40):
+        status = client.get(f"/api/v1/runs/{run.json()['id']}").json()["status"]
+        if status in {"succeeded", "failed", "cancelled"}:
+            break
+        time.sleep(1)
 
     response = client.get(f"/api/v1/sessions/{session_id}/context")
 

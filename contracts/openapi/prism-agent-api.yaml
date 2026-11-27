@@ -137,6 +137,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/sessions/{session_id}/context:
+    get:
+      tags:
+      - sessions
+      summary: Get Context Usage
+      description: 返回当前会话的上下文使用量与压缩阈值。
+      operationId: get_context_usage_api_v1_sessions__session_id__context_get
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Session Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Context Usage Api V1 Sessions  Session Id  Context
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/sessions/{session_id}/compact:
     post:
       tags:
