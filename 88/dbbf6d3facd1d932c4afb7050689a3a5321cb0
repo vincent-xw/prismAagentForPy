@@ -1,0 +1,46 @@
+backend-java/pom.xml
+  h_c3a612a540ca0b 38-55,61-70
+backend-java/src/main/java/com/prism/agent/persistence/entity/SessionEntity.java
+  h_c3a612a540ca0b 1-58
+backend-java/src/main/java/com/prism/agent/persistence/mapper/SessionMapper.java
+  h_c3a612a540ca0b 1-9
+backend-java/src/main/resources/application-local.yml
+  h_c3a612a540ca0b 1-10
+backend-java/src/main/resources/application.yml
+  h_c3a612a540ca0b 9-33
+backend-java/src/main/resources/db/migration/V1__baseline.sql
+  h_c3a612a540ca0b 1-33
+backend-java/src/test/java/com/prism/agent/persistence/SessionMapperTest.java
+  h_c3a612a540ca0b 1-44
+backend-java/src/test/java/com/prism/agent/support/MySqlTestBase.java
+  h_c3a612a540ca0b 1-27
+backend-java/target/classes/application-local.yml
+  h_c3a612a540ca0b 1-10
+backend-java/target/classes/application.yml
+  h_c3a612a540ca0b 9-33
+backend-java/target/classes/db/migration/V1__baseline.sql
+  h_c3a612a540ca0b 1-33
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+  h_c3a612a540ca0b 1,7
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+  h_c3a612a540ca0b 8-9
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+  h_c3a612a540ca0b 2-3,7
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+  h_c3a612a540ca0b 5-6
+backend-java/target/surefire-reports/TEST-com.prism.agent.persistence.SessionMapperTest.xml
+  h_c3a612a540ca0b 1-147
+backend-java/target/surefire-reports/com.prism.agent.persistence.SessionMapperTest.txt
+  h_c3a612a540ca0b 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "88dbbf6d3facd1d932c4afb7050689a3a5321cb0",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
