@@ -1,0 +1,52 @@
+backend-java/src/main/java/com/prism/agent/api/controller/ModelProfileController.java
+  h_c3a612a540ca0b 1-58
+backend-java/src/main/java/com/prism/agent/api/dto/ModelProfileProbeView.java
+  h_c3a612a540ca0b 1-4
+backend-java/src/main/java/com/prism/agent/api/dto/ModelProfileRequest.java
+  h_c3a612a540ca0b 1-39
+backend-java/src/main/java/com/prism/agent/api/dto/ModelProfileView.java
+  h_c3a612a540ca0b 1-29
+backend-java/src/main/java/com/prism/agent/application/service/ModelProfileService.java
+  h_c3a612a540ca0b 1-142
+backend-java/src/main/java/com/prism/agent/application/service/ProfileCredentialResolver.java
+  h_c3a612a540ca0b 1-36
+backend-java/src/main/java/com/prism/agent/application/service/RunService.java
+  h_c3a612a540ca0b 9,46-47,57-59,68-69,83-87,104-107
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 27-29
+backend-java/src/main/java/com/prism/agent/config/EngineConfiguration.java
+  h_c3a612a540ca0b 27,37
+backend-java/src/main/java/com/prism/agent/core/domain/ModelProfile.java
+  h_c3a612a540ca0b 1-41
+backend-java/src/main/java/com/prism/agent/core/domain/Run.java
+  h_c3a612a540ca0b 20,49
+backend-java/src/main/java/com/prism/agent/core/engine/SimpleAgentEngine.java
+  h_c3a612a540ca0b 21,45-46,58,68,74-99,135,176-179
+backend-java/src/main/java/com/prism/agent/persistence/entity/ModelProfileEntity.java
+  h_c3a612a540ca0b 1-46
+backend-java/src/main/java/com/prism/agent/persistence/mapper/ModelProfileMapper.java
+  h_c3a612a540ca0b 1-9
+backend-java/src/main/java/com/prism/agent/persistence/repository/ModelProfileRepository.java
+  h_c3a612a540ca0b 1-24
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisModelProfileRepository.java
+  h_c3a612a540ca0b 1-142
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisRunRepository.java
+  h_c3a612a540ca0b 187,214
+backend-java/src/main/java/com/prism/agent/providers/ProviderResolver.java
+  h_c3a612a540ca0b 1-63
+backend-java/src/main/resources/db/migration/V3__model_profiles.sql
+  h_c3a612a540ca0b 1-17
+backend-java/src/test/java/com/prism/agent/api/ModelProfileApiTest.java
+  h_c3a612a540ca0b 1-125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "553908d99dd3f7c59ec0b5cd053410adcc68c877",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
