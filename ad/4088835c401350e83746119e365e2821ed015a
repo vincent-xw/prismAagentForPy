@@ -1,0 +1,24 @@
+backend-java/pom.xml
+  h_c3a612a540ca0b 26-35
+backend-java/src/main/java/com/prism/agent/application/mcp/McpConnectionManager.java
+  h_c3a612a540ca0b 1-254
+backend-java/src/main/java/com/prism/agent/persistence/repository/McpServerRepository.java
+  h_c3a612a540ca0b 24-25
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisMcpServerRepository.java
+  h_c3a612a540ca0b 105-109
+backend-java/src/main/java/com/prism/agent/tools/ToolRegistry.java
+  h_c3a612a540ca0b 17-22,28-40,51
+backend-java/src/test/java/com/prism/agent/application/McpConnectionTest.java
+  h_c3a612a540ca0b 1-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ad4088835c401350e83746119e365e2821ed015a",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
