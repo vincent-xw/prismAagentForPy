@@ -1,0 +1,16 @@
+backend/migrations/versions/20261127_0007_v14_compaction_profiles.py
+  h_c3a612a540ca0b 76-80
+backend/src/prism_agent_kit/application/trajectory_service.py
+  h_c3a612a540ca0b 25,36-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "343a682a9656eecde44491475eb6eede55db5d89",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
