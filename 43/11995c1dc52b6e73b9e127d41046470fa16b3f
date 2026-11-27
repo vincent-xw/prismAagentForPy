@@ -1,0 +1,22 @@
+.env.example
+  h_c3a612a540ca0b 1-12
+deploy/README.md
+  h_c3a612a540ca0b 1-92
+deploy/docker-compose.dev.yml
+  h_c3a612a540ca0b 1-5
+docker-compose.yml
+  h_c3a612a540ca0b 1-129
+tests/contract/conftest.py
+  h_c3a612a540ca0b 39-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "4311995c1dc52b6e73b9e127d41046470fa16b3f",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
