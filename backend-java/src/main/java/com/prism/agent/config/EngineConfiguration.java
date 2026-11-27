@@ -28,6 +28,7 @@ public class EngineConfiguration {
             com.prism.agent.core.context.ContextAssembler contextAssembler,
             com.prism.agent.persistence.repository.WorkspaceRepository workspaceRepository,
             com.prism.agent.tools.WorkspaceToolExecutor workspaceToolExecutor,
+            com.prism.agent.tools.LocalToolInvoker localToolInvoker,
             ToolRegistry toolRegistry,
             PrismProperties properties) {
         return new SimpleAgentEngine(
@@ -41,6 +42,7 @@ public class EngineConfiguration {
                 contextAssembler,
                 workspaceRepository,
                 workspaceToolExecutor,
+                localToolInvoker,
                 toolRegistry,
                 properties.maxSteps(),
                 properties.remoteToolTimeoutSeconds());

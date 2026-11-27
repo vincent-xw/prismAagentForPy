@@ -23,6 +23,7 @@ import com.prism.agent.core.context.ContextAssembler;
 import com.prism.agent.core.domain.Workspace;
 import com.prism.agent.persistence.repository.WorkspaceRepository;
 import com.prism.agent.tools.WorkspaceToolExecutor;
+import com.prism.agent.tools.LocalToolInvoker;
 import com.prism.agent.tools.ToolRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -50,6 +51,7 @@ public class SimpleAgentEngine implements AgentEngine {
     private final ContextAssembler assembler;
     private final WorkspaceRepository workspaces;
     private final WorkspaceToolExecutor workspaceTools;
+    private final LocalToolInvoker localToolInvoker;
     private ModelPorts.Provider fixedProvider;
     private final ToolRegistry toolRegistry;
     private final int maxSteps;
@@ -66,6 +68,7 @@ public class SimpleAgentEngine implements AgentEngine {
             ContextAssembler assembler,
             WorkspaceRepository workspaces,
             WorkspaceToolExecutor workspaceTools,
+            LocalToolInvoker localToolInvoker,
             ToolRegistry toolRegistry,
             int maxSteps,
             double remoteToolTimeoutSeconds) {
@@ -79,6 +82,7 @@ public class SimpleAgentEngine implements AgentEngine {
         this.assembler = assembler;
         this.workspaces = workspaces;
         this.workspaceTools = workspaceTools;
+        this.localToolInvoker = localToolInvoker;
         this.toolRegistry = toolRegistry;
         this.maxSteps = maxSteps;
         this.remoteToolTimeoutSeconds = remoteToolTimeoutSeconds;
@@ -104,6 +108,7 @@ public class SimpleAgentEngine implements AgentEngine {
                 hub,
                 transactionTemplate,
                 (ProviderResolver) null,
+                null,
                 null,
                 null,
                 null,
@@ -220,7 +225,7 @@ public class SimpleAgentEngine implements AgentEngine {
                             Map<String, Object> input =
                                     mapper.convertValue(call.input(), Map.class);
                             Map<String, Object> result =
-                                    workspaceTools.execute(call.toolName(), input, workspace);
+                                    (Map<String, Object>) localToolInvoker.invoke(call.toolName(), input, workspace);
                             toolCalls.complete(call.id(), result);
                             Message message =
                                     messages.append(
