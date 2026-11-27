@@ -31,9 +31,9 @@
 ### 3.2 `SKILL.md` 解析
 
 - 必须存在、非符号链接；首行 `---` 起 frontmatter，第二个 `---` 结束；YAML 必须是映射。
-- `name`：`^[a-z0-9][a-z0-9-]{0,63}$`；`description`：非空、≤1024 字符。
+- `name`：`^[a-z0-9]+(?:-[a-z0-9]+)*$` 且 ≤64；`description`：非空、≤1024 字符。
 - 正文 = frontmatter 之后的 trim 内容。
-- 资源：目录内除 `SKILL.md` 外的普通文件，记录 `{path, kind, bytes}`；`kind` 按扩展名映射（md/text → `text`，其余 `binary`），目录不递归或按 Python 实现为准。
+- 资源：只扫描 `references/`、`scripts/`、`assets/`（递归），记录 `{path, kind, bytes}`；`kind` = 子目录名（references/scripts/assets），与 Python 一致。
 
 ### 3.3 同名处理
 
@@ -46,25 +46,25 @@
 - <name>: <description> (path: <绝对路径>)
 </available_skills>
 ```
-按 name 排序；超 8000 字符时先把 description 截到 200 再重渲染，仍超则截断条目。
+按 name 排序；超 8000 字符时先把 description 截到 200 再重渲染；仍超则丢弃整条并追加 `（已省略 N 个技能）`（与 Python 一致）。
 
 ## 4. 运行期注入
 
 创建 Run 时若 `skill_name` 非空：
 
-1. `SkillCatalog.get` 校验；失败 → 422 `SKILL_INVALID`（details 带 `skill_name`）；目录不可用 → 503 `SKILL_CATALOG_UNAVAILABLE`。
+1. `SkillCatalog.get` 校验；失败时**保留 Python 的错误码**并统一 422（如未知技能 → `SKILL_NOT_FOUND`，details 带 `skill_name`）；目录不可用 → 503 `SKILL_CATALOG_UNAVAILABLE`。
 2. system prompt 追加清单（若存在技能）。
 3. 事务内先写一条 `kind=skill_context`、`role=user` 的消息：
    `<skill_content name="{name}">\n{body}\n</skill_content>`，超 20000 字符截断并追加 `（技能正文已截断）`；
 4. 再写用户输入消息与 Run（`runs.skill_name` 落库）。
-5. Java 的 `RunCreateRequest` 增加 `skill_name`；`RunView` 不新增字段（与 Python 一致）。
+5. Java 的 `RunCreateRequest` **已有** `skillName`（Phase 3 落库），这里只需接上校验与注入；`RunView` 不新增字段（与 Python 一致）。
 
 ## 5. `skill` 工具
 
 - 名称 `skill`，`ExecutionMode.LOCAL`，`requires_approval=false`。
 - 入参 `{name: string, path?: string}`；无 `path` 返回正文 + 资源清单（前 50 条）；有 `path` 读取单个文本资源。
 - 输出 `{content, truncated, resources?}`，上限 60000 字符。
-- 资源路径必须落在技能目录内（`resolve` 后校验），拒绝绝对路径与 `..`；>204800 字节 → `SKILL_RESOURCE_TOO_LARGE(413)`。
+- 资源路径必须落在技能目录内（`resolve` 后校验），拒绝绝对路径与 `..`；越界/不存在/非文本 → 400 `SKILL_PATH_INVALID`/`SKILL_INVALID`；>204800 字节 → 400 `SKILL_RESOURCE_TOO_LARGE`（Python 技能包错误统一 400）。
 - Java 分发改动：`LocalToolInvoker` 增加 `skill` 分支（`mcp__` → MCP，`skill` → 技能工具，其余 → 工作区文件工具）。
 
 ## 6. Java 落点
@@ -77,7 +77,7 @@
 | `api/controller/SkillController.java` | 两个端点 |
 | `application/service/RunService.java` | `skill_name` 校验 + skill_context 注入 |
 | `tools/SkillTool.java` + `LocalToolInvoker` | 运行时按需加载 |
-| `config/PrismProperties` | `prism-home`、`skills.paths`、预算三个数值 |
+| `config/PrismProperties` | `prism-home`、`skills.paths`、预算三个数值；`docker-compose.yml` 给 backend-java 补 `PRISM_PRISM_HOME=/skills` 与三个预算 env |
 
 依赖：`org.yaml:snakeyaml:2.4`（显式声明；Spring Boot 已传递但避免隐式）。
 
@@ -89,7 +89,16 @@
 - 契约：`tests/contract/test_skills.py`（双端列表字段、详情正文、未知 404）。
 - E2E：仓库内放一个示例技能目录挂载 `/skills`，在 UI 选择技能创建 Run，模型回复可见 `<skill_content>` 生效。
 
-## 8. 已知差异
+## 8. 错误码（以 Python 为准）
+
+| 场景 | 状态码 | code |
+|---|---|---|
+| 技能包解析/路径/过大/非 UTF-8 | 400 | `SKILL_INVALID` / `SKILL_PATH_INVALID` / `SKILL_RESOURCE_TOO_LARGE` |
+| `/skills/{name}` 未找到 | 400 | `SKILL_NOT_FOUND` |
+| 创建 Run 引用未知技能 | 422 | `SKILL_NOT_FOUND`（details.skill_name） |
+| 技能目录未装配 | 503 | `SKILL_CATALOG_UNAVAILABLE` |
+
+## 9. 已知差异
 
 - Python 技能根含 `~/.agent|.agents/skills` 历史目录；Java 照抄，容器内实际只有 `/skills/skills`。
 - 技能 scripts 不执行（V1.3 边界），两端一致。
