@@ -1,4 +1,5 @@
 import asyncio
+import os
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import cast
 
@@ -83,6 +84,13 @@ class RunService:
                     details={"skill_name": skill_name},
                 ) from error
         profile = await self._profiles.active() if self._profiles is not None else None
+        if profile is not None and not os.environ.get(profile.api_key_env):
+            raise AgentKitError(
+                ErrorCode.MODEL_PROFILE_INVALID,
+                f"环境变量 {profile.api_key_env} 未设置",
+                http_status=422,
+                details={"profile_id": profile.id},
+            )
         model_name = profile.model if profile is not None else self._model_name
         model_context_window = profile.context_window if profile is not None else None
         model_max_output_tokens = profile.max_output_tokens if profile is not None else None

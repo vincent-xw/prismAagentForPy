@@ -39,9 +39,17 @@ def upgrade() -> None:
         unique=True,
         sqlite_where=sa.text("is_active = 1"),
     )
-    op.add_column("runs", sa.Column("model_profile_id", sa.String(length=36), nullable=True))
-    op.add_column("runs", sa.Column("model_context_window", sa.Integer(), nullable=True))
-    op.add_column("runs", sa.Column("model_max_output_tokens", sa.Integer(), nullable=True))
+    with op.batch_alter_table("runs") as batch:
+        batch.add_column(sa.Column("model_profile_id", sa.String(length=36), nullable=True))
+        batch.add_column(sa.Column("model_context_window", sa.Integer(), nullable=True))
+        batch.add_column(sa.Column("model_max_output_tokens", sa.Integer(), nullable=True))
+        batch.create_foreign_key(
+            "fk_runs_model_profile",
+            "model_profiles",
+            ["model_profile_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
     op.create_table(
         "compaction_checkpoints",
         sa.Column("id", sa.String(length=36), nullable=False),

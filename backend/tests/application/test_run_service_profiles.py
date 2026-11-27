@@ -1,3 +1,4 @@
+import pytest
 from tests.fakes import RecordingEventPublisher
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
@@ -7,6 +8,7 @@ from prism_agent_kit.application.model_profile_service import (
 )
 from prism_agent_kit.application.run_service import RunService
 from prism_agent_kit.application.session_service import SessionService
+from prism_agent_kit.core.errors import AgentKitError, ErrorCode
 from prism_agent_kit.core.prompts import PromptRegistry
 from prism_agent_kit.db.uow import UnitOfWorkFactory
 
@@ -25,7 +27,8 @@ def make_run_service(uow_factory: UnitOfWorkFactory, profiles: ModelProfileServi
     )
 
 
-async def test_run_snapshots_active_profile(uow_factory: UnitOfWorkFactory) -> None:
+async def test_run_snapshots_active_profile(uow_factory: UnitOfWorkFactory, monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     profiles = ModelProfileService(uow_factory)
     profile = await profiles.create(
         ModelProfileInput(
@@ -59,3 +62,30 @@ async def test_run_falls_back_to_env_when_no_profile(
 
     assert run.model == "env-model"
     assert run.model_profile_id is None
+
+
+async def test_missing_profile_key_rejected_before_persisting(
+    uow_factory: UnitOfWorkFactory, monkeypatch
+) -> None:
+    monkeypatch.delenv("MISSING_PROFILE_KEY", raising=False)
+    profiles = ModelProfileService(uow_factory)
+    profile = await profiles.create(
+        ModelProfileInput(
+            name="p1",
+            base_url="https://api.example.com/v1",
+            model="m1",
+            api_key_env="MISSING_PROFILE_KEY",
+            context_window=64_000,
+            max_output_tokens=4_096,
+        )
+    )
+    await profiles.activate(profile.id)
+    service = make_run_service(uow_factory, profiles)
+    session = await SessionService(uow_factory).create(title="demo")
+
+    with pytest.raises(AgentKitError) as error:
+        await service.create(session.id, input_text="hi", prompt_ref=None)
+
+    assert error.value.code is ErrorCode.MODEL_PROFILE_INVALID
+    async with uow_factory() as uow:
+        assert await uow.runs.list_for_session(session.id) == []

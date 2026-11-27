@@ -24,10 +24,28 @@ class TrajectoryService:
             runs = await uow.runs.list_for_session(session_id, limit=limit, before=before)
             checkpoints = await uow.checkpoints.list_for_session(session_id)
             turns: list[dict[str, object]] = []
+            assigned: set[str] = set()
             for run in sorted(runs, key=lambda item: item.created_at):
                 events = await uow.events.list_after(run.id)
                 tools = await uow.tool_calls.list_for_run(run.id)
-                turns.append(self._turn(run, events, tools, checkpoints))
+                turn = self._turn(run, events, tools, checkpoints)
+                turn_compactions = cast(list[dict[str, object]], turn["compactions"])
+                assigned.update(str(item["id"]) for item in turn_compactions)
+                turns.append(turn)
+            orphaned = [item for item in checkpoints if item.id not in assigned]
+            if orphaned and turns:
+                existing = cast(list[dict[str, object]], turns[-1]["compactions"])
+                existing.extend(
+                    [
+                        {
+                            "id": checkpoint.id,
+                            "tokens_before": checkpoint.tokens_before,
+                            "tokens_after": checkpoint.tokens_after,
+                            "created_at": checkpoint.created_at.isoformat(),
+                        }
+                        for checkpoint in orphaned
+                    ]
+                )
         return {"turns": turns}
 
     def _turn(
@@ -45,6 +63,8 @@ class TrajectoryService:
                 "input_text": run.input_text,
                 "created_at": run.created_at.isoformat(),
                 "finished_at": run.finished_at.isoformat() if run.finished_at else None,
+                "error_code": run.error_code,
+                "error_message": run.error_message,
             },
             "steps": steps,
             "compactions": [

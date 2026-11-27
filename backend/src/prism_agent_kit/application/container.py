@@ -310,7 +310,16 @@ class ApplicationContainer:
             model_provider = self._provided_model_provider
             if model_provider is None:
                 if active_profile is not None:
-                    model_provider = provider_factory.build(active_profile)
+                    try:
+                        model_provider = provider_factory.build(active_profile)
+                    except AgentKitError as error:
+                        logger.warning("激活档案不可用，等待创建 Run 时报错: %s", error.message)
+                        model_provider = OpenAICompatibleProvider(
+                            model_name=active_profile.model,
+                            base_url=active_profile.base_url,
+                            api_key=None,
+                            timeout_seconds=self.settings.model_timeout_seconds,
+                        )
                 else:
                     self._validate_model_configuration()
                     owned_model_provider = provider_factory.build_default()
@@ -346,10 +355,7 @@ class ApplicationContainer:
                 if run.model_profile_id is None:
                     return model_provider
                 async with uow_factory() as uow:
-                    try:
-                        profile = await uow.model_profiles.get(run.model_profile_id)
-                    except AgentKitError:
-                        return model_provider
+                    profile = await uow.model_profiles.get(run.model_profile_id)
                 return provider_factory.build(profile)
 
             def make_assembler(run: Run) -> ContextAssembler:

@@ -353,6 +353,8 @@ const trajectoryTurnSchema = z.object({
     input_text: z.string(),
     created_at: z.string(),
     finished_at: z.string().nullable(),
+    error_code: z.string().nullable(),
+    error_message: z.string().nullable(),
   }),
   steps: z.array(trajectoryStepSchema),
   compactions: z.array(

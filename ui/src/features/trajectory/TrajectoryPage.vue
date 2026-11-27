@@ -10,6 +10,7 @@ const route = useRoute()
 const data = ref<TrajectoryDto | null>(null)
 const error = ref<string | null>(null)
 const selected = ref<{ title: string; body: string } | null>(null)
+const loadingMore = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
 
 const sessionId = computed(() => String(route.params.sessionId ?? ''))
@@ -28,6 +29,23 @@ async function load(): Promise<void> {
     if (!hasActive.value) stopPolling()
   } catch (caught) {
     error.value = caught instanceof Error ? caught.message : '轨迹加载失败'
+  }
+}
+
+async function loadMore(): Promise<void> {
+  if (client === undefined || data.value === null || data.value.turns.length === 0) return
+  loadingMore.value = true
+  try {
+    const oldest = data.value.turns[0]?.run.created_at
+    const older = await client.getTrajectory(sessionId.value, oldest)
+    const known = new Set(data.value.turns.map((turn) => turn.run.id))
+    data.value = {
+      turns: [...older.turns.filter((turn) => !known.has(turn.run.id)), ...data.value.turns],
+    }
+  } catch (caught) {
+    error.value = caught instanceof Error ? caught.message : '加载更早记录失败'
+  } finally {
+    loadingMore.value = false
   }
 }
 
@@ -99,6 +117,9 @@ watch(sessionId, async () => {
           <div class="mb-2 flex items-baseline gap-2 text-xs">
             <span class="font-medium">{{ turn.run.input_text || '（无输入）' }}</span>
             <span class="text-muted-foreground">{{ turn.run.status }}</span>
+            <span v-if="turn.run.error_message" class="text-destructive"
+              >{{ turn.run.error_code }}：{{ turn.run.error_message }}</span
+            >
           </div>
           <button
             v-for="step in turn.steps"
@@ -135,6 +156,15 @@ watch(sessionId, async () => {
           </p>
         </div>
         <p v-if="!data?.turns.length" class="text-sm text-muted-foreground">还没有执行记录。</p>
+        <button
+          v-else-if="(data?.turns.length ?? 0) >= 50"
+          type="button"
+          class="mb-4 text-xs text-primary"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          {{ loadingMore ? '加载中…' : '加载更早的轨迹' }}
+        </button>
       </div>
       <aside
         v-if="selected"

@@ -96,6 +96,13 @@ class ManualCompactionService:
             timeout_seconds=self._compaction.timeout_seconds,
         )
         async with self._uow_factory() as uow:
+            latest = await uow.checkpoints.latest(session.id)
+            if latest is not None and latest.first_kept_message_id > span.first_kept_message_id:
+                raise AgentKitError(
+                    ErrorCode.COMPACTION_BUSY,
+                    "上下文在压缩期间已被其他请求压缩，请重试",
+                    http_status=409,
+                )
             created = await uow.checkpoints.create(
                 CompactionCheckpoint(
                     session_id=session.id,

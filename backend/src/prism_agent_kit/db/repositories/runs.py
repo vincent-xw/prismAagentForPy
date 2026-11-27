@@ -14,6 +14,7 @@ from prism_agent_kit.db.mappers import run_to_domain, run_to_row
 from prism_agent_kit.db.models import RunRow, SessionRow
 
 _ACTIVE_STATUSES = (
+    RunStatus.WAITING_FOR_APPROVAL,
     RunStatus.QUEUED.value,
     RunStatus.RUNNING.value,
     RunStatus.WAITING_FOR_TOOL.value,

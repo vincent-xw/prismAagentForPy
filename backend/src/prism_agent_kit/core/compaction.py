@@ -86,6 +86,11 @@ def select_compaction_span(
             break
         retained += unit_tokens
         cut = start
+    last_user = max(
+        (index for index, message in enumerate(messages) if message.role is MessageRole.USER),
+        default=-1,
+    )
+    cut = min(cut, last_user)
     if cut <= 0 or cut >= len(messages):
         return None
     first_kept = messages[cut]

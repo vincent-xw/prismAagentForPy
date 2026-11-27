@@ -220,9 +220,11 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
         undefined,
         signal,
       ),
-    getTrajectory: (sessionId: string, signal?: AbortSignal) =>
+    getTrajectory: (sessionId: string, before?: string, signal?: AbortSignal) =>
       request(
-        `/sessions/${encodeURIComponent(sessionId)}/trajectory`,
+        `/sessions/${encodeURIComponent(sessionId)}/trajectory${
+          before === undefined ? '' : `?before=${encodeURIComponent(before)}`
+        }`,
         trajectorySchema,
         'GET',
         undefined,

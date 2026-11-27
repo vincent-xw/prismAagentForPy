@@ -68,3 +68,18 @@ def test_selection_requires_at_least_two_units() -> None:
 def test_should_compact() -> None:
     assert should_compact(86, 100, 0.85) is True
     assert should_compact(85, 100, 0.85) is False
+
+
+def test_selection_never_cuts_current_user() -> None:
+    messages = [
+        message(1, MessageRole.USER, "old"),
+        message(2, MessageRole.ASSISTANT, "a"),
+        message(3, MessageRole.TOOL, "t" * 10_000, "c1"),
+        message(4, MessageRole.USER, "current"),
+    ]
+
+    span = select_compaction_span(messages, retain_tokens=1, estimator=FixedEstimator())
+
+    assert span is not None
+    assert span.first_kept_message_id == 4
+    assert [item.id for item in span.summarized] == [1, 2, 3]

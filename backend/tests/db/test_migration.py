@@ -293,3 +293,9 @@ def test_v14_schema_applied(migrated_database_path: Path) -> None:
     assert {"model_profile_id", "model_context_window", "model_max_output_tokens"} <= run_cols
     assert {"model_profiles", "compaction_checkpoints"} <= tables
     assert "ux_model_profiles_one_active" in indexes
+
+
+def test_v14_runs_profile_fk(migrated_database_path: Path) -> None:
+    with sqlite3.connect(migrated_database_path) as connection:
+        fks = list(connection.execute("PRAGMA foreign_key_list(runs)"))
+    assert any(row[2] == "model_profiles" and row[3] == "model_profile_id" for row in fks)

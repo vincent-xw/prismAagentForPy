@@ -12,6 +12,8 @@ test('轨迹契约解析 legacy Step 与 compaction', () => {
           input_text: 'hi',
           created_at: '2026-11-27T00:00:00Z',
           finished_at: '2026-11-27T00:00:02Z',
+          error_code: null,
+          error_message: null,
         },
         steps: [
           {
