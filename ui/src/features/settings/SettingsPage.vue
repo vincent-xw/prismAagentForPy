@@ -1,25 +1,18 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Monitor, Moon, Sun, ShieldCheck, Plug, Wrench } from '@lucide/vue'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import type { ConnectionController } from '@/features/connection/connection'
 import type { useTheme, ThemePreference } from '@/app/theme/useTheme'
 
-const props = defineProps<{
+defineProps<{
   connection: ConnectionController
   theme: ReturnType<typeof useTheme>
 }>()
-const candidate = ref('')
 const themes: { value: ThemePreference; label: string; icon: typeof Sun }[] = [
   { value: 'light', label: '浅色', icon: Sun },
   { value: 'dark', label: '深色', icon: Moon },
   { value: 'system', label: '跟随系统', icon: Monitor },
 ]
-async function verify() {
-  if (await props.connection.verifyAccess(candidate.value)) candidate.value = ''
-}
 </script>
 <template>
   <div class="mx-auto w-full max-w-3xl overflow-y-auto px-5 py-10 sm:px-10">
@@ -74,30 +67,9 @@ async function verify() {
       <p v-if="connection.state.healthError" role="alert" class="mt-3 text-sm text-destructive">
         {{ connection.state.healthError }}
       </p>
-      <form class="mt-6" @submit.prevent="verify">
-        <Label for="settings-token">API Token</Label>
-        <div class="mt-2 flex gap-2">
-          <Input
-            id="settings-token"
-            v-model="candidate"
-            type="password"
-            autocomplete="off"
-            placeholder="输入新的 Token 以验证访问"
-          /><Button :disabled="connection.state.status === 'checking'">验证</Button>
-        </div>
-      </form>
-      <p class="mt-2 text-xs text-muted-foreground">
-        凭据仅保存在当前标签页。服务可达与访问验证分别检查。
+      <p class="mt-4 flex items-center gap-2 text-sm text-primary">
+        <ShieldCheck class="size-4" />已连接（内置凭据，无需手动填写 Token）
       </p>
-      <div class="mt-4 flex flex-wrap items-center gap-3">
-        <p
-          v-if="connection.state.status === 'ready'"
-          class="flex items-center gap-2 text-sm text-primary"
-        >
-          <ShieldCheck class="size-4" />访问已验证
-        </p>
-        <Button variant="ghost" size="sm" @click="connection.clearToken()">清除 Token</Button>
-      </div>
       <p v-if="connection.state.error" role="alert" class="mt-3 text-sm text-destructive">
         {{ connection.state.error }}
       </p>

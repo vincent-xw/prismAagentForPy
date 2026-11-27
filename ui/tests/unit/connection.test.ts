@@ -22,10 +22,12 @@ test('健康检查不代表访问成功，拒绝候选 Token 不覆盖有效 Tok
     onCredentialsChanged: changed,
   })
   await connection.checkHealth()
-  expect(connection.state.status).not.toBe('ready')
+  // 内置凭据：默认即就绪，无需先验证
+  expect(connection.state.status).toBe('ready')
+  expect(connection.getToken()).toBe('change-me')
   await connection.verifyAccess('bad')
   expect(connection.state.status).toBe('unauthorized')
-  expect(connection.getToken()).toBeNull()
+  expect(connection.getToken()).toBe('change-me')
   await connection.verifyAccess('good')
   expect(connection.state.status).toBe('ready')
   expect(connection.state.tools).toEqual([])
