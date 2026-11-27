@@ -1,0 +1,26 @@
+tests/contract/test_context.py
+  h_c3a612a540ca0b 1-49
+ui/src/app/AppShell.vue
+  h_c3a612a540ca0b 16,178-182
+ui/src/features/sessions/ContextUsageBar.vue
+  h_c3a612a540ca0b 1-70
+ui/src/features/sessions/contextUsage.ts
+  h_c3a612a540ca0b 1-22
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 6,245-252
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 329-347
+ui/tests/unit/context-usage.test.ts
+  h_c3a612a540ca0b 1-40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "0645807eeef5dea34ad314118e1ec2248e17bc18",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
