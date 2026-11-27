@@ -1,0 +1,20 @@
+backend/src/prism_agent_kit/application/mcp/config_service.py
+  h_c3a612a540ca0b 40-47,88,95,97
+backend/tests/api/test_mcp.py
+  h_c3a612a540ca0b 26,36-40
+backend/tests/application/mcp/test_config_service.py
+  h_c3a612a540ca0b 14,16-21,23-24,94,104-105
+backend/tests/application/mcp/test_mcp_credentials.py
+  h_c3a612a540ca0b 1-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9367c437fb166f1324532d094c580b0cef57683f",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
