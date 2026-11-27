@@ -53,7 +53,7 @@ def to_tool_definition(
         execution_mode=ExecutionMode.LOCAL,
         timeout_seconds=timeout_seconds,
         # K-09：权限档位即策略，MCP 工具默认不再逐次审批
-    requires_approval=False,
+        requires_approval=False,
         input_schema_override=tool.input_schema,
         handler=handler,
     )

@@ -14,6 +14,7 @@ from prism_agent_kit.api.request_context import RequestIdMiddleware
 from prism_agent_kit.api.router import create_api_router
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
 from prism_agent_kit.application.compaction import summarizer as _summarizer  # noqa: F401
+from prism_agent_kit.application.context_usage_service import ContextUsageService
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
@@ -60,6 +61,7 @@ class ApiTestContainer:
     event_bus: RunEventBus
     tool_registry: ToolRegistry
     session_service: SessionService
+    context_usage_service: ContextUsageService
     run_service: RunService
     tool_result_service: ToolResultService
     workspace_service: WorkspaceService
@@ -140,7 +142,14 @@ def build_api_application(
     )
     prompts = PromptRegistry()
     prompts.register(name="default", version="1", prompt="default system")
+    from prism_agent_kit.core.token_budget import TiktokenEstimator
+
     session_service = SessionService(uow_factory)
+    context_usage_service = ContextUsageService(
+        uow_factory,
+        settings,
+        TiktokenEstimator(settings.model_token_encoding or "cl100k_base"),
+    )
 
     async def load_events(
         run_id: str,
@@ -222,6 +231,7 @@ def build_api_application(
         event_bus=event_bus,
         tool_registry=tool_registry,
         session_service=session_service,
+        context_usage_service=context_usage_service,
         run_service=run_service,
         tool_result_service=tool_result_service,
         workspace_service=workspace_service,

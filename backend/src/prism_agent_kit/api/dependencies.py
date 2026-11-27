@@ -3,6 +3,7 @@ from typing import Annotated, cast
 from fastapi import Depends, Request
 
 from prism_agent_kit.application.container import ApplicationContainer
+from prism_agent_kit.application.context_usage_service import ContextUsageService
 from prism_agent_kit.application.event_bus import RunEventBus
 from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
 from prism_agent_kit.application.mcp.config_service import McpConfigService
@@ -33,6 +34,11 @@ def get_request_settings(request: Request) -> Settings:
 def get_session_service(request: Request) -> SessionService:
     """返回 Session 应用服务。"""
     return get_application_container(request).session_service
+
+
+def get_context_usage_service(request: Request) -> ContextUsageService:
+    """返回上下文使用量估算服务。"""
+    return get_application_container(request).context_usage_service
 
 
 def get_run_service(request: Request) -> RunService:
@@ -101,6 +107,7 @@ def get_mcp_manager(request: Request) -> McpServerManager:
 
 
 SessionServiceDependency = Annotated[SessionService, Depends(get_session_service)]
+ContextUsageServiceDependency = Annotated[ContextUsageService, Depends(get_context_usage_service)]
 RunServiceDependency = Annotated[RunService, Depends(get_run_service)]
 ToolResultServiceDependency = Annotated[
     ToolResultService,

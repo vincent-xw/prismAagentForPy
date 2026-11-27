@@ -6,6 +6,7 @@ from filelock import FileLock, Timeout
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from prism_agent_kit.application.cancellation import RunCancellationRegistry
+from prism_agent_kit.application.context_usage_service import ContextUsageService
 from prism_agent_kit.application.event_bus import ReplayLoader, RunEventBus
 from prism_agent_kit.application.index_tasks import WorkspaceIndexTaskManager
 from prism_agent_kit.application.manual_compaction_service import ManualCompactionService
@@ -145,6 +146,11 @@ class ApplicationContainer:
     def workspace_fts_supported(self) -> bool:
         """返回当前 sqlite3 是否支持 FTS5 trigram。"""
         return self._workspace_fts_supported
+
+    @property
+    def context_usage_service(self) -> ContextUsageService:
+        """返回上下文使用量估算服务。"""
+        return self._context_usage_service
 
     @property
     def tool_result_service(self) -> ToolResultService:
@@ -407,6 +413,7 @@ class ApplicationContainer:
                     timeout_seconds=self.settings.compaction_timeout_seconds,
                 ),
             )
+            context_usage_service = ContextUsageService(uow_factory, self.settings, estimator)
             session_service = SessionService(
                 uow_factory,
                 workspace_service=workspace_service,
@@ -453,6 +460,7 @@ class ApplicationContainer:
             self._owned_model_provider = owned_model_provider
             self._tool_registry = tool_registry
             self._session_service = session_service
+            self._context_usage_service = context_usage_service
             self._run_service = run_service
             self._tool_result_service = tool_result_service
             self._worker = worker
