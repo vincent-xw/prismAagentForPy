@@ -188,14 +188,22 @@ public class SimpleAgentEngine implements AgentEngine {
             }
         }
 
-        appendEvent(
-                run.id(),
-                EventType.STEP_COMPLETED,
-                Map.of(
-                        "step_index", step,
-                        "duration_ms", System.currentTimeMillis() - startedAt,
-                        "finish_reason", response.finishReason() == null ? "" : response.finishReason(),
-                        "tool_call_ids", response.toolCalls().stream().map(ModelPorts.ToolCallDraft::callId).toList()));
+        Map<String, Object> completedPayload = new java.util.LinkedHashMap<>();
+        completedPayload.put("step_index", step);
+        completedPayload.put("duration_ms", System.currentTimeMillis() - startedAt);
+        completedPayload.put("finish_reason", response.finishReason() == null ? "" : response.finishReason());
+        completedPayload.put(
+                "tool_call_ids",
+                response.toolCalls().stream().map(ModelPorts.ToolCallDraft::callId).toList());
+        if (response.usage() != null) {
+            completedPayload.put(
+                    "usage",
+                    Map.of(
+                            "prompt_tokens", response.usage().promptTokens(),
+                            "completion_tokens", response.usage().completionTokens(),
+                            "total_tokens", response.usage().totalTokens()));
+        }
+        appendEvent(run.id(), EventType.STEP_COMPLETED, completedPayload);
 
         if (isCancelled(context, runs.requireById(run.id()))) {
             return cancelRun(run.id());

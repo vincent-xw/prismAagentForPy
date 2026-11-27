@@ -8,6 +8,8 @@ import com.prism.agent.core.domain.Run;
 import com.prism.agent.core.domain.Session;
 import com.prism.agent.persistence.repository.EventRepository;
 import com.prism.agent.persistence.repository.RunRepository;
+import com.prism.agent.persistence.repository.MessageRepository;
+import com.prism.agent.persistence.repository.ToolCallRepository;
 import com.prism.agent.persistence.repository.SessionRepository;
 import com.prism.agent.support.MySqlTestBase;
 import java.time.Instant;
@@ -31,6 +33,8 @@ class TrajectoryApiTest extends MySqlTestBase {
     @Autowired TestRestTemplate rest;
     @Autowired SessionRepository sessions;
     @Autowired RunRepository runs;
+    @Autowired MessageRepository messages;
+    @Autowired ToolCallRepository toolCalls;
     @Autowired EventRepository events;
 
     private HttpHeaders headers() {
@@ -54,12 +58,30 @@ class TrajectoryApiTest extends MySqlTestBase {
     void projectsTurnsStepsAndLegacyRun() {
         String sessionId = sessions.insert(Session.newSession("s", Instant.now())).id();
         Run withSteps = runs.insert(Run.newQueued(sessionId, "a", "m", "sys", Instant.now()));
+        var assistant =
+                messages.append(new com.prism.agent.core.domain.Message(
+                        null, sessionId, withSteps.id(), com.prism.agent.core.domain.MessageRole.ASSISTANT,
+                        com.prism.agent.core.domain.MessageKind.TEXT, "calling", null, null, Instant.now()));
+        toolCalls.insert(List.of(new com.prism.agent.core.domain.ToolCall(
+                "call_1", withSteps.id(), assistant.id(), "host_lookup",
+                com.prism.agent.core.domain.ExecutionMode.REMOTE,
+                com.prism.agent.core.domain.ToolCallStatus.PENDING,
+                Map.of("q", "x"), null, "digest", null, null, null, Instant.now(), null)));
         events.append(withSteps.id(), EventType.STEP_STARTED, Map.of("step_index", 0, "model", "m"));
         events.append(withSteps.id(), EventType.STEP_COMPLETED,
                 Map.of("step_index", 0, "duration_ms", 12, "tool_call_ids", List.of("call_1")));
         complete(withSteps);
         Run legacy = runs.insert(Run.newQueued(sessionId, "b", "m", "sys", Instant.now()));
         complete(legacy);
+        var legacyAssistant =
+                messages.append(new com.prism.agent.core.domain.Message(
+                        null, sessionId, legacy.id(), com.prism.agent.core.domain.MessageRole.ASSISTANT,
+                        com.prism.agent.core.domain.MessageKind.TEXT, "calling", null, null, Instant.now()));
+        toolCalls.insert(List.of(new com.prism.agent.core.domain.ToolCall(
+                "call_9", legacy.id(), legacyAssistant.id(), "host_lookup",
+                com.prism.agent.core.domain.ExecutionMode.REMOTE,
+                com.prism.agent.core.domain.ToolCallStatus.PENDING,
+                Map.of("q", "y"), null, "digest", null, null, null, Instant.now(), null)));
         events.append(legacy.id(), EventType.TOOL_REQUESTED,
                 Map.of("call_id", "call_9", "tool_name", "host_lookup"));
 
@@ -68,11 +90,12 @@ class TrajectoryApiTest extends MySqlTestBase {
         assertThat(turns.get("turns")).hasSize(2);
         JsonNode first = turns.get("turns").get(0);
         assertThat(first.get("run").get("id").asText()).isEqualTo(withSteps.id());
-        assertThat(first.get("steps").get(0).get("step_index").asInt()).isZero();
-        assertThat(first.get("steps").get(0).get("tool_call_ids").get(0).asText()).isEqualTo("call_1");
+        assertThat(first.get("steps").get(0).get("index").asInt()).isZero();
+        assertThat(first.get("steps").get(0).get("legacy").asBoolean()).isFalse();
+        assertThat(first.get("steps").get(0).get("tools").get(0).get("call_id").asText()).isEqualTo("call_1");
         JsonNode second = turns.get("turns").get(1);
         assertThat(second.get("steps").get(0).get("legacy").asBoolean()).isTrue();
-        assertThat(second.get("steps").get(0).get("tool_call_ids").get(0).asText()).isEqualTo("call_9");
+        assertThat(second.get("steps").get(0).get("tools").get(0).get("call_id").asText()).isEqualTo("call_9");
     }
 
     @Test
