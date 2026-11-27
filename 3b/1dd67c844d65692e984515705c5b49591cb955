@@ -1,0 +1,40 @@
+backend/migrations/versions/20261127_0007_v14_compaction_profiles.py
+  h_c3a612a540ca0b 42-52
+backend/src/prism_agent_kit/application/container.py
+  h_c3a612a540ca0b 313-322,358
+backend/src/prism_agent_kit/application/manual_compaction_service.py
+  h_c3a612a540ca0b 99-105
+backend/src/prism_agent_kit/application/run_service.py
+  h_c3a612a540ca0b 2,87-93
+backend/src/prism_agent_kit/application/trajectory_service.py
+  h_c3a612a540ca0b 27,31-48,66-67
+backend/src/prism_agent_kit/core/compaction.py
+  h_c3a612a540ca0b 89-93
+backend/src/prism_agent_kit/db/repositories/runs.py
+  h_c3a612a540ca0b 17
+backend/tests/application/test_run_service_profiles.py
+  h_c3a612a540ca0b 1,11,30-31,65-91
+backend/tests/core/test_compaction_selection.py
+  h_c3a612a540ca0b 71-85
+backend/tests/db/test_migration.py
+  h_c3a612a540ca0b 296-301
+ui/src/features/trajectory/TrajectoryPage.vue
+  h_c3a612a540ca0b 13,35-51,120-122,159-167
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 223,225-227
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 356-357
+ui/tests/unit/trajectory-schema.test.ts
+  h_c3a612a540ca0b 15-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3b1dd67c844d65692e984515705c5b49591cb955",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
