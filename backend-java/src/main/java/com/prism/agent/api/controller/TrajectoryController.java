@@ -25,7 +25,19 @@ public class TrajectoryController {
             @PathVariable String sessionId,
             @RequestParam(defaultValue = "50") int limit,
             @RequestParam(required = false) String before) {
-        int bounded = Math.max(1, Math.min(200, limit));
+        if (limit < 1 || limit > 200) {
+            throw new com.prism.agent.common.ApiException(
+                    com.prism.agent.common.ErrorCode.VALIDATION_ERROR,
+                    "请求参数校验失败",
+                    422,
+                    java.util.Map.of(
+                            "errors",
+                            java.util.List.of(
+                                    java.util.Map.of(
+                                            "loc", java.util.List.of("query", "limit"),
+                                            "msg", "Input should be between 1 and 200"))));
+        }
+        int bounded = limit;
         Instant beforeInstant = null;
         if (before != null && !before.isBlank()) {
             try {
