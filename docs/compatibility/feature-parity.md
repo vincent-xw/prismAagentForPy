@@ -17,7 +17,7 @@
 | Health | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过；Java 返回 `workspace_fts=unsupported` |
 | Session 创建/列表/查询 | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过（含 401/404 信封） |
 | Session 工作区绑定 | Verified | Pending | Pending | Pending | Pending | `POST /sessions/{id}/workspace` |
-| Run / Message / ToolCall | Verified | Implemented | **Contract Passed** | Pending | Pending | `tests/contract/test_runs.py`（无模型密钥时跳过模型场景） |
+| Run / Message / ToolCall | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_runs.py` 双端通过（含 assistant 内容）；SSE `id` 为全局事件 id |
 | SSE 事件与重放 | Verified | Implemented | **Contract Passed** | Pending | Pending | 事件 seq/重放/终态关流已双端验证 |
 | 取消 / 超时 / 恢复 | Verified | Implemented | Pending | Pending | Pending | Java 语言内测试覆盖取消/恢复/过期 |
 | 上下文裁剪与压缩 | Verified | Implemented | Pending | Pending | Pending | `CompactionTest`；token 计数差异按 K-05 不比对 |
