@@ -1,6 +1,6 @@
 # Phase 5 设计：MCP Client（Java 对齐 + 凭据入库）
 
-- 状态：待评审（等待用户批准后写实施计划）
+- 状态：已确认（2026-11-27），可写实施计划
 - 日期：2026-11-27
 - 前置：Phase 3（Run/SSE/工具回路）、Phase 4（工作区/文件工具/权限档位）已完成
 - 参考实现：`backend/src/prism_agent_kit/application/mcp/*`（Python V1.2 MCP Client）
@@ -106,7 +106,14 @@ PATCH 是**整包替换**（name/transport 必填，不允许半合并）；掩�
 - 契约：`tests/contract/test_mcp.py`（双端 CRUD + 掩码 + tools 列表；默认不真连外部服务）。
 - UI：MCP 页增加 env/header 值输入（密码框）与掩码显示。
 
-## 10. 设计决定（我的裁量，已在文中）
+## 10. 已确认（2026-11-27）
+
+1. 错误码/状态码以 Python 为准。
+2. 掩码沿用 `***`，PATCH 整包替换、回传 `***` 表示不修改。
+3. 保留活动 Run 的 409 `MCP_SERVER_BUSY` 保护。
+4. 允许修改引擎本地工具派发为按前缀分发（workspace / mcp）。
+
+## 11. 设计决定（我的裁量，已在文中）
 
 - 掩码沿用 Python 的 `***`；PATCH 整包替换；占位符明文回显。
 - 错误码/状态码以 Python 为准。
