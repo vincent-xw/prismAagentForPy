@@ -1,0 +1,24 @@
+ui/src/app/AppShell.vue
+  h_c3a612a540ca0b 16,171-177
+ui/src/features/sessions/SessionIdCopy.vue
+  h_c3a612a540ca0b 1-33
+ui/src/features/sessions/SessionMeta.vue
+  h_c3a612a540ca0b 2
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 9,206-211
+ui/tests/unit/session-id-copy.test.ts
+  h_c3a612a540ca0b 1-16
+ui/tests/unit/session-meta.test.ts
+  h_c3a612a540ca0b 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "712e79b7e1a6c51a48d444020b0d9b1643c9af95",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
