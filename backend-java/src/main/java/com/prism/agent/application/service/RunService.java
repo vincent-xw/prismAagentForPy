@@ -7,6 +7,8 @@ import com.prism.agent.common.ApiException;
 import com.prism.agent.common.ErrorCode;
 import com.prism.agent.config.PrismProperties;
 import com.prism.agent.core.domain.ModelProfile;
+import com.prism.agent.core.skills.SkillCatalog;
+import com.prism.agent.core.skills.SkillPackage;
 import com.prism.agent.core.domain.Message;
 import com.prism.agent.core.domain.MessageKind;
 import com.prism.agent.core.domain.MessageRole;
@@ -46,6 +48,7 @@ public class RunService {
     private final ModelProfileService profiles;
     private final ProfileCredentialResolver credentials;
     private final SessionTitleService titleService;
+    private final SkillCatalog skillCatalog;
 
     public RunService(
             RunRepository runs,
@@ -58,7 +61,8 @@ public class RunService {
             PrismProperties properties,
             ModelProfileService profiles,
             ProfileCredentialResolver credentials,
-            SessionTitleService titleService) {
+            SessionTitleService titleService,
+            SkillCatalog skillCatalog) {
         this.runs = runs;
         this.messages = messages;
         this.sessions = sessions;
@@ -70,6 +74,7 @@ public class RunService {
         this.profiles = profiles;
         this.credentials = credentials;
         this.titleService = titleService;
+        this.skillCatalog = skillCatalog;
     }
 
     public Run create(String sessionId, RunCreateRequest request) {
@@ -81,6 +86,12 @@ public class RunService {
             throw new ApiException(
                     ErrorCode.PROMPT_NOT_FOUND, "Prompt 版本不存在", 422, Map.of("prompt_ref", promptRef));
         }
+
+        SkillPackage skillPackage = resolveSkill(request.skillName());
+        String catalogBlock = skillCatalog.renderCatalog();
+        String systemPrompt = catalogBlock.isEmpty()
+                ? DEFAULT_SYSTEM_PROMPT
+                : DEFAULT_SYSTEM_PROMPT + "\n\n" + catalogBlock;
 
         Run stored;
         ModelProfile active = profiles.active();
@@ -103,7 +114,7 @@ public class RunService {
                                         request.input(),
                                         "default",
                                         "1",
-                                        DEFAULT_SYSTEM_PROMPT,
+                                        systemPrompt,
                                         active != null ? active.model() : properties.modelName(),
                                         active != null ? active.id() : null,
                                         active != null ? active.contextWindow() : null,
@@ -118,6 +129,25 @@ public class RunService {
                                         null,
                                         null);
                         Run inserted = runs.insert(run);
+                        if (skillPackage != null) {
+                            String injected = "<skill_content name=\"" + skillPackage.name() + "\">\n"
+                                    + skillPackage.body() + "\n</skill_content>";
+                            if (injected.length() > properties.skillsMaxContextChars()) {
+                                injected = injected.substring(0, properties.skillsMaxContextChars())
+                                        + "\n（技能正文已截断）";
+                            }
+                            messages.append(
+                                    new Message(
+                                            null,
+                                            sessionId,
+                                            inserted.id(),
+                                            MessageRole.USER,
+                                            MessageKind.SKILL_CONTEXT,
+                                            injected,
+                                            null,
+                                            null,
+                                            now));
+                        }
                         messages.append(
                                 new Message(
                                         null,
@@ -181,5 +211,18 @@ public class RunService {
 
     public java.util.List<Run> listByStatus(RunStatus status) {
         return runs.listByStatus(status);
+    }
+
+    private SkillPackage resolveSkill(String skillName) {
+        if (skillName == null || skillName.isBlank()) {
+            return null;
+        }
+        try {
+            return skillCatalog.get(skillName);
+        } catch (ApiException error) {
+            // Python 语义：保留技能错误码，但 Run 创建统一 422
+            throw new ApiException(
+                    error.code(), error.getMessage(), 422, Map.of("skill_name", skillName));
+        }
     }
 }

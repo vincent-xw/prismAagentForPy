@@ -17,7 +17,8 @@ class LocalToolDispatchTest {
 
     private final ToolRegistry registry = new ToolRegistry();
     private final WorkspaceToolExecutor workspaceTools = new WorkspaceToolExecutor();
-    private final LocalToolInvoker invoker = new LocalToolInvoker(registry, workspaceTools);
+    private final LocalToolInvoker invoker =
+            new LocalToolInvoker(registry, workspaceTools, org.mockito.Mockito.mock(SkillTool.class));
 
     private Workspace workspace(Path root) {
         Instant now = Instant.now();
