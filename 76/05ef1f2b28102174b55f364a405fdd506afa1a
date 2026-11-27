@@ -1,0 +1,18 @@
+AGENTS.md
+  h_c3a612a540ca0b 104-108
+backend-java/src/main/java/com/prism/agent/application/mcp/McpConnectionManager.java
+  h_c3a612a540ca0b 80,103
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "7605ef1f2b28102174b55f364a405fdd506afa1a",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
