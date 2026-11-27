@@ -47,6 +47,11 @@ public class ModelProfileController {
         service.delete(id);
     }
 
+    @PostMapping("/{id}/probe")
+    public com.prism.agent.api.dto.ModelProfileProbeView probe(@PathVariable String id) {
+        return service.probe(id);
+    }
+
     @PostMapping("/{id}/activate")
     public ModelProfileView activate(@PathVariable String id) {
         return view(service.activate(id));

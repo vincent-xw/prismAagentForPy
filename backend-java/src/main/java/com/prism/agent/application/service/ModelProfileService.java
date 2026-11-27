@@ -5,6 +5,15 @@ import com.prism.agent.common.ApiException;
 import com.prism.agent.common.ErrorCode;
 import com.prism.agent.core.domain.ModelProfile;
 import com.prism.agent.persistence.repository.ModelProfileRepository;
+import com.prism.agent.providers.ModelPorts;
+import com.prism.agent.providers.ModelProperties;
+import com.prism.agent.providers.OpenAiCompatibleModelProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.prism.agent.core.domain.Message;
+import com.prism.agent.core.domain.MessageKind;
+import com.prism.agent.core.domain.MessageRole;
+import java.time.Instant;
+import java.util.List;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -19,10 +28,47 @@ public class ModelProfileService {
 
     private final ModelProfileRepository repository;
     private final ProfileCredentialResolver credentials;
+    private final ObjectMapper objectMapper;
 
-    public ModelProfileService(ModelProfileRepository repository, ProfileCredentialResolver credentials) {
+    public ModelProfileService(
+            ModelProfileRepository repository,
+            ProfileCredentialResolver credentials,
+            ObjectMapper objectMapper) {
         this.repository = repository;
         this.credentials = credentials;
+        this.objectMapper = objectMapper;
+    }
+
+    /** 用目标档案发一次最小请求验证连通性；失败也返回 200 + ok=false。 */
+    public com.prism.agent.api.dto.ModelProfileProbeView probe(String id) {
+        ModelProfile profile = repository.requireById(id);
+        long started = System.nanoTime();
+        try {
+            var provider = new OpenAiCompatibleModelProvider(
+                    new ModelProperties(
+                            profile.baseUrl(),
+                            credentials.resolve(profile),
+                            profile.model(),
+                            profile.contextWindow(),
+                            profile.maxOutputTokens(),
+                            null),
+                    objectMapper);
+            Message message = new Message(
+                    null, "probe", "probe", MessageRole.USER, MessageKind.TEXT, "ping", null, null, Instant.now());
+            provider.stream(
+                    new ModelPorts.Request("ping", List.of(message), List.of(), List.of(), 8),
+                    chunk -> {
+                    });
+        } catch (com.prism.agent.common.ApiException error) {
+            return new com.prism.agent.api.dto.ModelProfileProbeView(false, null, error.getMessage());
+        } catch (InterruptedException error) {
+            Thread.currentThread().interrupt();
+            return new com.prism.agent.api.dto.ModelProfileProbeView(false, null, "InterruptedException");
+        } catch (RuntimeException error) {
+            return new com.prism.agent.api.dto.ModelProfileProbeView(false, null, error.getClass().getSimpleName());
+        }
+        double latency = Math.round((System.nanoTime() - started) / 10_000.0) / 100.0;
+        return new com.prism.agent.api.dto.ModelProfileProbeView(true, latency, null);
     }
 
     public List<ModelProfile> list() {

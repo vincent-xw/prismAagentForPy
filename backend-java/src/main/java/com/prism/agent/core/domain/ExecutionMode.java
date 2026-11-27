@@ -10,6 +10,7 @@ public enum ExecutionMode {
         this.wire = wire;
     }
 
+    @com.fasterxml.jackson.annotation.JsonValue
     public String wire() {
         return wire;
     }

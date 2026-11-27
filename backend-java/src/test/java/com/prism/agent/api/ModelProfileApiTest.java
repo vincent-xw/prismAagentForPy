@@ -113,6 +113,19 @@ class ModelProfileApiTest extends MySqlTestBase {
     }
 
     @Test
+    void probeWithoutAnyKeyReturnsOkFalse() {
+        String id = call(HttpMethod.POST, "/api/v1/model-profiles", payload("model-a"))
+                .getBody().get("id").asText();
+
+        ResponseEntity<JsonNode> response = call(HttpMethod.POST, "/api/v1/model-profiles/" + id + "/probe", null);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody().get("ok").asBoolean()).isFalse();
+        assertThat(response.getBody().get("error").asText()).isNotBlank();
+        assertThat(response.getBody().get("error").asText()).doesNotContain("sk-");
+    }
+
+    @Test
     void deletingActiveProfileIs409() {
         String id = call(HttpMethod.POST, "/api/v1/model-profiles", payload("model-a")).getBody().get("id").asText();
         call(HttpMethod.POST, "/api/v1/model-profiles/" + id + "/activate", null);
