@@ -53,7 +53,7 @@ CREATE TABLE mcp_servers (
 
 Python 侧改动（同阶段）：
 - `config_service` 允许 `env`/`headers` 直接携带真实值（不再要求占位），占位 `${VAR}` 继续解析。
-- 读取视图：`env_keys`/`header_keys` + `env`/`headers` 的值一律替换为 `"••••"`；PATCH 时值为 `"••••"` 表示保留原值（与模型档案的掩码语义一致）。
+- 读取视图：`env_keys`/`header_keys` + `env`/`headers` 的值替换为 Python 既有的 `***`；PATCH 时值为 `***` 表示保留原值。含 `${VAR}` 的占位值按 Python 现状明文回显（它是占位符，不是密钥）。
 
 ## 5. 契约
 
@@ -70,26 +70,33 @@ Python 侧改动（同阶段）：
 | POST | `/mcp/servers/{id}/reconnect` |
 | GET | `/mcp/servers/{id}/tools` |
 
-`McpServerView` 字段：`id, name, transport, command, args, url, enabled, status, last_error, tool_count, env_keys, header_keys, env, headers`（`env`/`headers` 的值为掩码）。错误码复用：`MCP_SERVER_NOT_FOUND(404)`、`MCP_CONFIG_INVALID(422)`、`MCP_SERVER_UNAVAILABLE(502)`、`MCP_SERVER_BUSY(409)`、`MCP_PROTOCOL_ERROR(502)`、`MCP_TOOL_TIMEOUT(504)`、`MCP_TOOL_ERROR(502)`、`MCP_DISABLED(409)`、`MCP_TOOL_NAME_CONFLICT(409)`。
+`McpServerView` 字段：`id, name, transport, command, args, url, enabled, status, last_error, tool_count, env_keys, header_keys, env, headers`（`env`/`headers` 的值掩码为 `***`）。
+PATCH 是**整包替换**（name/transport 必填，不允许半合并）；掩码值 `***` 在更新时还原为原值。
+错误码与状态码**以 Python 实现为准**：`MCP_SERVER_NOT_FOUND(404)`、`MCP_CONFIG_INVALID(400)`、`MCP_SERVER_UNAVAILABLE(503)`、`MCP_SERVER_BUSY(409)`、`MCP_PROTOCOL_ERROR(502)`、`MCP_TOOL_TIMEOUT(504)`、`MCP_TOOL_ERROR(400)`、`MCP_DISABLED(409)`；不引入 `MCP_TOOL_NAME_CONFLICT`（Python 实际用 `INVALID_TOOL_DEFINITION(400)` 表示工具名冲突）。
 
 ## 6. 连接生命周期（方案 A）
 
 - `McpServerManager`：`@PostConstruct` 连接所有 `enabled=true` 的服务；`enable` → connecting → connected/error；`disable` → 断开并置 disabled；`reconnect` → 先断后连。
 - 每个服务一个 `McpSyncClient`（同步 API 跑在专用虚拟线程上，避免阻塞 Tomcat 线程），工具清单在连接成功后缓存并注册到 `ToolRegistry`。
 - 失败策略：连接失败置 `error` 并写 `last_error`（只存异常类型与简短消息，不含密钥）；不自动无限重试，`enable/reconnect` 显式重试。
+- **活动 Run 保护**：`enable/disable/reconnect/update/delete` 时若存在活动 Run（queued/running/waiting_*），返回 409 `MCP_SERVER_BUSY`（与 Python 一致）。
+- 名称唯一：`name` 唯一，且 `slug`（工具前缀）唯一；冲突 400 `MCP_CONFIG_INVALID`。
 - 应用关闭时 `close()` 所有客户端；stdio 子进程随 transport 关闭。
 
 ## 7. 工具执行
 
 - `ToolRegistry` 注册 `mcp__<server>__<tool>`（`ExecutionMode.LOCAL`，`requiresApproval=false`）。
 - 命名：`slugify(server.name)` + `mcp__` 前缀，超过 64 字符追加 6 位 sha256 前缀（与 Python `naming.py` 逐字一致）。
-- 调用：引擎现有 LOCAL 工具路径 → `McpToolInvoker` → `client.callTool(...)`，超时 30s（`MCP_TOOL_TIMEOUT`）；结果规范化：拼接 text、图片只留 `{type,mimeType,size}`、`isError` → `MCP_TOOL_ERROR`；文本上限 200KB。
+- 调用：引擎的本地工具派发改为**按工具名分发**（`LocalToolInvoker`：`workspace` 工具走 `WorkspaceToolExecutor`，`mcp__` 前缀走 `McpToolInvoker`）——现状 `dispatchLocalTools` 硬编码 `workspaceTools.execute`，必须改。
+- 超时 30s（`MCP_TOOL_TIMEOUT(504)`）；结果规范化**逐字复刻** Python `adapter.normalize_result`：`{text, truncated, structured?, images:[{type,mimeType,size}], resources:[{type}]}`，文本上限 200KB，`isError` → `MCP_TOOL_ERROR(400)`。
+- `ToolRegistry.register` 遇到重名必须显式报 400 `INVALID_TOOL_DEFINITION`（当前实现静默覆盖）。
+- stdio 子进程环境：只透传 `PATH/HOME/LANG/LC_ALL/TMPDIR` 等白名单 + 配置的 `env`（复刻 Python `_ENV_ALLOWLIST`）。
 - 服务被禁用后若模型仍调用 → `MCP_DISABLED`。
 - Python 侧同步调整：`to_tool_definition(..., requires_approval=False)`（K-09），其余不变。
 
 ## 8. 镜像与运行时
 
-- `backend-java/Dockerfile`：安装 Node 22 LTS（NodeSource 或官方 tarball），保留 python3 + uv；`npx`/`uvx` 均可用。
+- `backend-java/Dockerfile` **已包含** Node 22 + npx + python3 + uv（Phase 2 引入），无需新增层；只需验证 `uvx` 可执行。
 - 容器内 `$HOME` 与 `PATH` 需包含 node、npx、uvx；MCP stdio 子进程继承精简环境 + 配置的 env。
 
 ## 9. 测试
@@ -99,8 +106,10 @@ Python 侧改动（同阶段）：
 - 契约：`tests/contract/test_mcp.py`（双端 CRUD + 掩码 + tools 列表；默认不真连外部服务）。
 - UI：MCP 页增加 env/header 值输入（密码框）与掩码显示。
 
-## 10. 待你确认
+## 10. 设计决定（我的裁量，已在文中）
 
-1. `env`/`headers` 的掩码值用 `"••••"`（PATCH 时原样回传表示“不修改”）是否可以？
-2. MCP 工具延续 K-09 **默认免审批**（Python 也一起改），是否需要保留一个可配置开关？
-3. 连接失败不自动重试、只由 `enable/reconnect` 触发，是否接受？
+- 掩码沿用 Python 的 `***`；PATCH 整包替换；占位符明文回显。
+- 错误码/状态码以 Python 为准。
+- 保留活动 Run 的 409 保护；工具名/ slug 唯一冲突报 400。
+- 结果规范化逐字复刻；环境变量白名单透传。
+- MCP 工具默认免审批（K-09），Python 同步改。
