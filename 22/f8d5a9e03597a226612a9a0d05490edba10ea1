@@ -1,0 +1,16 @@
+docs/superpowers/plans/2026-11-28-phase7-parity-e2e.md
+  h_c3a612a540ca0b 56-62
+scripts/run-parity.sh
+  h_c3a612a540ca0b 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "22f8d5a9e03597a226612a9a0d05490edba10ea1",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
