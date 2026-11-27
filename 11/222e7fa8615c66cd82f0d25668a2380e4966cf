@@ -1,0 +1,44 @@
+backend-java/src/main/java/com/prism/agent/api/exception/GlobalExceptionHandler.java
+  h_c3a612a540ca0b 1-111
+backend-java/src/main/java/com/prism/agent/api/security/RequestIdFilter.java
+  h_c3a612a540ca0b 1-43
+backend-java/src/main/java/com/prism/agent/common/ApiException.java
+  h_c3a612a540ca0b 1-32
+backend-java/src/main/java/com/prism/agent/common/ErrorCode.java
+  h_c3a612a540ca0b 1-14
+backend-java/src/main/resources/application.yml
+  h_c3a612a540ca0b 4-8
+backend-java/src/test/java/com/prism/agent/api/ErrorEnvelopeTest.java
+  h_c3a612a540ca0b 1-46
+backend-java/src/test/java/com/prism/agent/config/JsonContractTest.java
+  h_c3a612a540ca0b 1-29
+backend-java/target/classes/application.yml
+  h_c3a612a540ca0b 4-8
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+  h_c3a612a540ca0b 1,3-5
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+  h_c3a612a540ca0b 2-5
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+  h_c3a612a540ca0b 2-4
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+  h_c3a612a540ca0b 2-3
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.ErrorEnvelopeTest.xml
+  h_c3a612a540ca0b 1-96
+backend-java/target/surefire-reports/TEST-com.prism.agent.config.JsonContractTest.xml
+  h_c3a612a540ca0b 1-97
+backend-java/target/surefire-reports/com.prism.agent.api.ErrorEnvelopeTest.txt
+  h_c3a612a540ca0b 1-4
+backend-java/target/surefire-reports/com.prism.agent.config.JsonContractTest.txt
+  h_c3a612a540ca0b 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "11222e7fa8615c66cd82f0d25668a2380e4966cf",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
