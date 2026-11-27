@@ -22,6 +22,7 @@ class TrajectoryService:
         async with self._uow_factory() as uow:
             await uow.sessions.get(session_id)
             runs = await uow.runs.list_for_session(session_id, limit=limit, before=before)
+            all_runs = await uow.runs.list_for_session(session_id, limit=10_000)
             checkpoints = await uow.checkpoints.list_for_session(session_id)
             turns: list[dict[str, object]] = []
             assigned: set[str] = set()
@@ -32,8 +33,12 @@ class TrajectoryService:
                 turn_compactions = cast(list[dict[str, object]], turn["compactions"])
                 assigned.update(str(item["id"]) for item in turn_compactions)
                 turns.append(turn)
-            orphaned = [item for item in checkpoints if item.id not in assigned]
-            if orphaned and turns:
+            orphaned = [
+                item
+                for item in checkpoints
+                if not any(self._in_run(item.created_at, run) for run in all_runs)
+            ]
+            if orphaned and turns and before is None:
                 existing = cast(list[dict[str, object]], turns[-1]["compactions"])
                 existing.extend(
                     [

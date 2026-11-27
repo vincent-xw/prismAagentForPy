@@ -73,9 +73,11 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_checkpoints_session_created", table_name="compaction_checkpoints")
     op.drop_table("compaction_checkpoints")
-    op.drop_column("runs", "model_max_output_tokens")
-    op.drop_column("runs", "model_context_window")
-    op.drop_column("runs", "model_profile_id")
+    with op.batch_alter_table("runs") as batch:
+        batch.drop_constraint("fk_runs_model_profile", type_="foreignkey")
+        batch.drop_column("model_max_output_tokens")
+        batch.drop_column("model_context_window")
+        batch.drop_column("model_profile_id")
     op.drop_index("ux_model_profiles_one_active", table_name="model_profiles")
     op.drop_index("ux_model_profiles_name", table_name="model_profiles")
     op.drop_table("model_profiles")
