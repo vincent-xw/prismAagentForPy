@@ -1,0 +1,26 @@
+backend-java/src/main/java/com/prism/agent/api/controller/ModelProfileController.java
+  h_c3a612a540ca0b 50-54
+backend-java/src/main/java/com/prism/agent/api/controller/ToolsController.java
+  h_c3a612a540ca0b 1-33
+backend-java/src/main/java/com/prism/agent/api/dto/ToolView.java
+  h_c3a612a540ca0b 1-12
+backend-java/src/main/java/com/prism/agent/application/service/ModelProfileService.java
+  h_c3a612a540ca0b 8-16,31,33-36,39-71
+backend-java/src/main/java/com/prism/agent/core/domain/ExecutionMode.java
+  h_c3a612a540ca0b 13
+backend-java/src/test/java/com/prism/agent/api/ModelProfileApiTest.java
+  h_c3a612a540ca0b 115-127
+backend-java/src/test/java/com/prism/agent/api/ToolsApiTest.java
+  h_c3a612a540ca0b 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2ca0f2c465e2f36aafd5859a96c643fbd02604f6",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
