@@ -1,5 +1,7 @@
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/PrismAgentApplication.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/controller/HealthController.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/controller/SessionController.java
+/Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/HealthResponse.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/SessionCreateRequest.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/SessionListResponse.java
 /Users/xuewen/ai-lab/travelAgenticAutoTestGroup/prismAgentForPy/backend-java/src/main/java/com/prism/agent/api/dto/SessionView.java

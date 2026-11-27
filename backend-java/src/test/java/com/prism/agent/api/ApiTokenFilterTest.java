@@ -36,7 +36,8 @@ class ApiTokenFilterTest {
 
     @Test
     void healthPathBypassesAuth() throws Exception {
-        // health 控制器在 Task 7 才实现：本任务只证明"不返回 401"
-        mvc.perform(get("/api/v1/health")).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ok"));
     }
 }
