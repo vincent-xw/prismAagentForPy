@@ -1,0 +1,20 @@
+backend-java/src/main/java/com/prism/agent/providers/ModelPorts.java
+  h_c3a612a540ca0b 1-43
+backend-java/src/main/java/com/prism/agent/providers/ModelProperties.java
+  h_c3a612a540ca0b 1-22
+backend-java/src/main/java/com/prism/agent/providers/OpenAiCompatibleModelProvider.java
+  h_c3a612a540ca0b 1-299
+backend-java/src/test/java/com/prism/agent/providers/OpenAiCompatibleProviderTest.java
+  h_c3a612a540ca0b 1-147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "950388d319e7a4cea2aab27743a56bba6b08784c",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
