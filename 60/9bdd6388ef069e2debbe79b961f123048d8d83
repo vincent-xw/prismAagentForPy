@@ -1,0 +1,28 @@
+backend-java/src/main/java/com/prism/agent/application/event/NoopRunEventPublisher.java
+  h_c3a612a540ca0b 1-24
+backend-java/src/main/java/com/prism/agent/application/event/RunEventPublisher.java
+  h_c3a612a540ca0b 1-16
+backend-java/src/main/java/com/prism/agent/application/service/RunService.java
+  h_c3a612a540ca0b 4,12,16,41-42,51-52,59-60,75,77-78,104,109,116-122,124-126,148-162
+backend-java/src/main/java/com/prism/agent/persistence/mapper/RunMapper.java
+  h_c3a612a540ca0b 6,8,16-24
+backend-java/src/main/java/com/prism/agent/persistence/repository/EventRepository.java
+  h_c3a612a540ca0b 1-15
+backend-java/src/main/java/com/prism/agent/persistence/repository/MyBatisEventRepository.java
+  h_c3a612a540ca0b 1-115
+backend-java/src/test/java/com/prism/agent/api/RunEventWiringTest.java
+  h_c3a612a540ca0b 1-82
+backend-java/src/test/java/com/prism/agent/persistence/EventSeqTest.java
+  h_c3a612a540ca0b 1-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "609bdd6388ef069e2debbe79b961f123048d8d83",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
