@@ -42,6 +42,11 @@ prism:
   sse-heartbeat-seconds: ${PRISM_SSE_HEARTBEAT_SECONDS:15}
   workspace-root: ${PRISM_WORKSPACE_ROOT:${user.home}/prism-workspaces}
   workspace-user: ${PRISM_WORKSPACE_USER:default}
+  prism-home: ${PRISM_PRISM_HOME:${user.home}/.prism}
+  skills-paths: ${PRISM_SKILLS_PATHS:}
+  skills-catalog-max-chars: ${PRISM_SKILLS_CATALOG_MAX_CHARS:8000}
+  skills-max-context-chars: ${PRISM_SKILLS_MAX_CONTEXT_CHARS:20000}
+  skills-max-tool-result-chars: ${PRISM_SKILLS_MAX_TOOL_RESULT_CHARS:60000}
 
 server:
   port: ${PRISM_PORT:8080}

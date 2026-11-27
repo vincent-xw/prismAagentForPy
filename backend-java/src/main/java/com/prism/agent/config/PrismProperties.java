@@ -19,7 +19,12 @@ public record PrismProperties(
         Double remoteToolTimeoutSeconds,
         Double sseHeartbeatSeconds,
         String workspaceRoot,
-        String workspaceUser) {
+        String workspaceUser,
+        String prismHome,
+        String skillsPaths,
+        Integer skillsCatalogMaxChars,
+        Integer skillsMaxContextChars,
+        Integer skillsMaxToolResultChars) {
 
     public PrismProperties {
         environment = environment == null || environment.isBlank() ? "development" : environment;
@@ -38,6 +43,19 @@ public record PrismProperties(
                         ? System.getProperty("user.home") + "/prism-workspaces"
                         : workspaceRoot;
         workspaceUser = workspaceUser == null || workspaceUser.isBlank() ? "default" : workspaceUser;
+        prismHome =
+                prismHome == null || prismHome.isBlank()
+                        ? System.getProperty("user.home") + "/.prism"
+                        : prismHome;
+        skillsPaths = skillsPaths == null ? "" : skillsPaths;
+        skillsCatalogMaxChars =
+                skillsCatalogMaxChars == null || skillsCatalogMaxChars <= 0 ? 8_000 : skillsCatalogMaxChars;
+        skillsMaxContextChars =
+                skillsMaxContextChars == null || skillsMaxContextChars <= 0 ? 20_000 : skillsMaxContextChars;
+        skillsMaxToolResultChars =
+                skillsMaxToolResultChars == null || skillsMaxToolResultChars <= 0
+                        ? 60_000
+                        : skillsMaxToolResultChars;
     }
 
     private static String normalizePrefix(String value) {
