@@ -1,0 +1,14 @@
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "230052dca27294734c6f48a14cdf7d4682314b8c",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
