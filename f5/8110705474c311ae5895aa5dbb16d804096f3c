@@ -1,0 +1,62 @@
+backend-java/README.md
+  h_c3a612a540ca0b 1-62
+backend-java/src/main/java/com/prism/agent/api/controller/HealthController.java
+  h_c3a612a540ca0b 1-31
+backend-java/src/main/java/com/prism/agent/api/dto/HealthResponse.java
+  h_c3a612a540ca0b 1-8
+backend-java/src/test/java/com/prism/agent/api/ApiTokenFilterTest.java
+  h_c3a612a540ca0b 39-41
+backend-java/src/test/java/com/prism/agent/api/HealthControllerTest.java
+  h_c3a612a540ca0b 1-55
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+  h_c3a612a540ca0b 2,9
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+  h_c3a612a540ca0b 2,4
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+  h_c3a612a540ca0b 2
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/TEST-com.prism.agent.PrismAgentApplicationTests.xml
+  h_c3a612a540ca0b 2,18,37,58,72-74,85-97
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.ApiTokenFilterTest.xml
+  h_c3a612a540ca0b 2,19,38,55,60,62,75-77,88-103,107
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.ErrorEnvelopeTest.xml
+  h_c3a612a540ca0b 2,19,38,55,60,62,75-77,88-103,106
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.HealthControllerTest.xml
+  h_c3a612a540ca0b 1-113
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.SessionApiTest.xml
+  h_c3a612a540ca0b 2,19,38,55,60,62,75-77,88-109,112-114
+backend-java/target/surefire-reports/TEST-com.prism.agent.application.SessionServiceTest.xml
+  h_c3a612a540ca0b 2,19,38,55,60,62,75-77,80-81
+backend-java/target/surefire-reports/TEST-com.prism.agent.config.JsonContractTest.xml
+  h_c3a612a540ca0b 2,18,37,58,72-74
+backend-java/target/surefire-reports/TEST-com.prism.agent.persistence.SessionMapperTest.xml
+  h_c3a612a540ca0b 2,18,37,58,72-74,85-97,100
+backend-java/target/surefire-reports/com.prism.agent.PrismAgentApplicationTests.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.api.ApiTokenFilterTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.api.ErrorEnvelopeTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.api.HealthControllerTest.txt
+  h_c3a612a540ca0b 1-4
+backend-java/target/surefire-reports/com.prism.agent.api.SessionApiTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.application.SessionServiceTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.config.JsonContractTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.persistence.SessionMapperTest.txt
+  h_c3a612a540ca0b 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f58110705474c311ae5895aa5dbb16d804096f3c",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
