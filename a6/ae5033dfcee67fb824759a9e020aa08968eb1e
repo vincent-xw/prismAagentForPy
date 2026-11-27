@@ -1,0 +1,18 @@
+backend-java/src/main/java/com/prism/agent/application/event/RunStreamHub.java
+  h_c3a612a540ca0b 139-146
+backend-java/src/test/java/com/prism/agent/api/SseStreamTest.java
+  h_c3a612a540ca0b 120-124
+docker-compose.yml
+  h_c3a612a540ca0b 72-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a6ae5033dfcee67fb824759a9e020aa08968eb1e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
