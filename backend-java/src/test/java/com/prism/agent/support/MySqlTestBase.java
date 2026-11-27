@@ -32,6 +32,7 @@ public abstract class MySqlTestBase {
         jdbc.update("delete from messages");
         jdbc.update("delete from runs");
         jdbc.update("delete from model_profiles");
+        jdbc.update("delete from mcp_servers");
         jdbc.update("delete from sessions");
     }
 

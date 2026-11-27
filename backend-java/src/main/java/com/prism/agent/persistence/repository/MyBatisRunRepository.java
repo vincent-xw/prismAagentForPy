@@ -173,6 +173,19 @@ public class MyBatisRunRepository implements RunRepository {
     }
 
     @Override
+    public boolean anyActiveRun() {
+        return mapper.selectCount(
+                        Wrappers.<RunEntity>lambdaQuery()
+                                .in(
+                                        RunEntity::getStatus,
+                                        RunStatus.QUEUED.wire(),
+                                        RunStatus.RUNNING.wire(),
+                                        RunStatus.WAITING_FOR_TOOL.wire(),
+                                        RunStatus.WAITING_FOR_APPROVAL.wire()))
+                > 0;
+    }
+
+    @Override
     public Run markCancelRequested(String id) {
         mapper.update(
                 null,

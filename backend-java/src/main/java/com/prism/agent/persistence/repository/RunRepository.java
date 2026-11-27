@@ -24,6 +24,8 @@ public interface RunRepository {
 
     boolean hasActiveRun(String sessionId);
 
+    boolean anyActiveRun();
+
     Run markCancelRequested(String id);
 
     void updateStepCount(String id, int stepCount);
