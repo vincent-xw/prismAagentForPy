@@ -85,6 +85,18 @@ class RunRepository:
             )
         return run_to_domain(row)
 
+    async def list_for_session(
+        self, session_id: str, *, limit: int = 50, before: datetime | None = None
+    ) -> list[Run]:
+        """按创建时间倒序返回会话的 Run，供轨迹分页。"""
+        query = select(RunRow).where(RunRow.session_id == session_id)
+        if before is not None:
+            query = query.where(RunRow.created_at < before.replace(tzinfo=None))
+        rows = await self._session.scalars(
+            query.order_by(RunRow.created_at.desc(), RunRow.id.desc()).limit(limit)
+        )
+        return [run_to_domain(row) for row in rows]
+
     async def get_active(self, session_id: str) -> Run | None:
         """返回 Session 当前的非终止 Run。"""
         row = await self._session.scalars(

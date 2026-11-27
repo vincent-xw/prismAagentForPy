@@ -14,6 +14,7 @@ from prism_agent_kit.application.session_service import SessionService
 from prism_agent_kit.application.skills.catalog import SkillCatalog
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_service import ToolResultService
+from prism_agent_kit.application.trajectory_service import TrajectoryService
 from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.config import Settings
 from prism_agent_kit.tools.registry import ToolRegistry
@@ -69,6 +70,11 @@ def get_model_profile_service(request: Request) -> ModelProfileService:
     return get_application_container(request).model_profile_service
 
 
+def get_trajectory_service(request: Request) -> TrajectoryService:
+    """返回轨迹投影服务。"""
+    return get_application_container(request).trajectory_service
+
+
 def get_manual_compaction_service(request: Request) -> ManualCompactionService:
     """返回手动压缩服务。"""
     return get_application_container(request).manual_compaction_service
@@ -112,6 +118,7 @@ McpConfigServiceDependency = Annotated[McpConfigService, Depends(get_mcp_config_
 SkillCatalogDependency = Annotated[SkillCatalog, Depends(get_skill_catalog)]
 ModelProfileServiceDependency = Annotated[ModelProfileService, Depends(get_model_profile_service)]
 ProviderFactoryDependency = Annotated[ProviderFactory, Depends(get_provider_factory)]
+TrajectoryServiceDependency = Annotated[TrajectoryService, Depends(get_trajectory_service)]
 ManualCompactionServiceDependency = Annotated[
     ManualCompactionService, Depends(get_manual_compaction_service)
 ]

@@ -4,6 +4,7 @@ from prism_agent_kit.api.routes import health
 from prism_agent_kit.api.routes import mcp as mcp_routes
 from prism_agent_kit.api.routes import model_profiles as model_profile_routes
 from prism_agent_kit.api.routes import skills as skills_routes
+from prism_agent_kit.api.routes import trajectory as trajectory_routes
 from prism_agent_kit.api.routes.runs import create_runs_router
 from prism_agent_kit.api.routes.sessions import create_sessions_router
 from prism_agent_kit.api.routes.tools import create_tools_router
@@ -21,6 +22,7 @@ def create_api_router() -> APIRouter:
     router.include_router(mcp_routes.router)
     router.include_router(skills_routes.router)
     router.include_router(model_profile_routes.router)
+    router.include_router(trajectory_routes.router)
     return router
 
 

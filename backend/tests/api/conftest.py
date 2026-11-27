@@ -26,6 +26,7 @@ from prism_agent_kit.application.skills.catalog import SkillCatalog
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
+from prism_agent_kit.application.trajectory_service import TrajectoryService
 from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
 from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.compaction import CompactionConfig, PruneConfig
@@ -68,6 +69,7 @@ class ApiTestContainer:
     mcp_manager: McpServerManager
     model_profile_service: ModelProfileService
     manual_compaction_service: ManualCompactionService
+    trajectory_service: TrajectoryService
     provider_factory: object
     workspace_fts_supported: bool = True
 
@@ -125,6 +127,7 @@ def build_api_application(
             return _ProbeProvider()
 
     provider_factory = _ProbeFactory()
+    trajectory_service = TrajectoryService(uow_factory)
     manual_compaction_service = ManualCompactionService(
         uow_factory=uow_factory,
         profiles=model_profile_service,
@@ -227,6 +230,7 @@ def build_api_application(
         mcp_config_service=mcp_config_service,
         mcp_manager=mcp_manager,
         model_profile_service=model_profile_service,
+        trajectory_service=trajectory_service,
         manual_compaction_service=manual_compaction_service,
         provider_factory=provider_factory,
     )

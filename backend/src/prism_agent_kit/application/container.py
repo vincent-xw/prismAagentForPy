@@ -22,6 +22,7 @@ from prism_agent_kit.application.skills.tools import build_skill_tool
 from prism_agent_kit.application.tool_approval_service import ToolApprovalService
 from prism_agent_kit.application.tool_result_recorder import ToolResultRecorder
 from prism_agent_kit.application.tool_result_service import ToolResultService
+from prism_agent_kit.application.trajectory_service import TrajectoryService
 from prism_agent_kit.application.workspace_indexer import WorkspaceIndexer
 from prism_agent_kit.application.workspace_service import WorkspaceService
 from prism_agent_kit.core.compaction import CompactionConfig, PruneConfig
@@ -89,6 +90,7 @@ class ApplicationContainer:
         self._provider_factory: ProviderFactory | None = None
         self._model_profile_service: ModelProfileService | None = None
         self._manual_compaction_service: ManualCompactionService | None = None
+        self._trajectory_service: TrajectoryService | None = None
 
     @property
     def database(self) -> Database:
@@ -157,6 +159,13 @@ class ApplicationContainer:
         if self._model_profile_service is None:
             raise RuntimeError("ApplicationContainer 尚未启动")
         return self._model_profile_service
+
+    @property
+    def trajectory_service(self) -> TrajectoryService:
+        """返回轨迹投影服务。"""
+        if self._trajectory_service is None:
+            raise RuntimeError("ApplicationContainer 尚未启动")
+        return self._trajectory_service
 
     @property
     def manual_compaction_service(self) -> ManualCompactionService:
@@ -441,6 +450,7 @@ class ApplicationContainer:
             self._skill_catalog = skill_catalog
             self._provider_factory = provider_factory
             self._model_profile_service = profile_service
+            self._trajectory_service = TrajectoryService(uow_factory)
             self._manual_compaction_service = ManualCompactionService(
                 uow_factory=uow_factory,
                 profiles=profile_service,
