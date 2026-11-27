@@ -6,12 +6,15 @@ import { isTerminal } from '@/lib/api/contracts'
 import { Button } from '@/components/ui/button'
 import MessageList from './MessageList.vue'
 import MessageComposer from './MessageComposer.vue'
+import { compactNotice } from './compaction'
 import ApprovalCard from '@/features/runs/ApprovalCard.vue'
 const { conversation, connection, client } = useAppContext()
 const router = useRouter()
 const state = computed(() => conversation.value!.state)
 const workspaceLabel = ref<string | null>(null)
 const composer = ref<{ clearSkill: () => void } | null>(null)
+const compactMessage = ref<string | null>(null)
+const compacting = ref(false)
 
 // 只用于展示当前会话绑定的工作区，加载失败不打断主流程。
 async function loadWorkspaceLabel(): Promise<void> {
@@ -43,6 +46,20 @@ watch(
   () => void loadWorkspaceLabel(),
   { immediate: true },
 )
+async function compactContext(): Promise<void> {
+  const sessionId = state.value.selectedSessionId
+  if (!sessionId || client === undefined || active.value) return
+  compacting.value = true
+  compactMessage.value = null
+  try {
+    compactMessage.value = compactNotice(await client.compactSession(sessionId))
+  } catch (error) {
+    compactMessage.value = error instanceof Error ? error.message : '压缩失败'
+  } finally {
+    compacting.value = false
+  }
+}
+
 const projection = computed(() =>
   state.value.selectedRunId ? (state.value.runs[state.value.selectedRunId] ?? null) : null,
 )
@@ -154,7 +171,15 @@ const labels = {
               ? '等待停止确认'
               : labels[active.run.status]
             : labels[projection!.run.status]
-        }}<span v-if="state.connection === 'reconnecting'"> · 正在重新连接</span
+        }}<Button
+          v-if="!active"
+          variant="link"
+          size="xs"
+          :disabled="compacting"
+          @click="compactContext"
+          >{{ compacting ? '压缩中…' : '压缩上下文' }}</Button
+        ><span v-if="compactMessage" class="text-muted-foreground"> · {{ compactMessage }}</span
+        ><span v-if="state.connection === 'reconnecting'"> · 正在重新连接</span
         ><span v-else-if="state.connection === 'error'"> · 事件连接中断</span
         ><Button
           variant="link"

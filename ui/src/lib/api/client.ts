@@ -2,6 +2,7 @@ import type { z } from 'zod'
 import {
   approvalPreviewSchema,
   approvalResponseSchema,
+  compactResultSchema,
   errorSchema,
   fileResponseSchema,
   healthSchema,
@@ -215,6 +216,14 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
         `/workspaces/${encodeURIComponent(id)}/search?q=${encodeURIComponent(query)}`,
         searchResponseSchema,
         'GET',
+        undefined,
+        signal,
+      ),
+    compactSession: (sessionId: string, signal?: AbortSignal) =>
+      request(
+        `/sessions/${encodeURIComponent(sessionId)}/compact`,
+        compactResultSchema,
+        'POST',
         undefined,
         signal,
       ),

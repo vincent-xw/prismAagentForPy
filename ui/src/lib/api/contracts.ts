@@ -313,3 +313,12 @@ export interface ModelProfilePayload {
   context_window: number
   max_output_tokens: number
 }
+
+export const compactResultSchema = z.object({
+  compacted: z.boolean(),
+  reason: z.string().optional(),
+  checkpoint_id: z.string().optional(),
+  tokens_before: z.number().optional(),
+  tokens_after: z.number().optional(),
+})
+export type CompactResultDto = z.infer<typeof compactResultSchema>
