@@ -40,6 +40,9 @@ class Run(BaseModel):
     prompt_version: str
     system_prompt: str
     model: str
+    model_profile_id: str | None = None
+    model_context_window: int | None = None
+    model_max_output_tokens: int | None = None
     skill_name: str | None = None
     step_count: int = 0
     output_text: str | None = None
@@ -96,4 +99,32 @@ class RunEvent(BaseModel):
     run_id: str
     event_type: EventType
     payload: JsonValue
+    created_at: datetime = Field(default_factory=utc_now)
+
+
+class ModelProfile(BaseModel):
+    """一份可切换的模型档案（全局唯一 active）。"""
+
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    name: str
+    base_url: str
+    model: str
+    api_key_env: str
+    context_window: int
+    max_output_tokens: int
+    is_active: bool = False
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
+class CompactionCheckpoint(BaseModel):
+    """一次上下文压缩的结果，原文保留、只影响模型可见历史。"""
+
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    session_id: str
+    summary: str
+    first_kept_message_id: int
+    tokens_before: int
+    tokens_after: int
+    pruned_chars: int = 0
     created_at: datetime = Field(default_factory=utc_now)

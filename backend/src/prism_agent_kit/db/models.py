@@ -98,6 +98,12 @@ class RunRow(Base):
         ForeignKey("workspaces.id", ondelete="SET NULL"),
     )
     status: Mapped[str] = mapped_column(String(32))
+    model_profile_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("model_profiles.id", ondelete="SET NULL"),
+    )
+    model_context_window: Mapped[int | None] = mapped_column(Integer)
+    model_max_output_tokens: Mapped[int | None] = mapped_column(Integer)
     skill_name: Mapped[str | None] = mapped_column(String(64))
     input_text: Mapped[str] = mapped_column(Text)
     prompt_name: Mapped[str] = mapped_column(String(128))
@@ -187,4 +193,49 @@ class RunEventRow(Base):
     )
     event_type: Mapped[str] = mapped_column(String(64))
     payload: Mapped[Any] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ModelProfileRow(Base):
+    """模型档案的 SQLite 持久化行。"""
+
+    __tablename__ = "model_profiles"
+    __table_args__ = (
+        Index("ux_model_profiles_name", "name", unique=True),
+        Index(
+            "ux_model_profiles_one_active",
+            "is_active",
+            unique=True,
+            sqlite_where=text("is_active = 1"),
+        ),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(String(128))
+    base_url: Mapped[str] = mapped_column(Text)
+    model: Mapped[str] = mapped_column(String(128))
+    api_key_env: Mapped[str] = mapped_column(String(128))
+    context_window: Mapped[int] = mapped_column(Integer)
+    max_output_tokens: Mapped[int] = mapped_column(Integer)
+    is_active: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class CompactionCheckpointRow(Base):
+    """上下文压缩结果的持久化行；原文消息不删除。"""
+
+    __tablename__ = "compaction_checkpoints"
+    __table_args__ = (Index("ix_checkpoints_session_created", "session_id", "created_at"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("sessions.id", ondelete="CASCADE"),
+    )
+    summary: Mapped[str] = mapped_column(Text)
+    first_kept_message_id: Mapped[int] = mapped_column(Integer)
+    tokens_before: Mapped[int] = mapped_column(Integer)
+    tokens_after: Mapped[int] = mapped_column(Integer)
+    pruned_chars: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

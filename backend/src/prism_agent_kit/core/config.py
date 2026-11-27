@@ -54,6 +54,13 @@ class Settings(BaseSettings):
     skills_catalog_max_chars: int = 8_000
     skills_max_tool_result_chars: int = 60_000
     skills_max_context_chars: int = 20_000
+    compaction_threshold_ratio: float = 0.85
+    compaction_retain_ratio: float = 0.2
+    compaction_retain_tokens: int = 20_000
+    compaction_prune_threshold_chars: int = 8_000
+    compaction_prune_head_chars: int = 2_000
+    compaction_prune_tail_chars: int = 2_000
+    compaction_timeout_seconds: float = 30.0
 
     @property
     def resolved_database_path(self) -> Path:

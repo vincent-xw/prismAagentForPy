@@ -47,6 +47,7 @@ class MessageKind(StrEnum):
 
     TEXT = "text"
     SKILL_CONTEXT = "skill_context"
+    CHECKPOINT = "checkpoint"
 
 
 class ExecutionMode(StrEnum):

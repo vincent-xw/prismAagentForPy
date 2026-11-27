@@ -276,3 +276,20 @@ def test_skill_context_columns_applied(migrated_database_path: Path) -> None:
 
     assert "kind" in message_cols
     assert "skill_name" in run_cols
+
+
+def test_v14_schema_applied(migrated_database_path: Path) -> None:
+    with sqlite3.connect(migrated_database_path) as connection:
+        run_cols = {row[1] for row in connection.execute("PRAGMA table_info(runs)")}
+        tables = {
+            row[0]
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        }
+        indexes = {
+            row[0]
+            for row in connection.execute("SELECT name FROM sqlite_master WHERE type='index'")
+        }
+
+    assert {"model_profile_id", "model_context_window", "model_max_output_tokens"} <= run_cols
+    assert {"model_profiles", "compaction_checkpoints"} <= tables
+    assert "ux_model_profiles_one_active" in indexes

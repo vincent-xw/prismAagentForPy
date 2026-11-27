@@ -62,3 +62,15 @@ def test_skills_defaults() -> None:
     assert settings.skills_catalog_max_chars == 8000
     assert settings.skills_max_tool_result_chars == 60_000
     assert settings.skills_paths == ""
+
+
+def test_compaction_defaults() -> None:
+    settings = Settings()
+
+    assert settings.compaction_threshold_ratio == 0.85
+    assert settings.compaction_retain_ratio == 0.2
+    assert settings.compaction_retain_tokens == 20_000
+    assert settings.compaction_prune_threshold_chars == 8_000
+    assert settings.compaction_prune_head_chars == 2_000
+    assert settings.compaction_prune_tail_chars == 2_000
+    assert settings.compaction_timeout_seconds == 30.0
