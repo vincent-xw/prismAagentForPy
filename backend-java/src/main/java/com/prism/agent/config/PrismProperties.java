@@ -13,7 +13,11 @@ public record PrismProperties(
         String apiToken,
         String serviceName,
         String version,
-        String modelName) {
+        String modelName,
+        Integer workerConcurrency,
+        Integer maxSteps,
+        Double remoteToolTimeoutSeconds,
+        Double sseHeartbeatSeconds) {
 
     public PrismProperties {
         environment = environment == null || environment.isBlank() ? "development" : environment;
@@ -22,6 +26,11 @@ public record PrismProperties(
         serviceName = serviceName == null || serviceName.isBlank() ? "PrismAgentKit API" : serviceName;
         version = version == null || version.isBlank() ? "1.4.0" : version;
         modelName = modelName == null || modelName.isBlank() ? "mock-model" : modelName;
+        workerConcurrency = workerConcurrency == null || workerConcurrency <= 0 ? 2 : workerConcurrency;
+        maxSteps = maxSteps == null || maxSteps <= 0 ? 10 : maxSteps;
+        remoteToolTimeoutSeconds =
+                remoteToolTimeoutSeconds == null || remoteToolTimeoutSeconds <= 0 ? 300.0 : remoteToolTimeoutSeconds;
+        sseHeartbeatSeconds = sseHeartbeatSeconds == null || sseHeartbeatSeconds <= 0 ? 15.0 : sseHeartbeatSeconds;
     }
 
     private static String normalizePrefix(String value) {

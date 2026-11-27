@@ -36,6 +36,10 @@ prism:
   service-name: ${PRISM_SERVICE_NAME:PrismAgentKit API}
   version: ${PRISM_VERSION:1.4.0}
   model-name: ${PRISM_MODEL_NAME:deepseek-chat}
+  worker-concurrency: ${PRISM_WORKER_CONCURRENCY:2}
+  max-steps: ${PRISM_MAX_STEPS:10}
+  remote-tool-timeout-seconds: ${PRISM_REMOTE_TOOL_TIMEOUT_SECONDS:300}
+  sse-heartbeat-seconds: ${PRISM_SSE_HEARTBEAT_SECONDS:15}
 
 server:
   port: ${PRISM_PORT:8080}
