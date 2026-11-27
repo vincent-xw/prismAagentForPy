@@ -1,0 +1,24 @@
+backend/src/prism_agent_kit/application/workspace_service.py
+  h_c3a612a540ca0b 137
+backend/src/prism_agent_kit/core/config.py
+  h_c3a612a540ca0b 47-48
+backend/tests/core/test_config.py
+  h_c3a612a540ca0b 48-49
+backend/tests/test_agent_e2e.py
+  h_c3a612a540ca0b 242,261-262
+contracts/openapi/prism-agent-api.yaml
+  h_c3a612a540ca0b 466-496,2104-2106,2114-2123,2126,2155-2170,2184-2191,2217
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "d12dc47d55e66964a758f8f2fe24ca80d722297e",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
