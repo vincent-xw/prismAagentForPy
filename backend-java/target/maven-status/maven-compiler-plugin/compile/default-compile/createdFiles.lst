@@ -1,1 +1,5 @@
+com/prism/agent/common/ErrorCode.class
 com/prism/agent/PrismAgentApplication.class
+com/prism/agent/common/ApiException.class
+com/prism/agent/api/security/RequestIdFilter.class
+com/prism/agent/api/exception/GlobalExceptionHandler.class
