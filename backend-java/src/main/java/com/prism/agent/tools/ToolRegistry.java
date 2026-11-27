@@ -14,9 +14,28 @@ import org.springframework.stereotype.Component;
 public class ToolRegistry {
 
     private final Map<String, ToolDefinition> tools = new LinkedHashMap<>();
+    private final Map<String, ToolHandler> handlers = new LinkedHashMap<>();
+
+    /** 本地/MCP 工具的调用入口；schema 注册与执行分离。 */
+    public interface ToolHandler {
+        Object invoke(Map<String, Object> input);
+    }
 
     public synchronized void register(ToolDefinition definition) {
         tools.put(definition.name(), definition);
+    }
+
+    public synchronized void registerHandler(String name, ToolHandler handler) {
+        handlers.put(name, handler);
+    }
+
+    public synchronized void unregister(String name) {
+        tools.remove(name);
+        handlers.remove(name);
+    }
+
+    public synchronized Optional<ToolHandler> handler(String name) {
+        return Optional.ofNullable(handlers.get(name));
     }
 
     public synchronized Optional<ToolDefinition> get(String name) {
@@ -29,6 +48,7 @@ public class ToolRegistry {
 
     public synchronized void clear() {
         tools.clear();
+        handlers.clear();
     }
 
     public record ToolDefinition(

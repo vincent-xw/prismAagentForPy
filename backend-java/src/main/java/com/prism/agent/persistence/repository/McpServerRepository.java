@@ -21,4 +21,6 @@ public interface McpServerRepository {
     McpServer setStatus(String id, McpStatus status, String lastError);
 
     boolean nameExists(String name, String slug, String excludeId);
+
+    boolean exists(String id);
 }

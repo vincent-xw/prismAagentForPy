@@ -96,11 +96,18 @@ class McpConfigApiTest extends MySqlTestBase {
 
     @Test
     void enableAndDisableToggleState() {
-        String id = call(HttpMethod.POST, "/api/v1/mcp/servers", httpRequest("toggle", "***"))
-                .getBody().get("id").asText();
+        Map<String, Object> body = new HashMap<>();
+        body.put("name", "toggle");
+        body.put("transport", "stdio");
+        body.put("command", java.nio.file.Path.of("..", "backend", ".venv", "bin", "python").toString());
+        body.put("args", List.of(java.nio.file.Path.of("..", "backend", "tests", "support",
+                "mcp_stdio_server.py").toString()));
+        String id = call(HttpMethod.POST, "/api/v1/mcp/servers", body).getBody().get("id").asText();
 
         JsonNode enabled = call(HttpMethod.POST, "/api/v1/mcp/servers/" + id + "/enable", null).getBody();
         assertThat(enabled.get("enabled").asBoolean()).isTrue();
+        assertThat(enabled.get("status").asText()).isEqualTo("connected");
+        assertThat(enabled.get("tool_count").asInt()).isEqualTo(3);
 
         JsonNode disabled = call(HttpMethod.POST, "/api/v1/mcp/servers/" + id + "/disable", null).getBody();
         assertThat(disabled.get("enabled").asBoolean()).isFalse();

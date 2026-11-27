@@ -103,6 +103,11 @@ public class MyBatisMcpServerRepository implements McpServerRepository {
     }
 
     @Override
+    public boolean exists(String id) {
+        return mapper.selectById(id) != null;
+    }
+
+    @Override
     public boolean nameExists(String name, String slug, String excludeId) {
         return mapper.selectCount(
                         Wrappers.<McpServerEntity>lambdaQuery()
