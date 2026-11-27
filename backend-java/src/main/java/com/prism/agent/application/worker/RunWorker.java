@@ -39,6 +39,7 @@ public class RunWorker {
     private final AgentEngine engine;
     private final RunCancellationRegistry cancellations;
     private final TransactionTemplate transactionTemplate;
+    private final RunRecoveryService recoveryService;
     private final int concurrency;
 
     private final List<Thread> threads = new ArrayList<>();
@@ -53,6 +54,7 @@ public class RunWorker {
             AgentEngine engine,
             RunCancellationRegistry cancellations,
             TransactionTemplate transactionTemplate,
+            RunRecoveryService recoveryService,
             com.prism.agent.config.PrismProperties properties) {
         this.runs = runs;
         this.toolCalls = toolCalls;
@@ -61,6 +63,7 @@ public class RunWorker {
         this.engine = engine;
         this.cancellations = cancellations;
         this.transactionTemplate = transactionTemplate;
+        this.recoveryService = recoveryService;
         this.concurrency = Math.max(1, properties.workerConcurrency());
     }
 
@@ -71,7 +74,7 @@ public class RunWorker {
         }
         started = true;
         running = true;
-        recoverInterruptedRuns();
+        recoveryService.recoverInterruptedRuns();
         for (int index = 0; index < concurrency; index++) {
             threads.add(Thread.ofVirtual().name("run-worker-" + index).start(this::loop));
         }
@@ -144,45 +147,6 @@ public class RunWorker {
                                             "error_code", ErrorCode.INTERNAL_ERROR.name(),
                                             "error_message", "Run 执行出现未分类异常")));
                 });
-    }
-
-    /** 启动恢复：把上次进程遗留的 running Run 标记为进程中断，并闭合工具调用。 */
-    public int recoverInterruptedRuns() {
-        int recovered = 0;
-        for (Run run : runs.listByStatus(RunStatus.RUNNING)) {
-            transactionTemplate.executeWithoutResult(
-                    status -> {
-                        Run current = runs.requireById(run.id());
-                        if (current.status() != RunStatus.RUNNING) {
-                            return;
-                        }
-                        toolCalls
-                                .listForRun(run.id())
-                                .stream()
-                                .filter(call -> !call.status().isTerminal())
-                                .forEach(call ->
-                                        toolCalls.markClosed(
-                                                call.id(),
-                                                ToolCallStatus.FAILED,
-                                                ErrorCode.PROCESS_INTERRUPTED.name(),
-                                                "进程中断，Run 未能继续执行"));
-                        runs.transition(
-                                run.id(),
-                                RunStatus.FAILED,
-                                null,
-                                ErrorCode.PROCESS_INTERRUPTED.name(),
-                                "进程中断，Run 未能继续执行");
-                        hub.publish(
-                                events.append(
-                                        run.id(),
-                                        EventType.RUN_FAILED,
-                                        Map.of(
-                                                "error_code", ErrorCode.PROCESS_INTERRUPTED.name(),
-                                                "error_message", "进程中断，Run 未能继续执行")));
-                    });
-            recovered++;
-        }
-        return recovered;
     }
 
     private void sleepQuietly() {
