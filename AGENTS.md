@@ -81,3 +81,14 @@ pnpm build
 - UI 提交前至少通过 `pnpm check`、`pnpm test` 和 `pnpm build`；涉及浏览器流程时按需运行 Playwright。
 - 新功能需要覆盖正常路径、关键边界和错误路径；仅修改文档或目录结构时可不新增测试，但仍需确认命令示例和路径有效。
 - 不修复与当前任务无关的问题；发现后单独记录并告知用户。
+
+## Java 后端（backend-java/）
+
+- 定位：与 `backend/` 对齐同一套 HTTP/SSE 契约的独立实现，**不得**通过 HTTP 调用 Python 后端完成业务；两端数据与运行状态完全隔离。
+- 构建：JDK 21 + Maven Wrapper（`./mvnw`）。本机默认 JDK 可能不是 21，命令前显式 `JAVA_HOME`。
+- 结构：单 Maven 模块，包内强制依赖方向 `api → application → core`；`core` 不得 import Spring/MyBatis/Jackson 注解。
+- 对外契约：JSON 一律 snake_case（全局 `SNAKE_CASE`）、时间 ISO-8601 带 `Z`、错误信封 `{error:{code,message,request_id,details}}`；**禁止** `Result<T>` 包装、禁止 camelCase 泄漏、禁止未经评审改字段名/枚举/状态码。
+- 数据：MySQL 8.4 + Flyway；时间以 UTC `DATETIME(6)` 存储；DDL 只能通过 `db/migration/V*.sql` 演进，禁止 `clean`。
+- 代码风格：显式构造器注入，不用 Lombok、不滥用反射/AOP；复杂并发与事务边界必须写中文注释。
+- 测试：`cd backend-java && ./mvnw verify` 必须全绿；集成测试连接服务器 `192.168.31.90` 上的开发库容器（`127.0.0.1:13306` + SSH 隧道），**禁止**使用本机 Docker Desktop。
+- 未实现的路由不注册（不要返回假数据）；兼容性状态以 `docs/compatibility/feature-parity.md` 为准，只有真实通过的测试才能标记为已对齐。
