@@ -101,3 +101,8 @@ pnpm build
 - UI 的 API 基址只允许运行时注入（`API_TARGET`），不得写进构建产物；浏览器只访问同源 `/api/v1`。
 - 两侧数据卷完全隔离；`skills/` 是唯一只读共享挂载。禁止把 MySQL 发布到公网。
 - 契约快照在 `contracts/`，重新导出用 `bash scripts/export-openapi.sh`；跨语言断言在 `tests/contract`，不得 import 后端代码。
+
+## MCP 凭据（Phase 5）
+
+- MCP 的 `env`/`headers` 值可在 UI 直接填写并明文入库（数据卷 0600），接口只回 `***` 掩码与键名；`${ENV_VAR}` 占位继续支持。
+- 任何日志、错误消息、SSE 与轨迹不得出现 MCP 凭据明文。

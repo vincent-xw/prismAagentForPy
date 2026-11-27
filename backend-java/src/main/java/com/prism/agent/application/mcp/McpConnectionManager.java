@@ -77,7 +77,7 @@ public class McpConnectionManager implements McpRuntime {
             McpSyncClient client =
                     McpClient.sync(transportFor(server))
                             .requestTimeout(Duration.ofSeconds(30))
-                            .initializationTimeout(Duration.ofSeconds(10))
+                            .initializationTimeout(Duration.ofSeconds(60))
                             .build();
             client.initialize();
             List<McpSchema.Tool> listed = client.listTools().tools();
@@ -100,6 +100,7 @@ public class McpConnectionManager implements McpRuntime {
             sessions.put(serverId, new Session(client, tools, names));
             repository.setStatus(serverId, McpStatus.CONNECTED, null);
         } catch (RuntimeException error) {
+            log.error("连接 MCP 失败: {}", server.name(), error);
             repository.setStatus(
                     serverId, McpStatus.ERROR, "连接失败: " + error.getClass().getSimpleName());
             throw new ApiException(
