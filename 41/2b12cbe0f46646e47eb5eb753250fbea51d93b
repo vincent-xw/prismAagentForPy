@@ -1,0 +1,16 @@
+ui/src/features/workspace/WorkspacePage.vue
+  h_c3a612a540ca0b 9,56-63,103-104,115,117
+ui/tests/unit/workspace.test.ts
+  h_c3a612a540ca0b 81-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "412b12cbe0f46646e47eb5eb753250fbea51d93b",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
