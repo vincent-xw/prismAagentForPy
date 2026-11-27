@@ -184,6 +184,7 @@ public class MyBatisRunRepository implements RunRepository {
         entity.setPromptVersion(run.promptVersion());
         entity.setSystemPrompt(run.systemPrompt());
         entity.setModel(run.model());
+        entity.setModelProfileId(run.modelProfileId());
         entity.setModelContextWindow(run.modelContextWindow());
         entity.setModelMaxOutputTokens(run.modelMaxOutputTokens());
         entity.setSkillName(run.skillName());
@@ -210,6 +211,7 @@ public class MyBatisRunRepository implements RunRepository {
                 entity.getPromptVersion(),
                 entity.getSystemPrompt(),
                 entity.getModel(),
+                entity.getModelProfileId(),
                 entity.getModelContextWindow(),
                 entity.getModelMaxOutputTokens(),
                 entity.getSkillName(),

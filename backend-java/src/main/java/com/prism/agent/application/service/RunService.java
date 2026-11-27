@@ -6,6 +6,7 @@ import com.prism.agent.application.worker.RunCancellationRegistry;
 import com.prism.agent.common.ApiException;
 import com.prism.agent.common.ErrorCode;
 import com.prism.agent.config.PrismProperties;
+import com.prism.agent.core.domain.ModelProfile;
 import com.prism.agent.core.domain.Message;
 import com.prism.agent.core.domain.MessageKind;
 import com.prism.agent.core.domain.MessageRole;
@@ -42,6 +43,8 @@ public class RunService {
     private final RunEventPublisher publisher;
     private final TransactionTemplate transactionTemplate;
     private final PrismProperties properties;
+    private final ModelProfileService profiles;
+    private final ProfileCredentialResolver credentials;
 
     public RunService(
             RunRepository runs,
@@ -51,7 +54,9 @@ public class RunService {
             EventRepository events,
             RunEventPublisher publisher,
             TransactionTemplate transactionTemplate,
-            PrismProperties properties) {
+            PrismProperties properties,
+            ModelProfileService profiles,
+            ProfileCredentialResolver credentials) {
         this.runs = runs;
         this.messages = messages;
         this.sessions = sessions;
@@ -60,6 +65,8 @@ public class RunService {
         this.publisher = publisher;
         this.transactionTemplate = transactionTemplate;
         this.properties = properties;
+        this.profiles = profiles;
+        this.credentials = credentials;
     }
 
     public Run create(String sessionId, RunCreateRequest request) {
@@ -73,6 +80,11 @@ public class RunService {
         }
 
         Run stored;
+        ModelProfile active = profiles.active();
+        if (active != null) {
+            // 没有可用密钥就不要创建 Run：避免建出必然失败的记录。
+            credentials.resolve(active);
+        }
         try {
             stored =
                     transactionTemplate.execute(
@@ -89,9 +101,10 @@ public class RunService {
                                         "default",
                                         "1",
                                         DEFAULT_SYSTEM_PROMPT,
-                                        properties.modelName(),
-                                        null,
-                                        null,
+                                        active != null ? active.model() : properties.modelName(),
+                                        active != null ? active.id() : null,
+                                        active != null ? active.contextWindow() : null,
+                                        active != null ? active.maxOutputTokens() : null,
                                         request.skillName(),
                                         0,
                                         null,

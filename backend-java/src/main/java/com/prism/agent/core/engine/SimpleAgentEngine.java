@@ -18,6 +18,7 @@ import com.prism.agent.persistence.repository.MessageRepository;
 import com.prism.agent.persistence.repository.RunRepository;
 import com.prism.agent.persistence.repository.ToolCallRepository;
 import com.prism.agent.providers.ModelPorts;
+import com.prism.agent.providers.ProviderResolver;
 import com.prism.agent.tools.ToolRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -41,7 +42,8 @@ public class SimpleAgentEngine implements AgentEngine {
     private final EventRepository events;
     private final RunStreamHub hub;
     private final TransactionTemplate transactionTemplate;
-    private final ModelPorts.Provider provider;
+    private final ProviderResolver providerResolver;
+    private ModelPorts.Provider fixedProvider;
     private final ToolRegistry toolRegistry;
     private final int maxSteps;
     private final double remoteToolTimeoutSeconds;
@@ -53,7 +55,7 @@ public class SimpleAgentEngine implements AgentEngine {
             EventRepository events,
             RunStreamHub hub,
             TransactionTemplate transactionTemplate,
-            ModelPorts.Provider provider,
+            ProviderResolver providerResolver,
             ToolRegistry toolRegistry,
             int maxSteps,
             double remoteToolTimeoutSeconds) {
@@ -63,10 +65,36 @@ public class SimpleAgentEngine implements AgentEngine {
         this.events = events;
         this.hub = hub;
         this.transactionTemplate = transactionTemplate;
-        this.provider = provider;
+        this.providerResolver = providerResolver;
         this.toolRegistry = toolRegistry;
         this.maxSteps = maxSteps;
         this.remoteToolTimeoutSeconds = remoteToolTimeoutSeconds;
+    }
+
+    /** 兼容测试：固定 Provider。 */
+    public SimpleAgentEngine(
+            RunRepository runs,
+            MessageRepository messages,
+            ToolCallRepository toolCalls,
+            EventRepository events,
+            RunStreamHub hub,
+            TransactionTemplate transactionTemplate,
+            ModelPorts.Provider provider,
+            ToolRegistry toolRegistry,
+            int maxSteps,
+            double remoteToolTimeoutSeconds) {
+        this(
+                runs,
+                messages,
+                toolCalls,
+                events,
+                hub,
+                transactionTemplate,
+                (ProviderResolver) null,
+                toolRegistry,
+                maxSteps,
+                remoteToolTimeoutSeconds);
+        this.fixedProvider = provider;
     }
 
     @Override
@@ -104,7 +132,7 @@ public class SimpleAgentEngine implements AgentEngine {
         ModelPorts.Response response;
         try {
             response =
-                    provider.stream(
+                    provider(run).stream(
                             new ModelPorts.Request(
                                     run.systemPrompt(), history, callHistory, schemas, run.modelMaxOutputTokens()),
                             chunk -> {
@@ -143,6 +171,10 @@ public class SimpleAgentEngine implements AgentEngine {
             return cancelRun(run.id());
         }
         return persistTurn(run, response);
+    }
+
+    private ModelPorts.Provider provider(Run run) {
+        return fixedProvider != null ? fixedProvider : providerResolver.forRun(run);
     }
 
     private EngineOutcome persistTurn(Run run, ModelPorts.Response response) {
