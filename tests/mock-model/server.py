@@ -12,6 +12,7 @@
 import argparse
 import json
 import time
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 TEXT = [
@@ -49,7 +50,7 @@ def _tool_chunks(name: str) -> list[dict]:
                         "tool_calls": [
                             {
                                 "index": 0,
-                                "id": "call_parity",
+                                "id": f"call_{uuid.uuid4().hex[:12]}",
                                 "function": {"name": name, "arguments": arguments},
                             }
                         ]

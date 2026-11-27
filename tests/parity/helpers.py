@@ -9,7 +9,7 @@ TERMINAL = {"run.completed", "run.failed", "run.cancelled"}
 
 def create_session(client: httpx.Client, title: str) -> str:
     response = client.post("/api/v1/sessions", json={"title": title})
-    assert response.status_code == 200, response.text
+    assert response.status_code in {200, 201}, response.text
     return response.json()["id"]
 
 

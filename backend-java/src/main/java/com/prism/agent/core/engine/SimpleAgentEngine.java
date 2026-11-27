@@ -269,7 +269,6 @@ public class SimpleAgentEngine implements AgentEngine {
                         }
                     }
                     runs.transition(run.id(), RunStatus.QUEUED, null, null, null);
-                    events.add(this.events.append(run.id(), EventType.RUN_REQUEUED, Map.of()));
                 });
         events.forEach(hub::publish);
     }
@@ -390,12 +389,19 @@ public class SimpleAgentEngine implements AgentEngine {
                                                 Map.of("message_id", assistant.id())));
                                 return EngineOutcome.completed();
                             }
+                            // 全部本地工具时内联执行，不对外暴露 waiting/requeue 中间态（对齐 Python）
+                            boolean allLocal = created.stream()
+                                    .allMatch(call -> call.executionMode() == ExecutionMode.LOCAL);
                             runs.transition(run.id(), RunStatus.WAITING_FOR_TOOL, null, null, null);
-                            toPublish.add(
-                                    events.append(
-                                            run.id(),
-                                            EventType.RUN_WAITING_FOR_TOOL,
-                                            Map.of("call_ids", created.stream().map(ToolCall::id).toList())));
+                            if (!allLocal) {
+                                toPublish.add(
+                                        events.append(
+                                                run.id(),
+                                                EventType.RUN_WAITING_FOR_TOOL,
+                                                Map.of(
+                                                        "call_ids",
+                                                        created.stream().map(ToolCall::id).toList())));
+                            }
                             return EngineOutcome.waitingForTools();
                         });
 

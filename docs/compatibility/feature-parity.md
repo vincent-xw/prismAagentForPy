@@ -15,19 +15,19 @@
 | Feature | Python | Java | API | Behavior | E2E | Notes |
 |---|---|---|---|---|---|---|
 | Health | Verified | Implemented | **Contract Passed** | Pending | Pending | Java 无 FTS5，`workspace_fts=unsupported`（见 Known Differences） |
-| Session 创建/列表/查询 | Verified | Implemented | **Contract Passed** | Pending | Pending | 两端契约测试通过（含 401/404 信封） |
+| Session 创建/列表/查询 | Verified | Implemented | **Contract Passed** | Pending | **E2E Passed** | 两端契约测试通过（含 401/404 信封）；双 UI 新建会话 |
 | Session 工作区绑定 | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_workspaces.py` 绑定用例双端通过 |
-| Run / Message / ToolCall | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_runs.py` 双端通过（含 assistant 内容）；SSE `id` 为全局事件 id |
-| SSE 事件与重放 | Verified | Implemented | **Contract Passed** | Pending | Pending | 事件 seq/重放/终态关流已双端验证 |
-| 取消 / 超时 / 恢复 | Verified | Implemented | Pending | Pending | Pending | Java 语言内测试覆盖取消/恢复/过期 |
+| Run / Message / ToolCall | Verified | Implemented | **Contract Passed** | **Behavior Passed** | **E2E Passed** | 文本/工具回环事件序列与消息序列一致；SSE `id` 为全局事件 id |
+| SSE 事件与重放 | Verified | Implemented | **Contract Passed** | **Behavior Passed** | **E2E Passed** | 事件序列/重放/终态关流双端一致 |
+| 取消 / 超时 / 恢复 | Verified | Implemented | Pending | Pending | Pending | 取消/BUSY 已双端对比；超时/恢复仅 Java 语言内测试 |
 | 上下文裁剪与压缩 | Verified | Implemented | Pending | Pending | Pending | `CompactionTest`；token 计数差异按 K-05 不比对 |
-| 轨迹投影 | Verified | Implemented | **Contract Passed** | Pending | Pending | `tests/contract/test_trajectory.py` 双端通过 |
+| 轨迹投影 | Verified | Implemented | **Contract Passed** | Pending | **E2E Passed** | 契约双端通过；双 UI 轨迹页可见 Turn/Step（行为序列未逐端对比） |
 | Model Profile | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_model_profiles.py` 双端通过；密钥只写、只回 `has_key` |
 | 会话标题生成 | Verified | Implemented | Pending | Pending | Pending | 依赖模型 Provider，无密钥时仅告警 |
-| 上下文使用量展示 | Verified | Implemented | **Contract Passed** | Pending | Pending | `GET /sessions/{id}/context` 双端通过；估算器差异按相对值断言 |
-| Workspace / 文件工具 / 权限档位 | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_workspaces.py` 双端通过；逐工具审批按 K-09 不启用 |
+| 上下文使用量展示 | Verified | Implemented | **Contract Passed** | **Behavior Passed** | **E2E Passed** | 预算公式一致、used>0、percent 容差 10；双 UI 输入框下方可见 |
+| Workspace / 文件工具 / 权限档位 | Verified | Implemented | **Contract Passed** | Pending | Pending | 文件工具在 parity 工具回环中双端执行成功；权限 UI 未做 E2E |
 | MCP Client | Verified | Implemented | **Contract Passed** | Pending | Pending | `test_mcp.py` 双端通过；Java 官方 SDK（stdio + Streamable HTTP） |
-| Skills | Verified | Implemented | **Contract Passed** | Pending | Pending | Phase 6：列表/详情、Run 注入、skill 工具；示例技能 prism-demo |
+| Skills | Verified | Implemented | **Contract Passed** | **Behavior Passed** | **E2E Passed** | 注入消息序列一致；双 UI 技能菜单可见 prism-demo |
 | 命名工作区（V1.5 扩展） | Verified | Implemented | **Contract Passed** | Pending | Pending | 同名自动加后缀；`test_workspaces.py` 双端通过 |
 
 `Python = Verified` 表示已有语言内测试与运行验证；跨语言一致性仍需 Phase 2 起的契约与 parity 测试证明。
