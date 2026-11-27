@@ -1,0 +1,22 @@
+ui/src/features/sessions/SessionPage.vue
+  h_c3a612a540ca0b 9,16-17,49-62,174-182
+ui/src/features/sessions/compaction.ts
+  h_c3a612a540ca0b 1-8
+ui/src/lib/api/client.ts
+  h_c3a612a540ca0b 5,222-229
+ui/src/lib/api/contracts.ts
+  h_c3a612a540ca0b 316-324
+ui/tests/unit/manual-compact.test.ts
+  h_c3a612a540ca0b 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "94975d1d3dbdd90185deb9794d4f075d63ed6729",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
