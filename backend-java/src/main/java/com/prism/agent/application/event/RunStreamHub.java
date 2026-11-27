@@ -47,7 +47,7 @@ public class RunStreamHub implements RunEventPublisher {
     }
 
     /** 订阅：先注册再重放；终态 Run 只做有限重放并立即关闭。 */
-    public SseEmitter subscribe(String runId, Integer afterSeq) {
+    public SseEmitter subscribe(String runId, Long afterId) {
         SseEmitter emitter = new SseEmitter(0L);
         Subscriber subscriber = new Subscriber(runId, emitter);
         subscribers.computeIfAbsent(runId, key -> ConcurrentHashMap.newKeySet()).add(subscriber);
@@ -60,7 +60,7 @@ public class RunStreamHub implements RunEventPublisher {
         emitter.onError(error -> remove(subscriber));
 
         try {
-            for (RunEvent event : events.listAfter(runId, afterSeq)) {
+            for (RunEvent event : events.listAfterId(runId, afterId)) {
                 send(subscriber, event);
                 if (event.type().isTerminal()) {
                     complete(subscriber);
@@ -124,7 +124,7 @@ public class RunStreamHub implements RunEventPublisher {
         try {
             SseEmitter.SseEventBuilder builder = SseEmitter.event().name(event.type().wire());
             if (event.seq() > 0) {
-                builder = builder.id(String.valueOf(event.seq()));
+                builder = builder.id(String.valueOf(event.id()));
             }
             subscriber.emitter.send(builder.data(serialize(event)));
         } catch (IOException error) {

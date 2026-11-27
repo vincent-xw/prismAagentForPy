@@ -64,6 +64,20 @@ public class MyBatisEventRepository implements EventRepository {
     }
 
     @Override
+    public List<RunEvent> listAfterId(String runId, Long afterId) {
+        long cursor = afterId == null ? 0L : afterId;
+        return events
+                .selectList(
+                        Wrappers.<RunEventEntity>lambdaQuery()
+                                .eq(RunEventEntity::getRunId, runId)
+                                .gt(RunEventEntity::getId, cursor)
+                                .orderByAsc(RunEventEntity::getSeq))
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
     public int lastSeq(String runId) {
         Integer max =
                 events

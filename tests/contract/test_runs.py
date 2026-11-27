@@ -48,4 +48,12 @@ def test_run_lifecycle_streams_events(client):
     assert names[0] == "run.queued"
     assert names[-1] == "run.succeeded", names
     persisted = [frame for frame in frames if frame["id"] is not None]
-    assert [int(frame["id"]) for frame in persisted] == list(range(1, len(persisted) + 1))
+    event_ids = [int(frame["id"]) for frame in persisted]
+    # 与 Python 一致：id 是全局事件 id，只保证存在且严格递增
+    assert event_ids == sorted(set(event_ids))
+
+    messages = client.get(f"/api/v1/sessions/{session_id}/messages")
+    assert messages.status_code == 200, messages.text
+    items = messages.json()["items"]
+    assert [item["role"] for item in items] == ["user", "assistant"]
+    assert str(items[-1]["content"]).strip()

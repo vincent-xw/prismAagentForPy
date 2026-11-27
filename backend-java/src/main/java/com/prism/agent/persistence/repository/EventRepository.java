@@ -11,5 +11,8 @@ public interface EventRepository {
 
     List<RunEvent> listAfter(String runId, Integer afterSeq);
 
+    /** 按全局事件 id 续播（与 Python 的 Last-Event-ID 语义一致）。 */
+    List<RunEvent> listAfterId(String runId, Long afterId);
+
     int lastSeq(String runId);
 }

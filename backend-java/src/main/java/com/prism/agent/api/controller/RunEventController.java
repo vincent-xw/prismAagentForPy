@@ -35,19 +35,19 @@ public class RunEventController {
             @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId,
             @RequestParam(value = "once", defaultValue = "false") boolean once) {
         runs.get(runId);
-        Integer afterSeq = parseCursor(lastEventId);
+        Long afterId = parseCursor(lastEventId);
         if (once && !properties.isTest()) {
             throw new ApiException(ErrorCode.INVALID_REQUEST, "once 参数仅在测试环境可用", 400, Map.of());
         }
-        return hub.subscribe(runId, afterSeq);
+        return hub.subscribe(runId, afterId);
     }
 
-    private Integer parseCursor(String value) {
+    private Long parseCursor(String value) {
         if (value == null) {
             return null;
         }
         try {
-            int cursor = Integer.parseInt(value);
+            long cursor = Long.parseLong(value);
             if (cursor < 0) {
                 throw new NumberFormatException("negative");
             }

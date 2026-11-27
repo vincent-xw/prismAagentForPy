@@ -116,7 +116,10 @@ class SseStreamTest extends MySqlTestBase {
         List<String[]> frames = streamFrames(runId, null);
 
         assertThat(frames).extracting(frame -> frame[0]).containsExactly("run.queued", "run.cancelled");
-        assertThat(frames).extracting(frame -> frame[1]).containsExactly("1", "2");
+        // id 是全局事件 id（与 Python 一致），不保证从 1 开始，但必须严格递增。
+        List<Long> ids = frames.stream().map(frame -> Long.parseLong(frame[1])).toList();
+        assertThat(ids).hasSize(2);
+        assertThat(ids.get(1)).isGreaterThan(ids.get(0));
         assertThat(frames.get(0)[2])
                 .contains("\"type\":\"run.queued\"")
                 .contains(runId)
@@ -127,9 +130,11 @@ class SseStreamTest extends MySqlTestBase {
     @Test
     void lastEventIdResumesAfterCursor() throws Exception {
         String runId = createCancelledRun();
-        List<String[]> frames = streamFrames(runId, "1");
+        List<String[]> all = streamFrames(runId, null);
+        String firstId = all.get(0)[1];
+        List<String[]> frames = streamFrames(runId, firstId);
         assertThat(frames).extracting(frame -> frame[0]).containsExactly("run.cancelled");
-        assertThat(frames.get(0)[1]).isEqualTo("2");
+        assertThat(Long.parseLong(frames.get(0)[1])).isGreaterThan(Long.parseLong(firstId));
     }
 
     @Test
