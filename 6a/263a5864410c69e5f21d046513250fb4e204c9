@@ -1,0 +1,26 @@
+AGENTS.md
+  h_c3a612a540ca0b 95-103
+contracts/README.md
+  h_c3a612a540ca0b 1-35
+contracts/events/events.schema.json
+  h_c3a612a540ca0b 1-474
+contracts/openapi/prism-agent-api.yaml
+  h_c3a612a540ca0b 1-2149
+docs/compatibility/feature-parity.md
+  h_c3a612a540ca0b 17-18,33-40
+docs/superpowers/plans/2026-11-27-java-runtime-parity-phase2.md
+  h_c3a612a540ca0b 1-865
+scripts/export-openapi.sh
+  h_c3a612a540ca0b 1-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6a263a5864410c69e5f21d046513250fb4e204c9",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
