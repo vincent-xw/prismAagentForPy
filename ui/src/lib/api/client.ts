@@ -3,6 +3,7 @@ import {
   approvalPreviewSchema,
   approvalResponseSchema,
   compactResultSchema,
+  contextUsageSchema,
   errorSchema,
   fileResponseSchema,
   healthSchema,
@@ -237,6 +238,14 @@ export function createCoreClient({ basePath, getToken, fetcher }: ClientOptions)
           before === undefined ? '' : `?before=${encodeURIComponent(before)}`
         }`,
         trajectorySchema,
+        'GET',
+        undefined,
+        signal,
+      ),
+    getContextUsage: (sessionId: string, signal?: AbortSignal) =>
+      request(
+        `/sessions/${encodeURIComponent(sessionId)}/context`,
+        contextUsageSchema,
         'GET',
         undefined,
         signal,

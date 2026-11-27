@@ -13,6 +13,7 @@ import {
 import { useAppContext } from './context'
 import SessionSidebar from '@/features/sessions/SessionSidebar.vue'
 import SessionMeta from '@/features/sessions/SessionMeta.vue'
+import ContextUsageBar from '@/features/sessions/ContextUsageBar.vue'
 import type { WorkspaceDto } from '@/lib/api/contracts'
 const context = useAppContext()
 const { conversation, connection, client } = context
@@ -173,6 +174,11 @@ onMounted(() => {
           :session="currentSession"
           :workspaces="workspaces"
           @bind="bindWorkspace"
+        />
+        <ContextUsageBar
+          v-if="client && currentSession !== null && !settings && !workspace"
+          :client="client"
+          :session-id="currentSession.id"
         />
         <nav
           v-if="currentSession !== null && !settings && !workspace"

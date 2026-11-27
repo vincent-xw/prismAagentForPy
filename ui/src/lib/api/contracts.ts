@@ -326,6 +326,25 @@ export interface ModelProfilePayload {
   max_output_tokens: number
 }
 
+export const contextUsageSchema = z.object({
+  context_window: z.number().int().positive(),
+  max_output_tokens: z.number().int().nonnegative(),
+  budget_tokens: z.number().int().positive(),
+  used_tokens: z.number().int().nonnegative(),
+  percent: z.number(),
+  threshold: z.number(),
+  needs_compaction: z.boolean(),
+  compactable: z.boolean(),
+  last_compaction: z
+    .object({
+      tokens_before: z.number().int(),
+      tokens_after: z.number().int(),
+      at: z.string(),
+    })
+    .nullable(),
+})
+export type ContextUsageDto = z.infer<typeof contextUsageSchema>
+
 export const compactResultSchema = z.object({
   compacted: z.boolean(),
   reason: z.string().optional(),
