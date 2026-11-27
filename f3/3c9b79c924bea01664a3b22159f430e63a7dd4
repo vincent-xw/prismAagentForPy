@@ -1,0 +1,28 @@
+backend-java/src/main/java/com/prism/agent/api/controller/McpController.java
+  h_c3a612a540ca0b 65
+backend-java/src/main/java/com/prism/agent/api/dto/McpViews.java
+  h_c3a612a540ca0b 60
+backend-java/src/main/java/com/prism/agent/application/mcp/McpConfigService.java
+  h_c3a612a540ca0b 164-168
+backend-java/src/main/java/com/prism/agent/application/mcp/McpConnectionManager.java
+  h_c3a612a540ca0b 195-206
+backend-java/src/test/java/com/prism/agent/api/McpConfigApiTest.java
+  h_c3a612a540ca0b 84-85,138-139
+backend-java/src/test/java/com/prism/agent/application/McpConnectionTest.java
+  h_c3a612a540ca0b 54-57,88-91
+backend/tests/support/mcp_http_server.py
+  h_c3a612a540ca0b 17-22
+tests/contract/test_mcp.py
+  h_c3a612a540ca0b 53-54,74-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f33c9b79c924bea01664a3b22159f430e63a7dd4",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
