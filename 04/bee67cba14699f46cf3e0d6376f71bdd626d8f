@@ -1,0 +1,48 @@
+backend-java/src/test/java/com/prism/agent/api/ApiTokenFilterTest.java
+  h_c3a612a540ca0b 1-42
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+  h_c3a612a540ca0b 3
+backend-java/src/main/java/com/prism/agent/api/security/ApiTokenFilter.java
+  h_c3a612a540ca0b 1-114
+backend-java/src/test/java/com/prism/agent/api/ErrorEnvelopeTest.java
+  h_c3a612a540ca0b 24,35,42-44
+backend-java/src/main/java/com/prism/agent/config/PrismProperties.java
+  h_c3a612a540ca0b 1-45
+backend-java/target/surefire-reports/com.prism.agent.api.ErrorEnvelopeTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/TEST-com.prism.agent.PrismAgentApplicationTests.xml
+  h_c3a612a540ca0b 2,18,37,57,71-73,84-87
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.ErrorEnvelopeTest.xml
+  h_c3a612a540ca0b 2,18,37,57,71-73,84-90,93
+backend-java/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+  h_c3a612a540ca0b 2
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+  h_c3a612a540ca0b 2,5-7
+backend-java/target/surefire-reports/com.prism.agent.PrismAgentApplicationTests.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/com.prism.agent.api.ApiTokenFilterTest.txt
+  h_c3a612a540ca0b 1-4
+backend-java/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+  h_c3a612a540ca0b 3,7
+backend-java/src/test/resources/application.properties
+  h_c3a612a540ca0b 1-2
+backend-java/target/test-classes/application.properties
+  h_c3a612a540ca0b 1-2
+backend-java/target/surefire-reports/TEST-com.prism.agent.api.ApiTokenFilterTest.xml
+  h_c3a612a540ca0b 1-95
+backend-java/target/surefire-reports/com.prism.agent.config.JsonContractTest.txt
+  h_c3a612a540ca0b 4
+backend-java/target/surefire-reports/TEST-com.prism.agent.config.JsonContractTest.xml
+  h_c3a612a540ca0b 2,18,37,57,71-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "04bee67cba14699f46cf3e0d6376f71bdd626d8f",
+  "prompts": {},
+  "humans": {
+    "h_c3a612a540ca0b": {
+      "author": "xuewen.jia <xuewen.jia@ly.com>"
+    }
+  }
+}
