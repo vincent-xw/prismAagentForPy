@@ -1,6 +1,7 @@
 package com.prism.agent.application.service;
 
 import com.prism.agent.api.dto.RunCreateRequest;
+import com.prism.agent.application.event.RunEventPublisher;
 import com.prism.agent.application.worker.RunCancellationRegistry;
 import com.prism.agent.common.ApiException;
 import com.prism.agent.common.ErrorCode;
@@ -8,9 +9,11 @@ import com.prism.agent.config.PrismProperties;
 import com.prism.agent.core.domain.Message;
 import com.prism.agent.core.domain.MessageKind;
 import com.prism.agent.core.domain.MessageRole;
+import com.prism.agent.core.domain.EventType;
 import com.prism.agent.core.domain.Run;
 import com.prism.agent.core.domain.RunStatus;
 import com.prism.agent.core.domain.Session;
+import com.prism.agent.persistence.repository.EventRepository;
 import com.prism.agent.persistence.repository.MessageRepository;
 import com.prism.agent.persistence.repository.RunRepository;
 import com.prism.agent.persistence.repository.SessionRepository;
@@ -35,6 +38,8 @@ public class RunService {
     private final MessageRepository messages;
     private final SessionRepository sessions;
     private final RunCancellationRegistry cancellations;
+    private final EventRepository events;
+    private final RunEventPublisher publisher;
     private final TransactionTemplate transactionTemplate;
     private final PrismProperties properties;
 
@@ -43,12 +48,16 @@ public class RunService {
             MessageRepository messages,
             SessionRepository sessions,
             RunCancellationRegistry cancellations,
+            EventRepository events,
+            RunEventPublisher publisher,
             TransactionTemplate transactionTemplate,
             PrismProperties properties) {
         this.runs = runs;
         this.messages = messages;
         this.sessions = sessions;
         this.cancellations = cancellations;
+        this.events = events;
+        this.publisher = publisher;
         this.transactionTemplate = transactionTemplate;
         this.properties = properties;
     }
@@ -63,8 +72,10 @@ public class RunService {
                     ErrorCode.PROMPT_NOT_FOUND, "Prompt 版本不存在", 422, Map.of("prompt_ref", promptRef));
         }
 
+        Run stored;
         try {
-            return transactionTemplate.execute(
+            stored =
+                    transactionTemplate.execute(
                     status -> {
                         Instant now = Instant.now();
                         sessions.touch(sessionId, now);
@@ -90,20 +101,29 @@ public class RunService {
                                         now,
                                         null,
                                         null);
-                        Run stored = runs.insert(run);
+                        Run inserted = runs.insert(run);
                         messages.append(
                                 new Message(
                                         null,
                                         sessionId,
-                                        stored.id(),
+                                        inserted.id(),
                                         MessageRole.USER,
                                         MessageKind.TEXT,
                                         request.input(),
                                         null,
                                         null,
                                         now));
-                        return stored;
+                        events.append(
+                                inserted.id(),
+                                EventType.RUN_QUEUED,
+                                Map.of(
+                                        "prompt_ref", inserted.promptRef(),
+                                        "metadata", request.metadata() == null ? Map.of() : request.metadata()));
+                        return inserted;
                     });
+            // 事务提交后再广播：订阅者读库时一定能看到事件行。
+            publisher.publishAll(events.listAfter(stored.id(), null));
+            return stored;
         } catch (DuplicateKeyException error) {
             throw new ApiException(
                     ErrorCode.RUN_CONFLICT, "Session 已有进行中的 Run", 409, Map.of("session_id", sessionId));
@@ -125,7 +145,21 @@ public class RunService {
             cancellations.signal(runId);
             return runs.requireById(runId);
         }
-        return runs.transition(runId, RunStatus.CANCELLED, null, ErrorCode.RUN_CANCELLED.name(), "Run 已取消");
+        Run cancelled =
+                transactionTemplate.execute(
+                        status -> {
+                            Run updated =
+                                    runs.transition(
+                                            runId,
+                                            RunStatus.CANCELLED,
+                                            null,
+                                            ErrorCode.RUN_CANCELLED.name(),
+                                            "Run 已取消");
+                            events.append(runId, EventType.RUN_CANCELLED, Map.of());
+                            return updated;
+                        });
+        publisher.publishAll(events.listAfter(runId, null));
+        return cancelled;
     }
 
     public java.util.List<Run> listByStatus(RunStatus status) {
